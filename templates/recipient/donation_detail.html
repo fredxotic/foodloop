@@ -1,0 +1,31 @@
+<!-- templates/recipient/donation_detail.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6">
+    <h2 class="text-2xl font-semibold mb-6">Donation Details</h2>
+    
+    <div class="mb-6">
+        <h3 class="text-xl font-semibold text-green-700 mb-2">{{ donation.get_food_type_display }}</h3>
+        <p class="text-gray-600 mb-2"><strong>Donor:</strong> {{ donation.donor.username }}</p>
+        <p class="text-gray-600 mb-2"><strong>Quantity:</strong> {{ donation.quantity }}</p>
+        <p class="text-gray-600 mb-2"><strong>Description:</strong> {{ donation.description }}</p>
+        <p class="text-gray-600 mb-2"><strong>Pickup Time:</strong> {{ donation.pickup_time }}</p>
+        <p class="text-gray-600 mb-4"><strong>Location:</strong> {{ donation.location }}</p>
+        <p class="text-gray-600 mb-2"><strong>Status:</strong> {{ donation.get_status_display }}</p>
+    </div>
+    
+    {% if donation.status == 'available' %}
+    <form method="POST" action="{% url 'claim_donation' donation.id %}">
+        {% csrf_token %}
+        <button type="submit" class="bg-green-500 hover:bg-green-600 text-white w-full py-2 rounded">
+            Claim Donation
+        </button>
+    </form>
+    {% endif %}
+    
+    <a href="{% url 'recipient_dashboard' %}" class="block text-center text-green-500 hover:text-green-700 mt-4">
+        Back to Dashboard
+    </a>
+</div>
+{% endblock %}

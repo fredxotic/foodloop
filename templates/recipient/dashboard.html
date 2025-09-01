@@ -1,0 +1,66 @@
+<!-- templates/recipient/dashboard.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<h2 class="text-2xl font-semibold mb-6">Available Donations</h2>
+
+{% if available_donations %}
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+    {% for donation in available_donations %}
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-xl font-semibold text-green-700 mb-2">{{ donation.get_food_type_display }}</h3>
+        <p class="text-gray-600 mb-2"><strong>Donor:</strong> {{ donation.donor.username }}</p>
+        <p class="text-gray-600 mb-2"><strong>Quantity:</strong> {{ donation.quantity }}</p>
+        <p class="text-gray-600 mb-2"><strong>Description:</strong> {{ donation.description }}</p>
+        <p class="text-gray-600 mb-2"><strong>Pickup Time:</strong> {{ donation.pickup_time }}</p>
+        <p class="text-gray-600 mb-4"><strong>Location:</strong> {{ donation.location }}</p>
+        
+        <form method="POST" action="{% url 'claim_donation' donation.id %}">
+            {% csrf_token %}
+            <button type="submit" class="bg-green-500 hover:bg-green-600 text-white w-full py-2 rounded">
+                Claim Donation
+            </button>
+        </form>
+        
+        <a href="{% url 'donation_detail' donation.id %}" class="block text-center text-green-500 hover:text-green-700 mt-2">
+            View Details
+        </a>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="bg-white rounded-lg shadow-md p-8 text-center mb-12">
+    <p class="text-gray-600">No available donations at the moment.</p>
+</div>
+{% endif %}
+
+<h2 class="text-2xl font-semibold mb-6">My Claimed Donations</h2>
+
+{% if my_donations %}
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for donation in my_donations %}
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex justify-between items-start mb-4">
+            <h3 class="text-xl font-semibold text-green-700">{{ donation.get_food_type_display }}</h3>
+            <span class="px-3 py-1 rounded-full text-xs font-semibold 
+                {% if donation.status == 'claimed' %}bg-blue-100 text-blue-800
+                {% elif donation.status == 'completed' %}bg-gray-100 text-gray-800
+                {% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                {{ donation.get_status_display }}
+            </span>
+        </div>
+        
+        <p class="text-gray-600 mb-2"><strong>Donor:</strong> {{ donation.donor.username }}</p>
+        <p class="text-gray-600 mb-2"><strong>Quantity:</strong> {{ donation.quantity }}</p>
+        <p class="text-gray-600 mb-2"><strong>Description:</strong> {{ donation.description }}</p>
+        <p class="text-gray-600 mb-2"><strong>Pickup Time:</strong> {{ donation.pickup_time }}</p>
+        <p class="text-gray-600"><strong>Location:</strong> {{ donation.location }}</p>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="bg-white rounded-lg shadow-md p-8 text-center">
+    <p class="text-gray-600">You haven't claimed any donations yet.</p>
+</div>
+{% endif %}
+{% endblock %}

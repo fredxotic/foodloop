@@ -1,0 +1,79 @@
+<!-- templates/donor/create_donation.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6">
+    <h2 class="text-2xl font-semibold mb-6">Create New Donation</h2>
+    
+    <form method="POST">
+        {% csrf_token %}
+        
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="id_food_type">
+                Food Type
+            </label>
+            {{ form.food_type }}
+            {% if form.food_type.errors %}
+            <p class="text-red-500 text-xs italic">{{ form.food_type.errors.0 }}</p>
+            {% endif %}
+        </div>
+        
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="id_quantity">
+                Quantity
+            </label>
+            {{ form.quantity }}
+            {% if form.quantity.errors %}
+            <p class="text-red-500 text-xs italic">{{ form.quantity.errors.0 }}</p>
+            {% endif %}
+        </div>
+        
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="id_description">
+                Description
+            </label>
+            {{ form.description }}
+            {% if form.description.errors %}
+            <p class="text-red-500 text-xs italic">{{ form.description.errors.0 }}</p>
+            {% endif %}
+        </div>
+        
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="id_pickup_time">
+                Pickup Time
+            </label>
+            {{ form.pickup_time }}
+            {% if form.pickup_time.errors %}
+            <p class="text-red-500 text-xs italic">{{ form.pickup_time.errors.0 }}</p>
+            {% endif %}
+        </div>
+        
+        <div class="mb-6">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="id_location">
+                Location
+            </label>
+            {{ form.location }}
+            {% if form.location.errors %}
+            <p class="text-red-500 text-xs italic">{{ form.location.errors.0 }}</p>
+            {% endif %}
+        </div>
+        
+        <div class="flex items-center justify-between">
+            <a href="{% url 'donor_dashboard' %}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                Cancel
+            </a>
+            <button class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
+                Create Donation
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const now = new Date();
+        const localDatetime = now.toISOString().slice(0, 16);
+        document.getElementById('id_pickup_time').min = localDatetime;
+    });
+</script>
+{% endblock %}

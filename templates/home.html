@@ -1,0 +1,55 @@
+<!-- templates/home.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow-md p-8 text-center mb-8">
+    <h1 class="text-4xl font-bold text-green-600 mb-4">Welcome to FoodLoop</h1>
+    <p class="text-xl text-gray-600 mb-6">Connecting food donors with recipients to reduce waste and fight hunger</p>
+    
+    {% if not user.is_authenticated %}
+    <div class="flex justify-center space-x-4">
+        <a href="{% url 'signup' %}" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg text-lg font-semibold">
+            Get Started
+        </a>
+        <a href="{% url 'login' %}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-lg text-lg font-semibold">
+            Login
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="text-green-500 text-4xl mb-4">♻️</div>
+        <h2 class="text-xl font-semibold mb-2">Reduce Food Waste</h2>
+        <p class="text-gray-600">Connect with organizations and individuals who can use your surplus food instead of throwing it away.</p>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="text-green-500 text-4xl mb-4">🤝</div>
+        <h2 class="text-xl font-semibold mb-2">Help Your Community</h2>
+        <p class="text-gray-600">Donate excess food to those in need and make a positive impact in your local community.</p>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="text-green-500 text-4xl mb-4">🌍</div>
+        <h2 class="text-xl font-semibold mb-2">Environmental Impact</h2>
+        <p class="text-gray-600">Reduce greenhouse gas emissions from food waste in landfills and promote sustainable practices.</p>
+    </div>
+</div>
+
+{% if user.is_authenticated %}
+<div class="bg-white rounded-lg shadow-md p-6 text-center">
+    <h2 class="text-2xl font-semibold mb-4">Continue to Your Dashboard</h2>
+    {% if user.user_type == 'donor' %}
+    <a href="{% url 'donor_dashboard' %}" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg text-lg font-semibold">
+        Donor Dashboard
+    </a>
+    {% else %}
+    <a href="{% url 'recipient_dashboard' %}" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg text-lg font-semibold">
+        Recipient Dashboard
+    </a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}
