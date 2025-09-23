@@ -1,66 +1,647 @@
-<!-- templates/recipient/dashboard.html -->
 {% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Recipient Dashboard - FoodLoop | Find & Claim Food Donations{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-header {
+        background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%);
+        border-radius: 15px;
+        color: white;
+        margin-bottom: 2rem;
+    }
+    .stat-card {
+        border: none;
+        border-radius: 15px;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        margin-bottom: 1.5rem;
+        border-left: 4px solid transparent;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+    }
+    .stat-card.bg-primary { border-left-color: #007bff; }
+    .stat-card.bg-success { border-left-color: #28a745; }
+    .stat-card.bg-warning { border-left-color: #ffc107; }
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        background: rgba(255, 255, 255, 0.2);
+    }
+    .donation-card {
+        border: none;
+        border-radius: 15px;
+        transition: all 0.3s ease;
+        box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+        margin-bottom: 1.5rem;
+    }
+    .donation-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+    }
+    .donation-image {
+        height: 180px;
+        object-fit: cover;
+        border-radius: 15px 15px 0 0;
+    }
+    .image-placeholder {
+        height: 180px;
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6c757d;
+        border-radius: 15px 15px 0 0;
+    }
+    .status-badge {
+        font-size: 0.75rem;
+        padding: 6px 12px;
+        border-radius: 20px;
+    }
+    .claim-card {
+        border-left: 4px solid;
+        border-radius: 15px;
+    }
+    .claim-card.claimed { border-left-color: #ffc107; }
+    .claim-card.completed { border-left-color: #28a745; }
+    .empty-state {
+        padding: 60px 20px;
+        text-align: center;
+    }
+    .section-header {
+        border-bottom: 2px solid #e9ecef;
+        padding-bottom: 1rem;
+        margin-bottom: 2rem;
+    }
+    .quick-actions .btn {
+        border-radius: 10px;
+        padding: 12px 20px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    .distance-badge {
+        background: linear-gradient(135deg, #6f42c1, #e83e8c);
+        color: white;
+    }
+    .refresh-indicator {
+        animation: pulse 2s infinite;
+    }
+    .rating-stars {
+        color: #ffc107;
+    }
+    .rating-prompt {
+        border-left: 4px solid #ffc107;
+        background: #fffbf0;
+    }
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<h2 class="text-2xl font-semibold mb-6">Available Donations</h2>
-
-{% if available_donations %}
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-    {% for donation in available_donations %}
-    <div class="bg-white rounded-lg shadow-md p-6">
-        <h3 class="text-xl font-semibold text-green-700 mb-2">{{ donation.get_food_type_display }}</h3>
-        <p class="text-gray-600 mb-2"><strong>Donor:</strong> {{ donation.donor.username }}</p>
-        <p class="text-gray-600 mb-2"><strong>Quantity:</strong> {{ donation.quantity }}</p>
-        <p class="text-gray-600 mb-2"><strong>Description:</strong> {{ donation.description }}</p>
-        <p class="text-gray-600 mb-2"><strong>Pickup Time:</strong> {{ donation.pickup_time }}</p>
-        <p class="text-gray-600 mb-4"><strong>Location:</strong> {{ donation.location }}</p>
-        
-        <form method="POST" action="{% url 'claim_donation' donation.id %}">
-            {% csrf_token %}
-            <button type="submit" class="bg-green-500 hover:bg-green-600 text-white w-full py-2 rounded">
-                Claim Donation
-            </button>
-        </form>
-        
-        <a href="{% url 'donation_detail' donation.id %}" class="block text-center text-green-500 hover:text-green-700 mt-2">
-            View Details
-        </a>
-    </div>
-    {% endfor %}
-</div>
-{% else %}
-<div class="bg-white rounded-lg shadow-md p-8 text-center mb-12">
-    <p class="text-gray-600">No available donations at the moment.</p>
-</div>
-{% endif %}
-
-<h2 class="text-2xl font-semibold mb-6">My Claimed Donations</h2>
-
-{% if my_donations %}
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    {% for donation in my_donations %}
-    <div class="bg-white rounded-lg shadow-md p-6">
-        <div class="flex justify-between items-start mb-4">
-            <h3 class="text-xl font-semibold text-green-700">{{ donation.get_food_type_display }}</h3>
-            <span class="px-3 py-1 rounded-full text-xs font-semibold 
-                {% if donation.status == 'claimed' %}bg-blue-100 text-blue-800
-                {% elif donation.status == 'completed' %}bg-gray-100 text-gray-800
-                {% else %}bg-yellow-100 text-yellow-800{% endif %}">
-                {{ donation.get_status_display }}
-            </span>
+<div class="container py-4">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header p-4 mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-6 fw-bold mb-2">
+                    <i class="fas fa-hands-helping me-3"></i>Recipient Dashboard
+                </h1>
+                <p class="lead mb-0">Find fresh food donations, manage your claims, and help reduce food waste</p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <div class="d-flex flex-wrap gap-2 justify-content-md-end">
+                    <a href="{% url 'map_view' %}" class="btn btn-light btn-lg px-3">
+                        <i class="fas fa-map-marked-alt me-2"></i>Map View
+                    </a>
+                    <a href="{% url 'search_donations' %}" class="btn btn-light btn-lg px-3">
+                        <i class="fas fa-search me-2"></i>Advanced Search
+                    </a>
+                </div>
+            </div>
         </div>
-        
-        <p class="text-gray-600 mb-2"><strong>Donor:</strong> {{ donation.donor.username }}</p>
-        <p class="text-gray-600 mb-2"><strong>Quantity:</strong> {{ donation.quantity }}</p>
-        <p class="text-gray-600 mb-2"><strong>Description:</strong> {{ donation.description }}</p>
-        <p class="text-gray-600 mb-2"><strong>Pickup Time:</strong> {{ donation.pickup_time }}</p>
-        <p class="text-gray-600"><strong>Location:</strong> {{ donation.location }}</p>
     </div>
+
+    <!-- Impact Statistics -->
+    <div class="row mb-5">
+        <div class="col-md-4 mb-3">
+            <div class="card stat-card text-white bg-primary h-100">
+                <div class="card-body text-center">
+                    <div class="stat-icon mx-auto">
+                        <i class="fas fa-hands-helping"></i>
+                    </div>
+                    <h2 class="display-4 fw-bold mb-2">{{ stats.total_claims }}</h2>
+                    <p class="mb-1">Total Claims</p>
+                    <small class="opacity-75">Food donations received</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card stat-card text-white bg-success h-100">
+                <div class="card-body text-center">
+                    <div class="stat-icon mx-auto">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h2 class="display-4 fw-bold mb-2">{{ stats.completed_claims }}</h2>
+                    <p class="mb-1">Successfully Completed</p>
+                    <small class="opacity-75">Pickups finished</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card stat-card text-white bg-warning h-100">
+                <div class="card-body text-center">
+                    <div class="stat-icon mx-auto">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h2 class="display-4 fw-bold mb-2">{{ stats.active_claims }}</h2>
+                    <p class="mb-1">Active Claims</p>
+                    <small class="opacity-75">Awaiting pickup</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Rating Overview -->
+    {% if user_rating > 0 %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-light border-0">
+                <div class="card-body text-center py-3">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h5 class="mb-1">Your Recipient Rating</h5>
+                            <div class="rating-stars mb-1">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= user_rating %}
+                                        <i class="fas fa-star"></i>
+                                    {% else %}
+                                        <i class="far fa-star"></i>
+                                    {% endif %}
+                                {% endfor %}
+                                <span class="fw-bold text-dark ms-2">{{ user_rating }}/5.0</span>
+                            </div>
+                            <small class="text-muted">Based on {{ user_rating_count }} rating(s)</small>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-0 text-muted">
+                                <i class="fas fa-trophy me-2 text-warning"></i>
+                                {% if user_rating >= 4.5 %}Excellent Recipient!
+                                {% elif user_rating >= 4.0 %}Great Recipient!
+                                {% elif user_rating >= 3.0 %}Good Recipient!
+                                {% else %}New Recipient{% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Quick Actions -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-bolt me-2 text-warning"></i>Quick Actions
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row quick-actions">
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <a href="{% url 'map_view' %}" class="btn btn-primary w-100 h-100 py-3">
+                                <i class="fas fa-map-marked-alt fa-2x mb-2"></i>
+                                <div>View on Map</div>
+                                <small class="opacity-75">Find donations nearby</small>
+                            </a>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <a href="{% url 'search_donations' %}" class="btn btn-info w-100 h-100 py-3">
+                                <i class="fas fa-search fa-2x mb-2"></i>
+                                <div>Search Donations</div>
+                                <small class="opacity-75">Filter by preferences</small>
+                            </a>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <a href="{% url 'profile' %}" class="btn btn-success w-100 h-100 py-3">
+                                <i class="fas fa-user-edit fa-2x mb-2"></i>
+                                <div>Update Profile</div>
+                                <small class="opacity-75">Keep info current</small>
+                            </a>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <button class="btn btn-warning w-100 h-100 py-3" onclick="refreshDonations()">
+                                <i class="fas fa-sync-alt fa-2x mb-2 refresh-indicator"></i>
+                                <div>Refresh List</div>
+                                <small class="opacity-75">Check for new donations</small>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rating Prompts -->
+    {% for donation in my_donations %}
+        {% if donation.status == 'completed' and not donation.ratings.exists %}
+        <div class="alert alert-warning rating-prompt mb-4">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-star fa-2x me-3 text-warning"></i>
+                <div class="flex-grow-1">
+                    <h6 class="alert-heading mb-1">Rate Your Experience</h6>
+                    <p class="mb-2">How was your experience with {{ donation.donor.username }} for the {{ donation.food_type }} donation?</p>
+                    <a href="{% url 'create_rating' donation.id %}" class="btn btn-warning btn-sm me-2">
+                        <i class="fas fa-star me-1"></i>Rate Now
+                    </a>
+                    <small class="text-muted">Help improve the FoodLoop community</small>
+                </div>
+            </div>
+        </div>
+        {% endif %}
     {% endfor %}
+
+    <!-- Available Donations Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="section-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3 class="mb-1">
+                            <i class="fas fa-search me-2 text-primary"></i>Available Donations
+                        </h3>
+                        <p class="text-muted mb-0">
+                            Fresh food donations waiting to be claimed in your area
+                            <span class="badge bg-primary ms-2">{{ available_donations|length }} available</span>
+                        </p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'map_view' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-map me-1"></i>Map View
+                        </a>
+                        <a href="{% url 'search_donations' %}" class="btn btn-primary">
+                            <i class="fas fa-filter me-1"></i>Advanced Search
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            {% if available_donations %}
+            <div class="row g-4">
+                {% for donation in available_donations %}
+                <div class="col-xl-4 col-lg-6">
+                    <div class="card donation-card h-100">
+                        {% if donation.get_image_url %}
+                        <img src="{{ donation.get_image_url }}" class="donation-image" alt="{{ donation.food_type }}">
+                        {% else %}
+                        <div class="image-placeholder">
+                            <i class="fas fa-utensils fa-3x"></i>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="badge bg-success status-badge">{{ donation.get_food_type_display }}</span>
+                                {% if donation.distance_km %}
+                                <span class="badge distance-badge status-badge">{{ donation.distance_km }}km away</span>
+                                {% endif %}
+                            </div>
+                            
+                            <h5 class="card-title text-dark mb-2">{{ donation.food_type|title }}</h5>
+                            <p class="card-text text-muted small mb-3">{{ donation.description|truncatewords:15 }}</p>
+                            
+                            <div class="donation-meta small text-muted">
+                                <div class="mb-1">
+                                    <i class="fas fa-box me-2"></i>{{ donation.quantity }}
+                                </div>
+                                <div class="mb-1">
+                                    <i class="fas fa-user me-2"></i>{{ donation.donor.username }}
+                                </div>
+                                <div class="mb-1">
+                                    <i class="fas fa-map-marker-alt me-2"></i>{{ donation.location }}
+                                </div>
+                                <div class="mb-1">
+                                    <i class="fas fa-clock me-2"></i>{{ donation.pickup_time|date:"M d, H:i" }}
+                                </div>
+                                <div>
+                                    <i class="fas fa-calendar-times me-2"></i>Expires {{ donation.expiry_date|date:"M d" }}
+                                </div>
+                            </div>
+
+                            <!-- Donor Rating -->
+                            {% with donor_rating=donation.donor.userprofile.get_average_rating %}
+                                {% if donor_rating > 0 %}
+                                <div class="mt-3 pt-3 border-top">
+                                    <div class="rating-stars small mb-1">
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= donor_rating %}
+                                                <i class="fas fa-star"></i>
+                                            {% else %}
+                                                <i class="far fa-star"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    <small class="text-muted">Donor rating: {{ donor_rating }}/5</small>
+                                </div>
+                                {% endif %}
+                            {% endwith %}
+                        </div>
+                        
+                        <div class="card-footer bg-transparent border-0 pt-0">
+                            <div class="d-grid gap-2">
+                                <form method="post" action="{% url 'claim_donation' donation.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-success btn-sm w-100"
+                                            onclick="return confirmClaim('{{ donation.food_type }}')">
+                                        <i class="fas fa-hand-holding-heart me-1"></i>Claim This Donation
+                                    </button>
+                                </form>
+                                <a href="{% url 'donation_detail' donation.id %}" 
+                                   class="btn btn-outline-primary btn-sm w-100">
+                                    <i class="fas fa-eye me-1"></i>View Details & Contact
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="text-center mt-4">
+                <a href="{% url 'search_donations' %}" class="btn btn-outline-primary btn-lg">
+                    <i class="fas fa-search me-2"></i>View All Available Donations
+                </a>
+            </div>
+            {% else %}
+            <!-- Empty State for Available Donations -->
+            <div class="empty-state">
+                <div class="feature-icon mx-auto mb-4" style="width: 120px; height: 120px; background: #f8f9fa; color: #6c757d;">
+                    <i class="fas fa-search fa-3x"></i>
+                </div>
+                <h4 class="text-dark mb-3">No Available Donations Right Now</h4>
+                <p class="text-muted mb-4 lead">
+                    There are currently no food donations available in your area. 
+                    New donations are added regularly, so please check back soon!
+                </p>
+                <div class="d-flex flex-wrap gap-3 justify-content-center">
+                    <a href="{% url 'map_view' %}" class="btn btn-primary px-4">
+                        <i class="fas fa-map me-2"></i>Check Map View
+                    </a>
+                    <a href="{% url 'search_donations' %}" class="btn btn-outline-primary px-4">
+                        <i class="fas fa-search me-2"></i>Browse All Donations
+                    </a>
+                    <button class="btn btn-success px-4" onclick="refreshDonations()">
+                        <i class="fas fa-sync-alt me-2"></i>Refresh Now
+                    </button>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- My Claims Section -->
+    <div class="row">
+        <div class="col-12">
+            <div class="section-header">
+                <h3 class="mb-1">
+                    <i class="fas fa-list me-2 text-success"></i>My Claims
+                </h3>
+                <p class="text-muted mb-0">
+                    Donations you've claimed and their current status
+                    <span class="badge bg-success ms-2">{{ my_donations|length }} total</span>
+                </p>
+            </div>
+            
+            {% if my_donations %}
+            <div class="row g-4">
+                {% for donation in my_donations %}
+                <div class="col-lg-6">
+                    <div class="card claim-card h-100 {% if donation.status == 'claimed' %}claimed{% elif donation.status == 'completed' %}completed{% endif %}">
+                        <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-{% if donation.food_type == 'vegetables' %}carrot{% elif donation.food_type == 'fruits' %}apple-alt{% elif donation.food_type == 'dairy' %}cheese{% elif donation.food_type == 'bakery' %}bread-slice{% else %}utensils{% endif %} me-2"></i>
+                                {{ donation.food_type|title }}
+                            </h5>
+                            <span class="badge bg-{% if donation.status == 'claimed' %}warning
+                                                {% elif donation.status == 'completed' %}success
+                                                {% else %}secondary{% endif %} status-badge">
+                                <i class="fas fa-{% if donation.status == 'claimed' %}clock
+                                              {% elif donation.status == 'completed' %}check-double
+                                              {% else %}times-circle{% endif %} me-1"></i>
+                                {{ donation.get_status_display }}
+                            </span>
+                        </div>
+                        
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    {% if donation.get_image_url %}
+                                    <img src="{{ donation.get_image_url }}" 
+                                         class="img-fluid rounded" 
+                                         style="height: 120px; object-fit: cover;"
+                                         alt="{{ donation.food_type }}">
+                                    {% else %}
+                                    <div class="rounded bg-light d-flex align-items-center justify-content-center" 
+                                         style="height: 120px;">
+                                        <i class="fas fa-utensils fa-2x text-muted"></i>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-8">
+                                    <p class="card-text small text-muted mb-3">{{ donation.description|truncatewords:20 }}</p>
+                                    
+                                    <div class="row small text-muted">
+                                        <div class="col-6">
+                                            <i class="fas fa-box me-2"></i>{{ donation.quantity }}
+                                        </div>
+                                        <div class="col-6">
+                                            <i class="fas fa-user me-2"></i>{{ donation.donor.username }}
+                                        </div>
+                                        <div class="col-6">
+                                            <i class="fas fa-map-marker-alt me-2"></i>{{ donation.location }}
+                                        </div>
+                                        <div class="col-6">
+                                            <i class="fas fa-clock me-2"></i>{{ donation.pickup_time|date:"M d, H:i" }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Rating Display -->
+                            {% if donation.status == 'completed' %}
+                            <div class="mt-3">
+                                {% with rating=donation.ratings.first %}
+                                    {% if rating %}
+                                    <div class="alert alert-success">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-star fa-2x me-3 text-warning"></i>
+                                            <div>
+                                                <h6 class="alert-heading mb-1">You Rated: {{ rating.rating }}/5 Stars</h6>
+                                                {% if rating.comment %}
+                                                <p class="mb-0 small">"{{ rating.comment|truncatewords:10 }}"</p>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% else %}
+                                    <div class="alert alert-info">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-star fa-2x me-3 text-info"></i>
+                                            <div>
+                                                <h6 class="alert-heading mb-1">Rate Your Experience</h6>
+                                                <p class="mb-2">How was your experience with {{ donation.donor.username }}?</p>
+                                                <a href="{% url 'create_rating' donation.id %}" class="btn btn-info btn-sm">
+                                                    <i class="fas fa-star me-1"></i>Rate Now
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                {% endwith %}
+                            </div>
+                            {% endif %}
+                            
+                            {% if donation.status == 'claimed' %}
+                            <div class="alert alert-info mt-3">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-info-circle fa-2x me-3"></i>
+                                    <div>
+                                        <h6 class="alert-heading mb-2">Ready for Pickup! 🎉</h6>
+                                        <p class="mb-1"><strong>Contact the donor to arrange collection:</strong></p>
+                                        <p class="mb-1"><i class="fas fa-envelope me-2"></i>Email: {{ donation.donor.email }}</p>
+                                        {% if donation.donor.userprofile.phone_number %}
+                                        <p class="mb-0"><i class="fas fa-phone me-2"></i>Phone: {{ donation.donor.userprofile.phone_number }}</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% elif donation.status == 'completed' %}
+                            <div class="alert alert-success mt-3">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-check-circle fa-2x me-3"></i>
+                                    <div>
+                                        <h6 class="alert-heading mb-1">Successfully Completed! ✅</h6>
+                                        <p class="mb-0">Pickup completed on {{ donation.updated_at|date:"F j, Y" }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="card-footer bg-transparent border-0">
+                            <div class="d-flex justify-content-between">
+                                <a href="{% url 'donation_detail' donation.id %}" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-eye me-1"></i>View Details
+                                </a>
+                                {% if donation.status == 'claimed' %}
+                                <button class="btn btn-outline-success btn-sm" 
+                                        onclick="contactDonor('{{ donation.donor.username }}', '{{ donation.donor.email }}', '{{ donation.donor.userprofile.phone_number|default:'' }}')">
+                                    <i class="fas fa-envelope me-1"></i>Contact Donor
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <!-- Empty State for My Claims -->
+            <div class="empty-state">
+                <div class="feature-icon mx-auto mb-4" style="width: 120px; height: 120px; background: #f8f9fa; color: #6c757d;">
+                    <i class="fas fa-hands-helping fa-3x"></i>
+                </div>
+                <h4 class="text-dark mb-3">No Claims Yet</h4>
+                <p class="text-muted mb-4 lead">
+                    You haven't claimed any donations yet. Browse the available donations above and claim your first one to get started!
+                </p>
+                <a href="#available-donations" class="btn btn-success btn-lg px-4">
+                    <i class="fas fa-hand-holding-heart me-2"></i>Claim Your First Donation
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
 </div>
-{% else %}
-<div class="bg-white rounded-lg shadow-md p-8 text-center">
-    <p class="text-gray-600">You haven't claimed any donations yet.</p>
-</div>
-{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+function confirmClaim(foodType) {
+    return confirm(`Are you sure you want to claim this ${foodType} donation? You'll need to contact the donor to arrange pickup.`);
+}
+
+function contactDonor(username, email, phone) {
+    let contactInfo = `Contact ${username} to arrange pickup:\n\nEmail: ${email}`;
+    if (phone) {
+        contactInfo += `\nPhone: ${phone}`;
+    }
+    contactInfo += `\n\nWe recommend emailing first to coordinate a convenient pickup time.`;
+    alert(contactInfo);
+}
+
+function refreshDonations() {
+    const refreshBtn = event.target;
+    const originalHtml = refreshBtn.innerHTML;
+    
+    // Show loading state
+    refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Refreshing...';
+    refreshBtn.disabled = true;
+    
+    // Reload the page after a short delay to show the loading state
+    setTimeout(() => {
+        window.location.reload();
+    }, 1000);
+}
+
+// Auto-refresh every 2 minutes
+setInterval(() => {
+    const refreshIndicator = document.querySelector('.refresh-indicator');
+    if (refreshIndicator) {
+        refreshIndicator.style.animation = 'pulse 0.5s ease-in-out';
+        setTimeout(() => {
+            refreshIndicator.style.animation = 'pulse 2s infinite';
+        }, 500);
+    }
+}, 120000);
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Add smooth animations
+    const cards = document.querySelectorAll('.donation-card, .stat-card');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        card.style.transition = 'all 0.5s ease';
+        
+        setTimeout(() => {
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+    
+    // Add confirmation for claim actions
+    const claimButtons = document.querySelectorAll('form[action*="claim_donation"] button');
+    claimButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            if (!confirm('Are you sure you want to claim this donation? You will need to contact the donor to arrange pickup.')) {
+                e.preventDefault();
+            }
+        });
+    });
+});
+</script>
 {% endblock %}

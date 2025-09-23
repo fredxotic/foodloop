@@ -1,31 +1,215 @@
-<!-- templates/recipient/donation_detail.html -->
 {% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ donation.food_type|title }} Donation - FoodLoop{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6">
-    <h2 class="text-2xl font-semibold mb-6">Donation Details</h2>
-    
-    <div class="mb-6">
-        <h3 class="text-xl font-semibold text-green-700 mb-2">{{ donation.get_food_type_display }}</h3>
-        <p class="text-gray-600 mb-2"><strong>Donor:</strong> {{ donation.donor.username }}</p>
-        <p class="text-gray-600 mb-2"><strong>Quantity:</strong> {{ donation.quantity }}</p>
-        <p class="text-gray-600 mb-2"><strong>Description:</strong> {{ donation.description }}</p>
-        <p class="text-gray-600 mb-2"><strong>Pickup Time:</strong> {{ donation.pickup_time }}</p>
-        <p class="text-gray-600 mb-4"><strong>Location:</strong> {{ donation.location }}</p>
-        <p class="text-gray-600 mb-2"><strong>Status:</strong> {{ donation.get_status_display }}</p>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Donation Header Card -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-success text-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="card-title mb-0">
+                            <i class="fas fa-donate me-2"></i>Donation Details
+                        </h4>
+                        <span class="badge bg-light text-dark fs-6">
+                            {{ donation.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <!-- Food Type and Basic Info -->
+                    <div class="text-center mb-4">
+                        <h3 class="text-success mb-2">
+                            <i class="fas fa-{% if donation.food_type == 'vegetables' %}carrot{% elif donation.food_type == 'fruits' %}apple-alt{% elif donation.food_type == 'dairy' %}cheese{% elif donation.food_type == 'bakery' %}bread-slice{% else %}utensils{% endif %} me-2"></i>
+                            {{ donation.get_food_type_display }}
+                        </h3>
+                        <p class="text-muted">Donated by {{ donation.donor.username }}</p>
+                    </div>
+
+                    <!-- Donation Image -->
+                    {% if donation.get_image_url %}
+                    <div class="text-center mb-4">
+                        <img src="{{ donation.get_image_url }}" 
+                             class="img-fluid rounded" 
+                             style="max-height: 300px; width: auto;"
+                             alt="{{ donation.food_type }}">
+                    </div>
+                    {% endif %}
+
+                    <!-- Donation Details -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <strong><i class="fas fa-weight text-primary me-2"></i>Quantity:</strong>
+                                <p class="text-muted mb-0">{{ donation.quantity }}</p>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <strong><i class="fas fa-user text-success me-2"></i>Donor:</strong>
+                                <p class="text-muted mb-0">{{ donation.donor.username }}</p>
+                                {% if donation.donor.userprofile.phone_number %}
+                                <small class="text-muted">
+                                    <i class="fas fa-phone me-1"></i>{{ donation.donor.userprofile.phone_number }}
+                                </small>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <strong><i class="fas fa-clock text-warning me-2"></i>Pickup Time:</strong>
+                                <p class="text-muted mb-0">{{ donation.pickup_time|date:"F j, Y, g:i a" }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <strong><i class="fas fa-map-marker-alt text-danger me-2"></i>Location:</strong>
+                                <p class="text-muted mb-0">{{ donation.location }}</p>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <strong><i class="fas fa-calendar-times text-info me-2"></i>Expiry Date:</strong>
+                                <p class="text-muted mb-0">{{ donation.expiry_date|date:"F j, Y, g:i a" }}</p>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <strong><i class="fas fa-hourglass-half text-secondary me-2"></i>Pickup Deadline:</strong>
+                                <p class="text-muted mb-0">{{ donation.pickup_deadline|date:"F j, Y, g:i a" }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="mb-4">
+                        <strong><i class="fas fa-align-left text-dark me-2"></i>Description:</strong>
+                        <p class="text-muted mt-2">{{ donation.description|linebreaks }}</p>
+                    </div>
+
+                    <!-- Status Information -->
+                    <div class="alert alert-{% if donation.status == 'available' %}info{% elif donation.status == 'claimed' %}warning{% else %}success{% endif %}">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-{% if donation.status == 'available' %}info-circle{% elif donation.status == 'claimed' %}clock{% else %}check-circle{% endif %} fa-2x me-3"></i>
+                            <div>
+                                <h6 class="alert-heading mb-1">
+                                    {% if donation.status == 'available' %}
+                                        Available for Claiming
+                                    {% elif donation.status == 'claimed' %}
+                                        {% if donation.recipient == user %}
+                                            You've Claimed This Donation!
+                                        {% else %}
+                                            Already Claimed
+                                        {% endif %}
+                                    {% else %}
+                                        Successfully Completed
+                                    {% endif %}
+                                </h6>
+                                {% if donation.status == 'claimed' and donation.recipient == user %}
+                                <p class="mb-0">Contact the donor at <strong>{{ donation.donor.email }}</strong> to arrange pickup.</p>
+                                {% elif donation.status == 'claimed' %}
+                                <p class="mb-0">This donation has been claimed by another recipient.</p>
+                                {% elif donation.status == 'completed' %}
+                                <p class="mb-0">This donation was successfully completed on {{ donation.updated_at|date:"F j, Y" }}.</p>
+                                {% else %}
+                                <p class="mb-0">This donation is available for claiming. Act fast before it's gone!</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2">
+                        {% if donation.status == 'available' %}
+                        <form method="POST" action="{% url 'claim_donation' donation.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success btn-lg w-100"
+                                    onclick="return confirm('Are you sure you want to claim this {{ donation.food_type }} donation?')">
+                                <i class="fas fa-hand-holding-heart me-2"></i>Claim This Donation
+                            </button>
+                        </form>
+                        {% endif %}
+                        
+                        <a href="{% url 'recipient_dashboard' %}" class="btn btn-outline-secondary w-100">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Donor Information Card -->
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-light py-3">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-user-circle me-2"></i>About the Donor
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        {% if donation.donor.userprofile.profile_picture %}
+                        <img src="{{ donation.donor.userprofile.get_profile_picture_url }}" 
+                             class="rounded-circle me-3" 
+                             style="width: 60px; height: 60px; object-fit: cover;"
+                             alt="{{ donation.donor.username }}">
+                        {% else %}
+                        <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-3" 
+                             style="width: 60px; height: 60px;">
+                            <i class="fas fa-user fa-2x text-muted"></i>
+                        </div>
+                        {% endif %}
+                        <div>
+                            <h6 class="mb-1">{{ donation.donor.get_full_name|default:donation.donor.username }}</h6>
+                            <p class="text-muted mb-1 small">Member since {{ donation.donor.date_joined|date:"F Y" }}</p>
+                            <span class="badge bg-success small">
+                                <i class="fas fa-heart me-1"></i>Food Donor
+                            </span>
+                            {% if donation.donor.userprofile.email_verified %}
+                            <span class="badge bg-primary small ms-1">
+                                <i class="fas fa-check-circle me-1"></i>Verified
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if donation.donor.userprofile.address %}
+                    <div class="mt-3 p-3 bg-light rounded">
+                        <h6 class="mb-2"><i class="fas fa-map-marker-alt me-2"></i>Donor's Location</h6>
+                        <p class="mb-0 text-muted small">{{ donation.donor.userprofile.address }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
     </div>
-    
-    {% if donation.status == 'available' %}
-    <form method="POST" action="{% url 'claim_donation' donation.id %}">
-        {% csrf_token %}
-        <button type="submit" class="bg-green-500 hover:bg-green-600 text-white w-full py-2 rounded">
-            Claim Donation
-        </button>
-    </form>
-    {% endif %}
-    
-    <a href="{% url 'recipient_dashboard' %}" class="block text-center text-green-500 hover:text-green-700 mt-4">
-        Back to Dashboard
-    </a>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add confirmation for claim action
+    const claimButton = document.querySelector('form[action*="claim_donation"] button');
+    if (claimButton) {
+        claimButton.addEventListener('click', function(e) {
+            if (!confirm('Are you sure you want to claim this donation? You will need to contact the donor to arrange pickup.')) {
+                e.preventDefault();
+            }
+        });
+    }
+    
+    // Add smooth animations
+    const cards = document.querySelectorAll('.card');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        card.style.transition = 'all 0.5s ease';
+        
+        setTimeout(() => {
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 200);
+    });
+});
+</script>
 {% endblock %}

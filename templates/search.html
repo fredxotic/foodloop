@@ -1,0 +1,443 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Search Food Donations - FoodLoop | Find Fresh Food Near You{% endblock %}
+
+{% block extra_css %}
+<style>
+    .search-hero {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border-radius: 15px;
+        margin-bottom: -50px;
+        position: relative;
+        overflow: hidden;
+    }
+    .search-hero::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" opacity="0.05"><circle cx="20" cy="20" r="8" fill="white"/><circle cx="80" cy="40" r="12" fill="white"/><circle cx="40" cy="80" r="10" fill="white"/></svg>');
+    }
+    .search-form-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+        border: none;
+        margin-top: -30px;
+        position: relative;
+        z-index: 10;
+    }
+    .view-toggle .btn {
+        border-radius: 10px;
+        padding: 8px 16px;
+    }
+    .donation-card {
+        transition: all 0.3s ease;
+        border: none;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+    }
+    .donation-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+    }
+    .donation-image {
+        height: 200px;
+        object-fit: cover;
+        width: 100%;
+    }
+    .image-placeholder {
+        height: 200px;
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6c757d;
+    }
+    .status-badge {
+        font-size: 0.75rem;
+    }
+    .distance-badge {
+        background: linear-gradient(135deg, #6f42c1, #e83e8c);
+        color: white;
+    }
+    .empty-state {
+        padding: 80px 20px;
+    }
+    .filter-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 15px;
+    }
+    .filter-tag {
+        background: #e9ecef;
+        border-radius: 20px;
+        padding: 5px 15px;
+        font-size: 0.875rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Search Hero Section -->
+<section class="search-hero text-white py-5">
+    <div class="container position-relative">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="display-5 fw-bold mb-3">
+                    <i class="fas fa-search me-3"></i>Find Fresh Food Donations
+                </h1>
+                <p class="lead mb-4">Discover available food donations in your community. Search by food type, location, or browse everything available.</p>
+                
+                <div class="d-flex flex-wrap gap-3 align-items-center">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-map-marker-alt me-2"></i>
+                        <small>Searching across Kenya</small>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-clock me-2"></i>
+                        <small>Real-time availability</small>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-shield-alt me-2"></i>
+                        <small>Verified donors</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <a href="{% url 'map_view' %}" class="btn btn-light btn-lg px-4">
+                    <i class="fas fa-map-marked-alt me-2"></i>View on Map
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Search Form Section -->
+<div class="container">
+    <div class="search-form-card p-4 mb-5">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-lg-4 col-md-6">
+                <label class="form-label fw-bold text-dark mb-2">
+                    <i class="fas fa-search me-1"></i>What are you looking for?
+                </label>
+                <input type="text" name="q" class="form-control form-control-lg" 
+                       placeholder="e.g., fruits, vegetables, bread, dairy..."
+                       value="{{ query }}" autofocus>
+            </div>
+            
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label fw-bold text-dark mb-2">
+                    <i class="fas fa-utensils me-1"></i>Food Category
+                </label>
+                <select name="food_type" class="form-control form-control-lg">
+                    <option value="">All Categories</option>
+                    {% for value, label in food_categories %}
+                        <option value="{{ value }}" {% if food_type == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label fw-bold text-dark mb-2">
+                    <i class="fas fa-map-marker-alt me-1"></i>Location
+                </label>
+                <input type="text" name="location" class="form-control form-control-lg" 
+                       placeholder="e.g., Nairobi, Nakuru, Mombasa..."
+                       value="{{ location }}">
+            </div>
+            
+            <div class="col-lg-2 col-md-6">
+                <button type="submit" class="btn btn-primary btn-lg w-100 py-3">
+                    <i class="fas fa-search me-1"></i>Search
+                </button>
+            </div>
+        </form>
+
+        <!-- Active Filters -->
+        {% if query or food_type or location %}
+        <div class="filter-tags">
+            <span class="text-muted small">Active filters:</span>
+            {% if query %}
+            <span class="filter-tag">
+                Search: "{{ query }}" 
+                <a href="?{% if food_type %}food_type={{ food_type }}&{% endif %}{% if location %}location={{ location }}&{% endif %}q=" 
+                   class="text-danger ms-1">×</a>
+            </span>
+            {% endif %}
+            {% if food_type %}
+            <span class="filter-tag">
+                Category: {{ food_type|title }}
+                <a href="?{% if query %}q={{ query }}&{% endif %}{% if location %}location={{ location }}&{% endif %}food_type=" 
+                   class="text-danger ms-1">×</a>
+            </span>
+            {% endif %}
+            {% if location %}
+            <span class="filter-tag">
+                Location: {{ location }}
+                <a href="?{% if query %}q={{ query }}&{% endif %}{% if food_type %}food_type={{ food_type }}&{% endif %}location=" 
+                   class="text-danger ms-1">×</a>
+            </span>
+            {% endif %}
+            <a href="{% url 'search_donations' %}" class="btn btn-outline-secondary btn-sm ms-2">
+                <i class="fas fa-times me-1"></i>Clear All
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Search Results -->
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <!-- Results Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h3 class="text-dark mb-1">
+                        Search Results
+                        <span class="badge bg-primary fs-6 ms-2">{{ donations|length }}</span>
+                    </h3>
+                    <p class="text-muted mb-0">
+                        {% if donations %}
+                            Found {{ donations|length }} donation(s) matching your criteria
+                        {% else %}
+                            No donations found matching your search
+                        {% endif %}
+                    </p>
+                </div>
+                
+                {% if donations %}
+                <div class="view-toggle btn-group" role="group">
+                    <input type="radio" class="btn-check" name="view-mode" id="grid-view" autocomplete="off" checked>
+                    <label class="btn btn-outline-primary" for="grid-view" data-bs-toggle="tooltip" title="Grid View">
+                        <i class="fas fa-th"></i>
+                    </label>
+                    
+                    <input type="radio" class="btn-check" name="view-mode" id="list-view" autocomplete="off">
+                    <label class="btn btn-outline-primary" for="list-view" data-bs-toggle="tooltip" title="List View">
+                        <i class="fas fa-list"></i>
+                    </label>
+                </div>
+                {% endif %}
+            </div>
+
+            {% if donations %}
+            <!-- Grid View -->
+            <div class="row g-4" id="grid-view-container">
+                {% for donation in donations %}
+                <div class="col-xl-3 col-lg-4 col-md-6">
+                    <div class="card donation-card h-100">
+                        {% if donation.get_image_url %}
+                        <img src="{{ donation.get_image_url }}" class="donation-image" alt="{{ donation.food_type }}">
+                        {% else %}
+                        <div class="image-placeholder">
+                            <i class="fas fa-utensils fa-3x"></i>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="badge bg-success status-badge">{{ donation.get_food_type_display }}</span>
+                                {% if donation.distance_km %}
+                                <span class="badge distance-badge status-badge">{{ donation.distance_km }}km</span>
+                                {% endif %}
+                            </div>
+                            
+                            <h5 class="card-title text-dark mb-2">{{ donation.food_type|title }}</h5>
+                            <p class="card-text text-muted small mb-3">{{ donation.description|truncatewords:12 }}</p>
+                            
+                            <div class="donation-meta small text-muted">
+                                <div class="mb-1">
+                                    <i class="fas fa-box me-2"></i>{{ donation.quantity }}
+                                </div>
+                                <div class="mb-1">
+                                    <i class="fas fa-user me-2"></i>{{ donation.donor.username }}
+                                </div>
+                                <div class="mb-1">
+                                    <i class="fas fa-map-marker-alt me-2"></i>{{ donation.location }}
+                                </div>
+                                <div>
+                                    <i class="fas fa-clock me-2"></i>{{ donation.pickup_time|date:"M d, H:i" }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card-footer bg-transparent border-0 pt-0">
+                            <div class="d-grid gap-2">
+                                {% if user.is_authenticated and is_recipient %}
+                                <form method="post" action="{% url 'claim_donation' donation.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-success btn-sm w-100"
+                                            onclick="return confirm('Claim this {{ donation.food_type }} donation?')">
+                                        <i class="fas fa-hand-holding-heart me-1"></i>Claim Now
+                                    </button>
+                                </form>
+                                {% elif not user.is_authenticated %}
+                                <a href="{% url 'login' %}?next={% url 'search_donations' %}" 
+                                   class="btn btn-outline-success btn-sm w-100">
+                                    <i class="fas fa-sign-in-alt me-1"></i>Login to Claim
+                                </a>
+                                {% endif %}
+                                <a href="{% url 'donation_detail' donation.id %}" 
+                                   class="btn btn-outline-primary btn-sm w-100">
+                                    <i class="fas fa-eye me-1"></i>View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- List View -->
+            <div class="card d-none" id="list-view-container">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="30%">Food Donation</th>
+                                    <th>Quantity</th>
+                                    <th>Donor</th>
+                                    <th>Location</th>
+                                    <th>Pickup Time</th>
+                                    <th width="120px">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for donation in donations %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if donation.get_image_url %}
+                                            <img src="{{ donation.get_image_url }}" 
+                                                 class="rounded me-3" 
+                                                 style="width: 60px; height: 60px; object-fit: cover;"
+                                                 alt="{{ donation.food_type }}">
+                                            {% else %}
+                                            <div class="rounded bg-light d-flex align-items-center justify-content-center me-3" 
+                                                 style="width: 60px; height: 60px;">
+                                                <i class="fas fa-utensils text-muted"></i>
+                                            </div>
+                                            {% endif %}
+                                            <div>
+                                                <strong class="d-block">{{ donation.food_type|title }}</strong>
+                                                <small class="text-muted">{{ donation.description|truncatewords:5 }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="align-middle">{{ donation.quantity }}</td>
+                                    <td class="align-middle">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-user-circle text-muted me-2"></i>
+                                            {{ donation.donor.username }}
+                                        </div>
+                                    </td>
+                                    <td class="align-middle">
+                                        <i class="fas fa-map-marker-alt text-muted me-2"></i>
+                                        {{ donation.location }}
+                                    </td>
+                                    <td class="align-middle">
+                                        <small>{{ donation.pickup_time|date:"M d, H:i" }}</small>
+                                    </td>
+                                    <td class="align-middle">
+                                        <div class="btn-group-vertical btn-group-sm w-100">
+                                            {% if user.is_authenticated and is_recipient %}
+                                            <form method="post" action="{% url 'claim_donation' donation.id %}" class="d-inline w-100">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-success btn-sm w-100 mb-1"
+                                                        onclick="return confirm('Claim this donation?')">
+                                                    <i class="fas fa-hand-holding-heart"></i> Claim
+                                                </button>
+                                            </form>
+                                            {% endif %}
+                                            <a href="{% url 'donation_detail' donation.id %}" 
+                                               class="btn btn-outline-primary btn-sm w-100">
+                                                <i class="fas fa-eye"></i> Details
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            {% else %}
+            <!-- Empty State -->
+            <div class="text-center empty-state">
+                <div class="feature-icon mx-auto mb-4" style="width: 120px; height: 120px; background: #f8f9fa; color: #6c757d;">
+                    <i class="fas fa-search fa-3x"></i>
+                </div>
+                <h4 class="text-dark mb-3">No Donations Found</h4>
+                <p class="text-muted mb-4 lead">
+                    {% if query or food_type or location %}
+                    We couldn't find any donations matching your search criteria. Try adjusting your filters or browse all available donations.
+                    {% else %}
+                    There are currently no available donations in the system. Check back later or be the first to create a donation!
+                    {% endif %}
+                </p>
+                <div class="d-flex flex-wrap gap-3 justify-content-center">
+                    <a href="{% url 'search_donations' %}" class="btn btn-primary px-4">
+                        <i class="fas fa-redo me-2"></i>Browse All Donations
+                    </a>
+                    <a href="{% url 'map_view' %}" class="btn btn-outline-primary px-4">
+                        <i class="fas fa-map me-2"></i>Search on Map
+                    </a>
+                    {% if not user.is_authenticated %}
+                    <a href="{% url 'signup' %}" class="btn btn-success px-4">
+                        <i class="fas fa-user-plus me-2"></i>Sign Up for Alerts
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // View toggle functionality
+    const gridView = document.getElementById('grid-view-container');
+    const listView = document.getElementById('list-view-container');
+    const viewRadios = document.querySelectorAll('input[name="view-mode"]');
+    
+    viewRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.id === 'grid-view') {
+                gridView.classList.remove('d-none');
+                listView.classList.add('d-none');
+            } else {
+                gridView.classList.add('d-none');
+                listView.classList.remove('d-none');
+            }
+        });
+    });
+    
+    // Auto-focus search input
+    const searchInput = document.querySelector('input[name="q"]');
+    if (searchInput && !searchInput.value) {
+        searchInput.focus();
+    }
+    
+    // Initialize tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+{% endblock %}

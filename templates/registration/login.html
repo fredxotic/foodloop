@@ -1,41 +1,114 @@
-<!-- templates/registration/login.html -->
 {% extends 'base.html' %}
 
+{% block title %}Login - FoodLoop{% endblock %}
+
 {% block content %}
-<div class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md">
-    <h1 class="text-2xl font-bold text-center text-green-600 mb-6">Login to FoodLoop</h1>
-    
-    {% if error %}
-    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-        {{ error }}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-sign-in-alt me-2"></i>Welcome Back
+                    </h4>
+                    <p class="mb-0 mt-2">Sign in to your FoodLoop account</p>
+                </div>
+                <div class="card-body p-4">
+                    {% if error %}
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-circle me-2"></i>{{ error }}
+                        </div>
+                    {% endif %}
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="username" class="form-label fw-bold">
+                                <i class="fas fa-user me-2"></i>Username or Email
+                            </label>
+                            <input type="text" class="form-control form-control-lg" 
+                                   id="username" name="username" 
+                                   placeholder="Enter your username or email" required
+                                   value="{{ request.POST.username }}">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="password" class="form-label fw-bold">
+                                <i class="fas fa-lock me-2"></i>Password
+                            </label>
+                            <input type="password" class="form-control form-control-lg" 
+                                   id="password" name="password" 
+                                   placeholder="Enter your password" required>
+                            <div class="form-text">
+                                <a href="#" class="text-decoration-none">Forgot your password?</a>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="remember">
+                            <label class="form-check-label" for="remember">
+                                Remember me on this device
+                            </label>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary btn-lg w-100 py-2">
+                            <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                        </button>
+                    </form>
+                    
+                    <div class="text-center mt-4">
+                        <p class="mb-0">Don't have an account? 
+                            <a href="{% url 'signup' %}" class="text-decoration-none fw-bold">
+                                Create one here
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Features -->
+            <div class="row mt-4 text-center">
+                <div class="col-4">
+                    <div class="feature-icon-sm">
+                        <i class="fas fa-shield-alt text-primary"></i>
+                    </div>
+                    <small class="d-block">Secure</small>
+                </div>
+                <div class="col-4">
+                    <div class="feature-icon-sm">
+                        <i class="fas fa-bolt text-warning"></i>
+                    </div>
+                    <small class="d-block">Fast</small>
+                </div>
+                <div class="col-4">
+                    <div class="feature-icon-sm">
+                        <i class="fas fa-heart text-danger"></i>
+                    </div>
+                    <small class="d-block">Community</small>
+                </div>
+            </div>
+        </div>
     </div>
-    {% endif %}
-    
-    <form method="POST">
-        {% csrf_token %}
-        <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="username">
-                Username
-            </label>
-            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
-                   id="username" name="username" type="text" placeholder="Username" required>
-        </div>
-        <div class="mb-6">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="password">
-                Password
-            </label>
-            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline" 
-                   id="password" name="password" type="password" placeholder="Password" required>
-        </div>
-        <div class="flex items-center justify-between">
-            <button class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full" type="submit">
-                Sign In
-            </button>
-        </div>
-    </form>
-    
-    <p class="text-center text-gray-500 text-xs mt-6">
-        Don't have an account? <a href="{% url 'signup' %}" class="text-green-500 hover:text-green-700">Sign up</a>
-    </p>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.feature-icon-sm {
+    width: 40px;
+    height: 40px;
+    background: #f8f9fa;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 5px;
+    font-size: 1.2rem;
+}
+.card {
+    border: none;
+    border-radius: 15px;
+}
+</style>
 {% endblock %}

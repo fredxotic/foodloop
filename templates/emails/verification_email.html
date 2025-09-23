@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            line-height: 1.6; 
+            color: #333; 
+            margin: 0; 
+            padding: 0; 
+            background: #f9f9f9;
+        }
+        .container { 
+            max-width: 600px; 
+            margin: 0 auto; 
+            background: #ffffff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .header { 
+            background: linear-gradient(135deg, #28a745, #20c997); 
+            color: white; 
+            padding: 30px; 
+            text-align: center; 
+        }
+        .content { 
+            padding: 30px; 
+        }
+        .button { 
+            background: #28a745; 
+            color: white; 
+            padding: 15px 30px; 
+            text-decoration: none; 
+            border-radius: 5px; 
+            display: inline-block; 
+            font-size: 16px; 
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .footer { 
+            text-align: center; 
+            padding: 20px; 
+            color: #666; 
+            font-size: 12px; 
+            background: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+        }
+        .features { 
+            background: #f8f9fa; 
+            padding: 20px; 
+            margin: 20px 0; 
+            border-radius: 5px; 
+            border-left: 4px solid #28a745; 
+        }
+        .code-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍎 FoodLoop</h1>
+            <p>Fighting Food Waste, Building Community</p>
+        </div>
+        
+        <div class="content">
+            <h2>Welcome to FoodLoop, {{ user.username }}! 👋</h2>
+            <p>We're excited to have you join our community dedicated to reducing food waste and helping those in need.</p>
+            
+            <p><strong>To get started, please verify your email address:</strong></p>
+            
+            <div style="text-align: center;">
+                <a href="{{ verification_url }}" class="button">Verify Email Address</a>
+            </div>
+            
+            <p>Or copy this link into your browser:</p>
+            <div class="code-box">
+                {{ verification_url }}
+            </div>
+            
+            <div class="features">
+                <p><strong>This link will expire in 24 hours.</strong></p>
+                <p>Once verified, you'll be able to:</p>
+                <ul>
+                    <li>🎁 {{ user.userprofile.get_user_type_display }} food items</li>
+                    <li>🤝 Connect with other community members</li>
+                    <li>📱 Receive notifications about new opportunities</li>
+                    <li>📍 Find donations near your location</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>If you didn't create this account, please ignore this email.</p>
+            <p>&copy; 2024 FoodLoop. Making a difference, one meal at a time.</p>
+        </div>
+    </div>
+</body>
+</html>

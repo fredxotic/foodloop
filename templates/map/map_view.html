@@ -1,0 +1,311 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}FoodLoop Map - Find Donations Near You{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    /* Map styling */
+    #map {
+        height: 600px;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+
+    .map-container { position: relative; }
+
+    .map-controls {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 1000;
+        background: #fff;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        min-width: 250px;
+    }
+
+    .location-btn { width: 100%; margin-bottom: 10px; }
+
+    .distance-badge {
+        background: var(--primary);
+        color: #fff;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+    }
+
+    /* Donation Cards */
+    .donation-card {
+        transition: all 0.3s ease;
+        border: none;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .donation-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+    }
+
+    .donation-image {
+        height: 200px;
+        object-fit: cover;
+        width: 100%;
+    }
+
+    .image-placeholder {
+        height: 200px;
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6c757d;
+    }
+
+    /* Popup Styling */
+    .leaflet-popup-content { margin: 8px 12px; }
+
+    .popup-content {
+        min-width: 200px;
+    }
+    .popup-content h6 {
+        margin-bottom: 8px;
+        color: var(--dark);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Hero Section -->
+    <div class="hero-section py-4">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="display-5 fw-bold">Find Donations Near You</h1>
+                    <p class="lead">Browse available food donations on an interactive map</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <a href="{% url 'search_donations' %}" class="btn btn-light btn-lg">
+                        <i class="fas fa-list me-2"></i>List View
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Map Section -->
+    <div class="container mt-4">
+        <div class="map-container">
+            <div id="map"></div>
+
+            <!-- Map Controls -->
+            <div class="map-controls">
+                <button class="btn btn-primary location-btn" onclick="getUserLocation()">
+                    <i class="fas fa-location-arrow me-2"></i>Use My Location
+                </button>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Search Radius</label>
+                    <select class="form-select" id="radiusSelect" onchange="filterByRadius()">
+                        <option value="5">5 km</option>
+                        <option value="10" selected>10 km</option>
+                        <option value="25">25 km</option>
+                        <option value="50">50 km</option>
+                        <option value="100">100 km</option>
+                    </select>
+                </div>
+
+                <div class="donations-count">
+                    <small class="text-muted">
+                        <i class="fas fa-map-marker-alt me-1"></i>
+                        <span id="donationsCount">{{ donations|length }}</span> donations found
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Donations List -->
+        <div class="row mt-4">
+            {% for donation in donations %}
+            <div class="col-lg-4 col-md-6 mb-4 donation-item"
+                 data-lat="{{ donation.latitude }}"
+                 data-lon="{{ donation.longitude }}"
+                 data-id="{{ donation.id }}">
+                 
+                <div class="card donation-card h-100">
+                    {% if donation.get_image_url %}
+                        <img src="{{ donation.get_image_url }}" class="card-img-top donation-image" alt="{{ donation.food_type }}">
+                    {% else %}
+                        <div class="image-placeholder">
+                            <i class="fas fa-utensils fa-3x"></i>
+                        </div>
+                    {% endif %}
+
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="badge bg-success">{{ donation.get_food_type_display }}</span>
+                            {% if donation.distance_km %}
+                                <span class="distance-badge">{{ donation.distance_km }} km away</span>
+                            {% endif %}
+                        </div>
+
+                        <h5 class="card-title">{{ donation.food_type|title }}</h5>
+                        <p class="card-text text-muted small">{{ donation.description|truncatewords:20 }}</p>
+
+                        <div class="donation-meta">
+                            <small class="text-muted">
+                                <i class="fas fa-user me-1"></i>{{ donation.donor.username }}
+                            </small><br>
+                            <small class="text-muted">
+                                <i class="fas fa-map-marker-alt me-1"></i>{{ donation.location }}
+                            </small><br>
+                            <small class="text-muted">
+                                <i class="fas fa-clock me-1"></i>Expires {{ donation.expiry_date|date:"M d, Y" }}
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="card-footer bg-transparent">
+                        <a href="{% url 'donation_detail' donation.id %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-info-circle me-1"></i>Details
+                        </a>
+                        {% if is_recipient %}
+                        <a href="{% url 'claim_donation' donation.id %}" class="btn btn-success btn-sm float-end">
+                            <i class="fas fa-hand-holding-heart me-1"></i>Claim
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-5">
+                <i class="fas fa-map-marker-alt fa-3x text-muted mb-3"></i>
+                <h4>No donations available in your area</h4>
+                <p class="text-muted">Try adjusting your search radius or check back later.</p>
+                <a href="{% url 'create_donation' %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i>Add First Donation
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    let map, markers = [], userLocation = null;
+
+    function initMap() {
+        const centerLat = {{ map_center_lat }};
+        const centerLon = {{ map_center_lon }};
+        map = L.map('map').setView([centerLat, centerLon], 12);
+
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 18
+        }).addTo(map);
+
+        // Add donation markers
+        {% for donation in donations %}
+            {% if donation.has_valid_coordinates %}
+                const marker{{ donation.id }} = L.marker([{{ donation.latitude }}, {{ donation.longitude }}])
+                    .addTo(map)
+                    .bindPopup(`
+                        <div class="popup-content">
+                            <h6>{{ donation.food_type|title }}</h6>
+                            <p class="small mb-1">{{ donation.description|truncatewords:15 }}</p>
+                            <p class="small text-muted mb-1"><i class="fas fa-user"></i> {{ donation.donor.username }}</p>
+                            <p class="small text-muted mb-1"><i class="fas fa-map-marker-alt"></i> {{ donation.location }}</p>
+                            {% if donation.distance_km %}
+                            <p class="small text-primary mb-2"><i class="fas fa-route"></i> {{ donation.distance_km }} km away</p>
+                            {% endif %}
+                            <div class="d-grid gap-1">
+                                <a href="{% url 'donation_detail' donation.id %}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-info-circle me-1"></i>View Details
+                                </a>
+                                {% if is_recipient %}
+                                <a href="{% url 'claim_donation' donation.id %}" class="btn btn-sm btn-success">
+                                    <i class="fas fa-hand-holding-heart me-1"></i>Claim Now
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    `);
+
+                markers.push(marker{{ donation.id }});
+            {% endif %}
+        {% endfor %}
+
+        // User location marker
+        if ({{ map_center_lat }} !== -1.286389 && {{ map_center_lon }} !== 36.817223) {
+            const userMarker = L.marker([{{ map_center_lat }}, {{ map_center_lon }}])
+                .addTo(map)
+                .bindPopup('Your Location')
+                .openPopup();
+
+            userMarker.setIcon(L.divIcon({
+                className: 'user-location-marker',
+                html: '<i class="fas fa-location-dot text-primary fa-2x"></i>',
+                iconSize: [30, 30],
+                iconAnchor: [15, 15]
+            }));
+        }
+
+        // Fit map to markers
+        if (markers.length > 0) {
+            const group = new L.featureGroup(markers);
+            map.fitBounds(group.getBounds().pad(0.1));
+        }
+    }
+
+    function getUserLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                pos => {
+                    userLocation = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+                    window.location.href = `{% url 'map_view' %}?lat=${userLocation.lat}&lon=${userLocation.lon}`;
+                },
+                () => alert('Unable to get your location. Please enable location services in your browser settings.'),
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+            );
+        } else {
+            alert('Geolocation is not supported by your browser. Please try a modern browser like Chrome or Firefox.');
+        }
+    }
+
+    function filterByRadius() {
+        const radius = document.getElementById('radiusSelect').value;
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentLat = urlParams.get('lat');
+        const currentLon = urlParams.get('lon');
+
+        if (currentLat && currentLon) {
+            window.location.href = `{% url 'search_donations_map' %}?lat=${currentLat}&lon=${currentLon}&radius=${radius}`;
+        } else {
+            alert('Please enable location services first to use radius filtering.');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        initMap();
+
+        // Donation card click → open popup
+        document.querySelectorAll('.donation-item').forEach(card => {
+            card.addEventListener('click', function () {
+                const donationId = this.dataset.id;
+                const marker = markers.find(m => m._popup._content.includes(`donation/${donationId}/`));
+                if (marker) {
+                    map.setView(marker.getLatLng(), 15);
+                    marker.openPopup();
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

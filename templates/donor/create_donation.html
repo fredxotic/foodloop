@@ -1,79 +1,704 @@
-<!-- templates/donor/create_donation.html -->
 {% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create Food Donation - FoodLoop | Share Surplus Food{% endblock %}
+
+{% block extra_css %}
+<style>
+    .creation-header {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border-radius: 15px 15px 0 0;
+        color: white;
+    }
+    .form-section {
+        border-left: 4px solid #28a745;
+        padding-left: 1rem;
+        margin-bottom: 2rem;
+    }
+    .form-section-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: #28a745;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+    }
+    .image-upload-area {
+        border: 2px dashed #dee2e6;
+        border-radius: 15px;
+        padding: 2rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        background: #f8f9fa;
+        cursor: pointer;
+    }
+    .image-upload-area:hover {
+        border-color: #28a745;
+        background: #f0fff4;
+    }
+    .image-upload-area.dragover {
+        border-color: #28a745;
+        background: #e8f5e8;
+    }
+    .image-preview {
+        max-width: 100%;
+        max-height: 300px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        display: none;
+    }
+    .tip-card {
+        border: none;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        transition: all 0.3s ease;
+    }
+    .tip-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    .progress-indicator {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+        position: relative;
+    }
+    .progress-step {
+        text-align: center;
+        flex: 1;
+        position: relative;
+        z-index: 2;
+    }
+    .step-number {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #e9ecef;
+        color: #6c757d;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 0.5rem;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+    .step-number.active {
+        background: #28a745;
+        color: white;
+    }
+    .step-label {
+        font-size: 0.875rem;
+        color: #6c757d;
+        transition: all 0.3s ease;
+    }
+    .step-label.active {
+        color: #28a745;
+        font-weight: 600;
+    }
+    .progress-bar {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        right: 20px;
+        height: 2px;
+        background: #e9ecef;
+        z-index: 1;
+    }
+    .progress-fill {
+        height: 100%;
+        background: #28a745;
+        transition: width 0.3s ease;
+        width: 0%;
+    }
+    .form-control:focus {
+        border-color: #28a745;
+        box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+    }
+    .char-counter {
+        font-size: 0.875rem;
+        text-align: right;
+        color: #6c757d;
+    }
+    .char-counter.warning {
+        color: #ffc107;
+    }
+    .char-counter.danger {
+        color: #dc3545;
+    }
+    .location-suggestions {
+        position: absolute;
+        z-index: 1000;
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 5px;
+        max-height: 200px;
+        overflow-y: auto;
+        display: none;
+    }
+    .location-suggestion {
+        padding: 10px;
+        cursor: pointer;
+        border-bottom: 1px solid #f8f9fa;
+    }
+    .location-suggestion:hover {
+        background: #f8f9fa;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6">
-    <h2 class="text-2xl font-semibold mb-6">Create New Donation</h2>
-    
-    <form method="POST">
-        {% csrf_token %}
-        
-        <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="id_food_type">
-                Food Type
-            </label>
-            {{ form.food_type }}
-            {% if form.food_type.errors %}
-            <p class="text-red-500 text-xs italic">{{ form.food_type.errors.0 }}</p>
-            {% endif %}
-        </div>
-        
-        <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="id_quantity">
-                Quantity
-            </label>
-            {{ form.quantity }}
-            {% if form.quantity.errors %}
-            <p class="text-red-500 text-xs italic">{{ form.quantity.errors.0 }}</p>
-            {% endif %}
-        </div>
-        
-        <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="id_description">
-                Description
-            </label>
-            {{ form.description }}
-            {% if form.description.errors %}
-            <p class="text-red-500 text-xs italic">{{ form.description.errors.0 }}</p>
-            {% endif %}
-        </div>
-        
-        <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="id_pickup_time">
-                Pickup Time
-            </label>
-            {{ form.pickup_time }}
-            {% if form.pickup_time.errors %}
-            <p class="text-red-500 text-xs italic">{{ form.pickup_time.errors.0 }}</p>
-            {% endif %}
-        </div>
-        
-        <div class="mb-6">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="id_location">
-                Location
-            </label>
-            {{ form.location }}
-            {% if form.location.errors %}
-            <p class="text-red-500 text-xs italic">{{ form.location.errors.0 }}</p>
-            {% endif %}
-        </div>
-        
-        <div class="flex items-center justify-between">
-            <a href="{% url 'donor_dashboard' %}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                Cancel
-            </a>
-            <button class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
-                Create Donation
-            </button>
-        </div>
-    </form>
-</div>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Progress Indicator -->
+            <div class="progress-indicator">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-step">
+                    <div class="step-number active" id="step1">1</div>
+                    <div class="step-label active">Food Details</div>
+                </div>
+                <div class="progress-step">
+                    <div class="step-number" id="step2">2</div>
+                    <div class="step-label">Timing</div>
+                </div>
+                <div class="progress-step">
+                    <div class="step-number" id="step3">3</div>
+                    <div class="step-label">Location</div>
+                </div>
+                <div class="progress-step">
+                    <div class="step-number" id="step4">4</div>
+                    <div class="step-label">Review</div>
+                </div>
+            </div>
 
+            <!-- Main Form Card -->
+            <div class="card shadow-lg border-0">
+                <div class="creation-header py-4">
+                    <div class="card-body text-center">
+                        <h1 class="display-6 fw-bold mb-2">
+                            <i class="fas fa-plus-circle me-3"></i>Create Food Donation
+                        </h1>
+                        <p class="lead mb-0">Share surplus food with your community and help fight food waste</p>
+                    </div>
+                </div>
+                
+                <div class="card-body p-4">
+                    <form method="post" enctype="multipart/form-data" id="donationForm" novalidate>
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Please correct the errors below:
+                            <ul class="mb-0 mt-2">
+                                {% for error in form.non_field_errors %}
+                                <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+
+                        <!-- Section 1: Food Information -->
+                        <div class="form-section" id="section1">
+                            <div class="d-flex align-items-center mb-4">
+                                <div class="form-section-icon">
+                                    <i class="fas fa-utensils"></i>
+                                </div>
+                                <h4 class="mb-0 text-dark">Food Information</h4>
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="id_food_type" class="form-label fw-bold">
+                                            <i class="fas fa-tag me-2 text-primary"></i>Food Category *
+                                        </label>
+                                        {{ form.food_type }}
+                                        {% if form.food_type.errors %}
+                                        <div class="text-danger small mt-1">{{ form.food_type.errors.0 }}</div>
+                                        {% endif %}
+                                        <div class="form-text">Choose the category that best matches your donation</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="id_quantity" class="form-label fw-bold">
+                                            <i class="fas fa-weight me-2 text-success"></i>Quantity *
+                                        </label>
+                                        {{ form.quantity }}
+                                        {% if form.quantity.errors %}
+                                        <div class="text-danger small mt-1">{{ form.quantity.errors.0 }}</div>
+                                        {% endif %}
+                                        <div class="form-text">Examples: "2 kg", "5 portions", "1 large box", "10 pieces"</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="id_description" class="form-label fw-bold">
+                                    <i class="fas fa-align-left me-2 text-info"></i>Description *
+                                </label>
+                                {{ form.description }}
+                                <div class="char-counter" id="descriptionCounter">
+                                    <span id="descriptionLength">0</span>/500 characters
+                                </div>
+                                {% if form.description.errors %}
+                                <div class="text-danger small mt-1">{{ form.description.errors.0 }}</div>
+                                {% endif %}
+                                <div class="form-text">Describe the food items, any special instructions, or dietary information</div>
+                            </div>
+
+                            <!-- Image Upload -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-camera me-2 text-warning"></i>Donation Photo
+                                </label>
+                                <div class="image-upload-area" id="imageUploadArea">
+                                    <input type="file" name="image" id="id_image" accept="image/*" class="d-none">
+                                    <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                                    <h5 class="text-muted">Click to upload or drag and drop</h5>
+                                    <p class="text-muted mb-2">PNG, JPG, JPEG up to 5MB</p>
+                                    <small class="text-success">
+                                        <i class="fas fa-lightbulb me-1"></i>
+                                        Photos increase claim chances by 60%
+                                    </small>
+                                </div>
+                                <div class="text-center mt-3">
+                                    <img id="imagePreview" class="image-preview" alt="Image preview">
+                                    <button type="button" id="removeImage" class="btn btn-outline-danger btn-sm mt-2" style="display: none;">
+                                        <i class="fas fa-times me-1"></i>Remove Image
+                                    </button>
+                                </div>
+                                {% if form.image.errors %}
+                                <div class="text-danger small mt-1">{{ form.image.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Section 2: Timing Information -->
+                        <div class="form-section" id="section2">
+                            <div class="d-flex align-items-center mb-4">
+                                <div class="form-section-icon" style="background: #fd7e14;">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <h4 class="mb-0 text-dark">Timing Information</h4>
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="id_expiry_date" class="form-label fw-bold">
+                                            <i class="fas fa-calendar-times me-2 text-danger"></i>Expiry Date *
+                                        </label>
+                                        {{ form.expiry_date }}
+                                        {% if form.expiry_date.errors %}
+                                        <div class="text-danger small mt-1">{{ form.expiry_date.errors.0 }}</div>
+                                        {% endif %}
+                                        <div class="form-text">When does the food expire?</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="id_pickup_time" class="form-label fw-bold">
+                                            <i class="fas fa-calendar-check me-2 text-primary"></i>Preferred Pickup Time *
+                                        </label>
+                                        {{ form.pickup_time }}
+                                        {% if form.pickup_time.errors %}
+                                        <div class="text-danger small mt-1">{{ form.pickup_time.errors.0 }}</div>
+                                        {% endif %}
+                                        <div class="form-text">Best time for recipients to collect</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="id_pickup_deadline" class="form-label fw-bold">
+                                            <i class="fas fa-hourglass-end me-2 text-warning"></i>Pickup Deadline *
+                                        </label>
+                                        {{ form.pickup_deadline }}
+                                        {% if form.pickup_deadline.errors %}
+                                        <div class="text-danger small mt-1">{{ form.pickup_deadline.errors.0 }}</div>
+                                        {% endif %}
+                                        <div class="form-text">Absolute last pickup date</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="alert alert-info">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-info-circle fa-2x me-3"></i>
+                                    <div>
+                                        <h6 class="alert-heading mb-2">Timing Tips</h6>
+                                        <p class="mb-0">Set realistic timeframes to increase successful pickups. Consider your availability and the food's freshness.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 3: Location Information -->
+                        <div class="form-section" id="section3">
+                            <div class="d-flex align-items-center mb-4">
+                                <div class="form-section-icon" style="background: #6f42c1;">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                </div>
+                                <h4 class="mb-0 text-dark">Location Information</h4>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="id_location" class="form-label fw-bold">
+                                    <i class="fas fa-map-pin me-2 text-success"></i>Pickup Location *
+                                </label>
+                                {{ form.location }}
+                                <div class="char-counter" id="locationCounter">
+                                    <span id="locationLength">0</span>/255 characters
+                                </div>
+                                {% if form.location.errors %}
+                                <div class="text-danger small mt-1">{{ form.location.errors.0 }}</div>
+                                {% endif %}
+                                <div class="form-text">
+                                    Be specific: include address, building name, floor, room number, and any special instructions
+                                </div>
+                                <div id="locationSuggestions" class="location-suggestions"></div>
+                            </div>
+
+                            <div class="alert alert-warning">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-shield-alt fa-2x me-3"></i>
+                                    <div>
+                                        <h6 class="alert-heading mb-2">Safety First</h6>
+                                        <p class="mb-0">Choose a safe, public location for pickups. Consider meeting in common areas during daylight hours.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="d-grid gap-3 d-md-flex justify-content-md-end mt-5 pt-4 border-top">
+                            <a href="{% url 'donor_dashboard' %}" class="btn btn-outline-secondary btn-lg me-md-2">
+                                <i class="fas fa-arrow-left me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-success btn-lg px-5">
+                                <i class="fas fa-paper-plane me-2"></i>Publish Donation
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tips Section -->
+            <div class="row mt-4">
+                <div class="col-md-6 mb-3">
+                    <div class="card tip-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="bg-primary bg-opacity-10 p-2 rounded me-3">
+                                    <i class="fas fa-camera text-primary fa-lg"></i>
+                                </div>
+                                <h6 class="mb-0">Use High-Quality Photos</h6>
+                            </div>
+                            <p class="small text-muted mb-0">
+                                Clear, well-lit photos showing the actual food items significantly increase engagement and claim rates.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="card tip-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="bg-success bg-opacity-10 p-2 rounded me-3">
+                                    <i class="fas fa-clock text-success fa-lg"></i>
+                                </div>
+                                <h6 class="mb-0">Be Flexible with Timing</h6>
+                            </div>
+                            <p class="small text-muted mb-0">
+                                Offer flexible pickup windows to accommodate different schedules and increase successful matches.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="card tip-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="bg-info bg-opacity-10 p-2 rounded me-3">
+                                    <i class="fas fa-map text-info fa-lg"></i>
+                                </div>
+                                <h6 class="mb-0">Provide Clear Directions</h6>
+                            </div>
+                            <p class="small text-muted mb-0">
+                                Detailed location instructions prevent confusion and ensure smooth pickup experiences.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="card tip-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="bg-warning bg-opacity-10 p-2 rounded me-3">
+                                    <i class="fas fa-list text-warning fa-lg"></i>
+                                </div>
+                                <h6 class="mb-0">Accurate Descriptions</h6>
+                            </div>
+                            <p class="small text-muted mb-0">
+                                Mention any special storage requirements, allergens, or preparation instructions.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const now = new Date();
-        const localDatetime = now.toISOString().slice(0, 16);
-        document.getElementById('id_pickup_time').min = localDatetime;
+document.addEventListener('DOMContentLoaded', function() {
+    // Progress tracking
+    function updateProgress() {
+        const sections = ['section1', 'section2', 'section3'];
+        let completedSections = 0;
+        
+        sections.forEach(section => {
+            const sectionEl = document.getElementById(section);
+            if (sectionEl) {
+                const inputs = sectionEl.querySelectorAll('input, select, textarea');
+                let sectionComplete = true;
+                
+                inputs.forEach(input => {
+                    if (input.required && !input.value.trim()) {
+                        sectionComplete = false;
+                    }
+                });
+                
+                if (sectionComplete) completedSections++;
+            }
+        });
+        
+        const progress = (completedSections / sections.length) * 100;
+        document.getElementById('progressFill').style.width = progress + '%';
+        
+        // Update step indicators
+        for (let i = 1; i <= 4; i++) {
+            const stepNumber = document.getElementById('step' + i);
+            const stepLabel = stepNumber.parentElement.querySelector('.step-label');
+            
+            if (i <= completedSections + 1) {
+                stepNumber.classList.add('active');
+                stepLabel.classList.add('active');
+            } else {
+                stepNumber.classList.remove('active');
+                stepLabel.classList.remove('active');
+            }
+        }
+    }
+
+    // Image upload functionality
+    const imageUploadArea = document.getElementById('imageUploadArea');
+    const imageInput = document.getElementById('id_image');
+    const imagePreview = document.getElementById('imagePreview');
+    const removeImageBtn = document.getElementById('removeImage');
+
+    if (imageUploadArea && imageInput) {
+        // Click to upload
+        imageUploadArea.addEventListener('click', () => imageInput.click());
+        
+        // Drag and drop
+        imageUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            imageUploadArea.classList.add('dragover');
+        });
+        
+        imageUploadArea.addEventListener('dragleave', () => {
+            imageUploadArea.classList.remove('dragover');
+        });
+        
+        imageUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            imageUploadArea.classList.remove('dragover');
+            if (e.dataTransfer.files.length) {
+                imageInput.files = e.dataTransfer.files;
+                handleImageSelection();
+            }
+        });
+        
+        // File selection
+        imageInput.addEventListener('change', handleImageSelection);
+        
+        // Remove image
+        removeImageBtn.addEventListener('click', () => {
+            imageInput.value = '';
+            imagePreview.style.display = 'none';
+            removeImageBtn.style.display = 'none';
+            imageUploadArea.style.display = 'block';
+        });
+    }
+
+    function handleImageSelection() {
+        const file = imageInput.files[0];
+        if (file) {
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File size must be less than 5MB');
+                imageInput.value = '';
+                return;
+            }
+            
+            if (!file.type.startsWith('image/')) {
+                alert('Please select an image file (PNG, JPG, JPEG)');
+                imageInput.value = '';
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                imagePreview.src = e.target.result;
+                imagePreview.style.display = 'block';
+                removeImageBtn.style.display = 'block';
+                imageUploadArea.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    // Character counters
+    const descriptionTextarea = document.getElementById('id_description');
+    const descriptionCounter = document.getElementById('descriptionCounter');
+    const descriptionLength = document.getElementById('descriptionLength');
+    
+    const locationInput = document.getElementById('id_location');
+    const locationCounter = document.getElementById('locationCounter');
+    const locationLength = document.getElementById('locationLength');
+
+    if (descriptionTextarea) {
+        descriptionTextarea.addEventListener('input', function() {
+            const length = this.value.length;
+            descriptionLength.textContent = length;
+            
+            if (length > 400) {
+                descriptionCounter.classList.add('warning');
+                descriptionCounter.classList.remove('danger');
+            } else if (length > 450) {
+                descriptionCounter.classList.remove('warning');
+                descriptionCounter.classList.add('danger');
+            } else {
+                descriptionCounter.classList.remove('warning', 'danger');
+            }
+            
+            updateProgress();
+        });
+    }
+
+    if (locationInput) {
+        locationInput.addEventListener('input', function() {
+            const length = this.value.length;
+            locationLength.textContent = length;
+            
+            if (length > 200) {
+                locationCounter.classList.add('warning');
+                locationCounter.classList.remove('danger');
+            } else if (length > 240) {
+                locationCounter.classList.remove('warning');
+                locationCounter.classList.add('danger');
+            } else {
+                locationCounter.classList.remove('warning', 'danger');
+            }
+            
+            updateProgress();
+        });
+    }
+
+    // Set minimum dates for datetime inputs
+    const now = new Date();
+    const todayString = now.toISOString().slice(0, 16);
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowString = tomorrow.toISOString().slice(0, 16);
+    
+    const datetimeInputs = document.querySelectorAll('input[type="datetime-local"]');
+    datetimeInputs.forEach(input => {
+        input.min = todayString;
+        
+        // Set default values for better UX
+        if (input.id === 'id_expiry_date') {
+            input.value = tomorrowString;
+        } else if (input.id === 'id_pickup_time') {
+            // Set to next hour
+            const nextHour = new Date(now);
+            nextHour.setHours(nextHour.getHours() + 1);
+            nextHour.setMinutes(0);
+            input.value = nextHour.toISOString().slice(0, 16);
+        } else if (input.id === 'id_pickup_deadline') {
+            // Set to 2 days from now
+            const inTwoDays = new Date(now);
+            inTwoDays.setDate(inTwoDays.getDate() + 2);
+            input.value = inTwoDays.toISOString().slice(0, 16);
+        }
     });
+
+    // Form validation
+    const form = document.getElementById('donationForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            let isValid = true;
+            let errorMessage = '';
+            
+            // Check required fields
+            const requiredFields = form.querySelectorAll('[required]');
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    isValid = false;
+                    field.classList.add('is-invalid');
+                } else {
+                    field.classList.remove('is-invalid');
+                }
+            });
+            
+            // Date validation
+            const expiryDate = new Date(document.getElementById('id_expiry_date').value);
+            const pickupTime = new Date(document.getElementById('id_pickup_time').value);
+            const pickupDeadline = new Date(document.getElementById('id_pickup_deadline').value);
+            
+            if (expiryDate <= new Date()) {
+                isValid = false;
+                errorMessage = 'Expiry date must be in the future.';
+            } else if (pickupTime <= new Date()) {
+                isValid = false;
+                errorMessage = 'Pickup time must be in the future.';
+            } else if (pickupDeadline <= pickupTime) {
+                isValid = false;
+                errorMessage = 'Pickup deadline must be after the preferred pickup time.';
+            } else if (expiryDate < pickupDeadline) {
+                isValid = false;
+                errorMessage = 'Food will expire before the pickup deadline. Please adjust dates.';
+            }
+            
+            if (!isValid) {
+                e.preventDefault();
+                if (errorMessage) {
+                    alert('Please fix the following issue:\n\n' + errorMessage);
+                } else {
+                    alert('Please fill in all required fields.');
+                }
+                return false;
+            }
+        });
+    }
+
+    // Initialize progress
+    updateProgress();
+    
+    // Add input listeners for progress tracking
+    const allInputs = form.querySelectorAll('input, select, textarea');
+    allInputs.forEach(input => {
+        input.addEventListener('input', updateProgress);
+        input.addEventListener('change', updateProgress);
+    });
+});
 </script>
 {% endblock %}
