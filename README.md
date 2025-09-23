@@ -45,7 +45,7 @@ FoodLoop is a comprehensive web platform that bridges the gap between food donor
 1. **Clone the repository**
 
 ```bash
-git clone https://github.com/yourusername/foodloop.git
+git clone https://github.com/fredxotic/foodloop.git
 cd foodloop
 ```
 
