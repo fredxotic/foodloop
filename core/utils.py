@@ -1,8 +1,12 @@
 import secrets
 from django.core.mail import send_mail
 from django.conf import settings
-from django.template.loader import render_to_string
 from django.utils.html import strip_tags
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+import json
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
 
 def generate_verification_token():
     return secrets.token_urlsafe(32)
@@ -10,42 +14,30 @@ def generate_verification_token():
 def send_verification_email(user, verification_url):
     subject = 'Verify Your FoodLoop Account'
     
-    # Render HTML template
-    html_message = render_to_string('emails/verification_email.html', {
+    # HTML content
+    html_content = render_to_string('emails/verification.html', {
         'user': user,
         'verification_url': verification_url,
     })
     
-    # Create proper plain text version (without HTML/CSS)
-    plain_message = f"""
-Hi {user.username},
-
-Welcome to FoodLoop! Please verify your email address by clicking the link below:
-
-{verification_url}
-
-This link will expire in 24 hours.
-
-Once verified, you'll be able to:
-- {user.userprofile.get_user_type_display()} food items
-- Connect with other community members  
-- Receive notifications about new opportunities
-- Find donations near your location
-
-Thank you for joining our community fighting food waste!
-
-Best regards,
-The FoodLoop Team
-"""
+    # Text content (fallback)
+    text_content = strip_tags(html_content)
     
-    send_mail(
+    # Create email
+    email = EmailMultiAlternatives(
         subject,
-        plain_message,
-        settings.DEFAULT_FROM_EMAIL,
-        [user.email],
-        html_message=html_message,
-        fail_silently=False,
+        text_content,
+        DEFAULT_FROM_EMAIL,
+        [user.email]
     )
+    email.attach_alternative(html_content, "text/html")
+    
+    try:
+        email.send()
+        return True
+    except Exception as e:
+        print(f"Email sending error: {e}")
+        return False
 
 def send_donation_claimed_email(donation, recipient):
     subject = f'Your {donation.food_type} donation has been claimed!'
@@ -78,12 +70,47 @@ Thank you for your generosity!
 Best regards,
 FoodLoop Team
 """
-    
-    send_mail(
-        subject,
-        plain_message,
-        settings.DEFAULT_FROM_EMAIL,
-        [donation.donor.email],
-        html_message=html_message,
-        fail_silently=False,
+
+    # Send real-time notification to donor
+    send_real_time_notification(
+        user=donation.donor,
+        notification_type='donation_claimed',
+        title='Donation Claimed! 🎉',
+        message=f'Your {donation.food_type} donation has been claimed by {recipient.username}.',
+        related_url=f'/donation/{donation.id}/'
     )
+
+
+def send_real_time_notification(user, notification_type, title, message, related_url=None):
+    """Send real-time notification to user via WebSocket"""
+    from .models import Notification
+    
+    # Create notification in database
+    notification = Notification.objects.create(
+        user=user,
+        notification_type=notification_type,
+        title=title,
+        message=message,
+        related_url=related_url
+    )
+    
+    # Send via WebSocket
+    channel_layer = get_channel_layer()
+    
+    async_to_sync(channel_layer.group_send)(
+        f'notifications_{user.id}',
+        {
+            'type': 'notification_message',
+            'message': {
+                'id': notification.id,
+                'type': notification_type,
+                'title': title,
+                'message': message,
+                'related_url': related_url,
+                'created_at': notification.created_at.isoformat(),
+                'is_read': False
+            }
+        }
+    )
+    
+    return notification

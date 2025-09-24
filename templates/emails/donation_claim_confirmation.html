@@ -1,0 +1,48 @@
+{% extends 'emails/base_email.html' %}
+
+{% block title %}Donation Claim Confirmed - FoodLoop{% endblock %}
+
+{% block content %}
+<h2>✅ Donation Claim Confirmed!</h2>
+
+<p>Hi <strong>{{ recipient.username }}</strong>,</p>
+
+<p>Congratulations! You have successfully claimed the <strong>{{ donation.food_type }}</strong> donation from <strong>{{ donor.username }}</strong>.</p>
+
+<div class="donation-card">
+    <h3>Claim Details</h3>
+    <div class="donation-info">
+        <strong>Food Type:</strong> {{ donation.food_type }}<br>
+        <strong>Quantity:</strong> {{ donation.quantity }}<br>
+        <strong>Location:</strong> {{ donation.location }}<br>
+        <strong>Pickup Time:</strong> {{ donation.pickup_time|date:"F j, Y, g:i a" }}<br>
+        <strong>Donor:</strong> {{ donor.username }}<br>
+        <strong>Claim Date:</strong> {{ claim_date|date:"F j, Y, g:i a" }}
+    </div>
+</div>
+
+<h3>📞 What to Do Next:</h3>
+<ol style="margin-left: 20px; margin-bottom: 20px;">
+    <li><strong>Contact {{ donor.username }}</strong> to confirm pickup arrangements</li>
+    <li><strong>Be punctual</strong> for the agreed pickup time</li>
+    <li><strong>Bring identification</strong> if required</li>
+    <li><strong>Be respectful</strong> of the donor's time and generosity</li>
+</ol>
+
+<div style="text-align: center; margin: 25px 0;">
+    <a href="{{ donation_url }}" class="btn">View Donation Details</a>
+</div>
+
+<div style="background: #d1ecf1; padding: 15px; border-radius: 8px; margin: 20px 0;">
+    <h4 style="color: #0c5460; margin-bottom: 10px;">ℹ️ Important Reminder</h4>
+    <p style="margin: 0; color: #0c5460;">
+        Please remember that donors are volunteering their time and food. 
+        If your plans change, please contact the donor as soon as possible to reschedule or cancel.
+    </p>
+</div>
+
+<p>Thank you for helping reduce food waste and support our community!</p>
+
+<p>Best regards,<br>
+<strong>The FoodLoop Team</strong></p>
+{% endblock %}

@@ -1,57 +1,47 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
-        .container { max-width: 600px; margin: 0 auto; background: #ffffff; }
-        .header { background: linear-gradient(135deg, #ffc107, #fd7e14); color: white; padding: 30px; text-align: center; }
-        .content { padding: 30px; background: #f9f9f9; }
-        .details { background: #fff; padding: 20px; margin: 20px 0; border-radius: 5px; border-left: 4px solid #ffc107; }
-        .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; background: #fff; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🎉 FoodLoop - Donation Claimed!</h1>
-            <p>Your generosity is making a difference!</p>
-        </div>
-        
-        <div class="content">
-            <h2>Great news, {{ donation.donor.username }}! 🎊</h2>
-            <p>Your <strong>{{ donation.food_type }}</strong> donation has been claimed by <strong>{{ recipient.username }}</strong>.</p>
-            
-            <div class="details">
-                <h3>Donation Details:</h3>
-                <ul>
-                    <li><strong>Food Type:</strong> {{ donation.food_type|title }}</li>
-                    <li><strong>Quantity:</strong> {{ donation.quantity }}</li>
-                    <li><strong>Pickup Time:</strong> {{ donation.pickup_time|date:"F j, Y, g:i a" }}</li>
-                    <li><strong>Location:</strong> {{ donation.location }}</li>
-                </ul>
-                
-                <h3>Recipient Contact Information:</h3>
-                <ul>
-                    <li><strong>Name:</strong> {{ recipient.get_full_name|default:recipient.username }}</li>
-                    <li><strong>Username:</strong> {{ recipient.username }}</li>
-                    <li><strong>Email:</strong> {{ recipient.email }}</li>
-                </ul>
-            </div>
-            
-            <p><strong>Next Steps:</strong></p>
-            <ol>
-                <li>Contact the recipient to coordinate pickup details</li>
-                <li>Arrange a convenient time for collection</li>
-                <li>Mark the donation as completed after successful pickup</li>
-            </ol>
-            
-            <p>Thank you for your generosity and for helping fight food waste in our community! 🌱</p>
-        </div>
-        
-        <div class="footer">
-            <p>This is an automated notification from FoodLoop.</p>
-            <p>&copy; 2024 FoodLoop. Connecting communities through food sharing.</p>
-        </div>
+{% extends 'emails/base_email.html' %}
+
+{% block title %}Your Donation Has Been Claimed! - FoodLoop{% endblock %}
+
+{% block content %}
+<h2>🎉 Great News! Your Donation Has Been Claimed!</h2>
+
+<p>Hi <strong>{{ donor.username }}</strong>,</p>
+
+<p>We're excited to let you know that your <strong>{{ donation.food_type }}</strong> donation has been claimed by <strong>{{ recipient.username }}</strong>!</p>
+
+<div class="donation-card">
+    <h3>Donation Details</h3>
+    <div class="donation-info">
+        <strong>Food Type:</strong> {{ donation.food_type }}<br>
+        <strong>Quantity:</strong> {{ donation.quantity }}<br>
+        <strong>Location:</strong> {{ donation.location }}<br>
+        <strong>Pickup Time:</strong> {{ donation.pickup_time|date:"F j, Y, g:i a" }}<br>
+        <strong>Claimed By:</strong> {{ recipient.username }}<br>
+        <strong>Claim Date:</strong> {{ claim_date|date:"F j, Y, g:i a" }}
     </div>
-</body>
-</html>
+</div>
+
+<h3>📞 Next Steps:</h3>
+<ol style="margin-left: 20px; margin-bottom: 20px;">
+    <li><strong>Contact the recipient</strong> to arrange pickup details</li>
+    <li><strong>Confirm the pickup time and location</strong></li>
+    <li><strong>Mark as completed</strong> after successful pickup</li>
+</ol>
+
+<div style="text-align: center; margin: 25px 0;">
+    <a href="{{ donation_url }}" class="btn">View Donation Details</a>
+</div>
+
+<div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin: 20px 0;">
+    <h4 style="color: #856404; margin-bottom: 10px;">💡 Tip</h4>
+    <p style="margin: 0; color: #856404;">
+        Please communicate clearly with {{ recipient.username }} about any special instructions for pickup. 
+        Good communication ensures a smooth experience for both parties!
+    </p>
+</div>
+
+<p>Thank you for your generosity and for helping fight food waste in our community!</p>
+
+<p>Best regards,<br>
+<strong>The FoodLoop Team</strong></p>
+{% endblock %}

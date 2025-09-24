@@ -5,6 +5,7 @@ from datetime import timedelta
 import os
 from geopy.geocoders import Nominatim
 import geopy.exc
+from django.conf import settings
 
 def user_profile_picture_path(instance, filename):
     """Ensure proper path for profile pictures"""
@@ -247,4 +248,33 @@ class Rating(models.Model):
     
     def get_rating_display(self):
         return f"{'★' * self.rating}{'☆' * (5 - self.rating)}"
+
+class Notification(models.Model):
+    NOTIFICATION_TYPES = [
+        ('donation_claimed', 'Donation Claimed'),
+        ('donation_completed', 'Donation Completed'),
+        ('new_donation', 'New Donation Available'),
+        ('rating_received', 'New Rating Received'),
+        ('message_received', 'New Message'),
+        ('system', 'System Notification'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    notification_type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES)
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    related_url = models.URLField(blank=True, null=True)
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.notification_type} - {self.user.username}"
+
+    def mark_as_read(self):
+        self.is_read = True
+        self.save()
+
 

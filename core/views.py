@@ -14,11 +14,14 @@ from .models import Rating
 from .forms import RatingForm
 from django.views.decorators.http import require_http_methods
 
-from .models import UserProfile, Donation, EmailVerification
+from .models import UserProfile, Donation, EmailVerification, Notification
 from .forms import SignUpForm, DonationForm, ProfileUpdateForm
 from .decorators import donor_required, recipient_required, email_verified_required
 from .utils import generate_verification_token, send_verification_email, send_donation_claimed_email
-from django.conf import settings  # ADD THIS IMPORT
+from django.conf import settings
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 
 def home(request):
     if request.user.is_authenticated:
@@ -58,10 +61,16 @@ def login_view(request):
                     next_url = request.GET.get('next', 'recipient_dashboard')
                     return redirect(next_url)
             except UserProfile.DoesNotExist:
-                return redirect('home')
+                messages.error(request, 'User profile not found. Please contact support.')
+                return render(request, 'registration/login.html', {'error': 'User profile not found'})
+            except Exception as e:
+                print(f"Error in login_view: {e}")
+                messages.error(request, 'An error occurred. Please try again.')
+                return render(request, 'registration/login.html', {'error': 'An error occurred'})
         else:
             return render(request, 'registration/login.html', {'error': 'Invalid credentials'})
     
+    # This handles GET requests (when user visits the login page)
     return render(request, 'registration/login.html')
 
 def signup_view(request):
@@ -170,7 +179,7 @@ def verify_email(request):
             # Try to send email
             try:
                 send_verification_email(request.user, verification_url)
-                messages.info(request, 'Verification email sent! Please check your inbox (or console output).')
+                messages.info(request, 'Verification email sent! Please check your inbox.')
             except Exception as e:
                 # If email fails, show the link directly
                 messages.warning(request, f'Email sending failed. Here is your verification link: {verification_url}')
@@ -207,6 +216,141 @@ def verify_email_confirm(request, token):
     
     return redirect('profile')
 
+# =============================================================================
+# EMAIL NOTIFICATION FUNCTIONS
+# =============================================================================
+
+def send_notification_email(user, subject, template_name, context):
+    """Send HTML email notification to user"""
+    try:
+        # Fix the template path - it should be in templates/emails/
+        html_message = render_to_string(f'emails/{template_name}', context)
+        plain_message = strip_tags(html_message)
+        
+        send_mail(
+            subject,
+            plain_message,
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+        print(f"📧 Email sent to {user.email}: {subject}")
+        return True
+    except Exception as e:
+        print(f"❌ Email sending failed to {user.email}: {e}")
+        return False
+
+def send_donation_claimed_notification(donation, claimed_by):
+    """Send email to donor when donation is claimed"""
+    subject = "🎉 Your Donation Has Been Claimed!"
+    context = {
+        'donor': donation.donor,
+        'recipient': claimed_by,
+        'donation': donation,
+        'claim_date': timezone.now(),
+        'donation_url': f"{settings.EMAIL_VERIFICATION_URL}/donation/{donation.id}/"
+    }
+    
+    # Send email to donor
+    send_notification_email(
+        donation.donor, 
+        subject, 
+        'donation_claimed.html', 
+        context
+    )
+    
+    # Also send confirmation to recipient
+    recipient_subject = "✅ Donation Claim Confirmed"
+    recipient_context = {
+        'recipient': claimed_by,
+        'donation': donation,
+        'donor': donation.donor,
+        'donation_url': f"{settings.EMAIL_VERIFICATION_URL}/donation/{donation.id}/"
+    }
+    
+    send_notification_email(
+        claimed_by,
+        recipient_subject,
+        'donation_claim_confirmation.html',
+        recipient_context
+    )
+
+def send_donation_completed_notification(donation):
+    """Send email when donation is completed"""
+    if donation.recipient:
+        subject = "✨ Donation Successfully Completed!"
+        context = {
+            'recipient': donation.recipient,
+            'donation': donation,
+            'completion_date': timezone.now(),
+            'donor': donation.donor
+        }
+        
+        send_notification_email(
+            donation.recipient,
+            subject,
+            'donation_completed.html',
+            context
+        )
+    
+    # Also notify donor
+    donor_subject = "🏆 Donation Marked as Completed"
+    donor_context = {
+        'donor': donation.donor,
+        'donation': donation,
+        'recipient': donation.recipient,
+        'completion_date': timezone.now()
+    }
+    
+    send_notification_email(
+        donation.donor,
+        donor_subject,
+        'donation_completed_donor.html',
+        donor_context
+    )
+
+def send_rating_notification(rating, rater_user):
+    """Send email when someone rates you"""
+    # Determine who is being rated
+    # If the rater is the donor, then they're rating the recipient
+    # If the rater is the recipient, then they're rating the donor
+    if rater_user == rating.donor:
+        rated_user = rating.recipient  # Donor is rating the recipient
+    else:
+        rated_user = rating.donor  # Recipient is rating the donor
+    
+    subject = "⭐ You Received a New Rating!"
+    context = {
+        'rated_user': rated_user,
+        'rater_user': rater_user,
+        'rating': rating,
+        'donation': rating.donation,
+        'rating_url': f"{settings.EMAIL_VERIFICATION_URL}/donation/{rating.donation.id}/"
+    }
+    
+    send_notification_email(
+        rated_user,
+        subject,
+        'rating_received.html',
+        context
+    )
+
+def send_welcome_email(user):
+    """Send welcome email after verification"""
+    subject = "🎊 Welcome to FoodLoop!"
+    context = {
+        'user': user,
+        'login_url': f"{settings.EMAIL_VERIFICATION_URL}/login/"
+    }
+    
+    send_notification_email(
+        user,
+        subject,
+        'welcome.html',
+        context
+    )
+
 @login_required
 @donor_required
 def donor_dashboard(request):
@@ -227,6 +371,22 @@ def donor_dashboard(request):
     # Recent activity (last 7 days)
     recent_donations = donations.filter(created_at__gte=timezone.now()-timedelta(days=7))
     
+    # Calculate completion rate
+    completion_rate = 0
+    if total_donations > 0:
+        completion_rate = round((completed_donations / total_donations) * 100)
+    
+    # Get user rating
+    user_rating = 0
+    user_rating_count = 0
+    try:
+        ratings = Rating.objects.filter(recipient=request.user)
+        if ratings.exists():
+            user_rating = round(ratings.aggregate(models.Avg('rating'))['rating__avg'], 1)
+            user_rating_count = ratings.count()
+    except:
+        pass
+    
     return render(request, 'donor/dashboard.html', {
         'donations': donations,
         'stats': {
@@ -235,7 +395,10 @@ def donor_dashboard(request):
             'claimed': claimed_donations,
             'available': available_donations,
             'recent_count': recent_donations.count(),
-        }
+        },
+        'completion_rate': completion_rate,
+        'user_rating': user_rating,
+        'user_rating_count': user_rating_count
     })
 
 @login_required
@@ -337,8 +500,8 @@ def claim_donation(request, donation_id):
     donation.recipient = request.user
     donation.save()
     
-    # Send notification to donor
-    send_donation_claimed_email(donation, request.user)
+    # Send email notifications to both parties
+    send_donation_claimed_notification(donation, request.user)
     
     messages.success(request, 
         f'You have successfully claimed the {donation.food_type} donation! '
@@ -381,6 +544,9 @@ def complete_donation(request, donation_id):
     
     donation.status = Donation.COMPLETED
     donation.save()
+    
+    # Send completion notifications
+    send_donation_completed_notification(donation)
     
     messages.success(request, 'Donation marked as completed! Thank you for your contribution.')
     return redirect('donor_dashboard')
@@ -559,6 +725,9 @@ def create_rating(request, donation_id):
             rating.recipient = donation.recipient
             rating.save()
             
+            # Send rating notification - pass the user who submitted the rating
+            send_rating_notification(rating, request.user)
+            
             if existing_rating:
                 messages.success(request, "Rating updated successfully!")
             else:
@@ -705,3 +874,50 @@ def search_donations_map(request):
             'user_lon': user_lon,
             'food_categories': Donation.FOOD_CATEGORIES,
         })
+
+@login_required
+def notification_list(request):
+    """Get user's notifications"""
+    notifications = Notification.objects.filter(user=request.user).order_by('-created_at')[:20]
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        # AJAX request - return JSON
+        from django.utils.timesince import timesince
+        data = [{
+            'id': n.id,
+            'type': n.notification_type,
+            'title': n.title,
+            'message': n.message,
+            'related_url': n.related_url,
+            'is_read': n.is_read,
+            'created_at': n.created_at.isoformat(),
+            'time_ago': timesince(n.created_at)
+        } for n in notifications]
+        
+        return JsonResponse({'notifications': data})
+    
+    return render(request, 'notifications/list.html', {'notifications': notifications})
+
+@login_required
+@require_POST
+def mark_notification_read(request, notification_id):
+    """Mark a notification as read"""
+    notification = get_object_or_404(Notification, id=notification_id, user=request.user)
+    notification.mark_as_read()
+    
+    return JsonResponse({'success': True})
+
+@login_required
+@require_POST
+def mark_all_notifications_read(request):
+    """Mark all notifications as read"""
+    Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+    
+    return JsonResponse({'success': True})
+
+@login_required
+def notification_count(request):
+    """Get unread notification count"""
+    count = Notification.objects.filter(user=request.user, is_read=False).count()
+    
+    return JsonResponse({'count': count})

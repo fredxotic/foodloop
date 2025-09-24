@@ -28,4 +28,10 @@ urlpatterns = [
     # Rating routes - allow both GET and POST
     path('donation/<int:donation_id>/rate/', views.create_rating, name='create_rating'),
     path('donation/<int:donation_id>/rating/success/', views.rating_success, name='rating_success'),
+
+    # Notification routes
+    path('notifications/', views.notification_list, name='notification_list'),
+    path('notifications/<int:notification_id>/read/', views.mark_notification_read, name='mark_notification_read'),
+    path('notifications/read-all/', views.mark_all_notifications_read, name='mark_all_notifications_read'),
+    path('notifications/count/', views.notification_count, name='notification_count'),
 ]

@@ -1,0 +1,41 @@
+{% extends 'emails/base_email.html' %}
+
+{% block title %}Donation Successfully Completed! - FoodLoop{% endblock %}
+
+{% block content %}
+<h2>✨ Donation Successfully Completed!</h2>
+
+<p>Hi <strong>{{ recipient.username }}</strong>,</p>
+
+<p>Great news! Your <strong>{{ donation.food_type }}</strong> donation from <strong>{{ donor.username }}</strong> has been marked as completed.</p>
+
+<div class="donation-card">
+    <h3>Completion Details</h3>
+    <div class="donation-info">
+        <strong>Food Type:</strong> {{ donation.food_type }}<br>
+        <strong>Quantity:</strong> {{ donation.quantity }}<br>
+        <strong>Donor:</strong> {{ donor.username }}<br>
+        <strong>Completion Date:</strong> {{ completion_date|date:"F j, Y, g:i a" }}
+    </div>
+</div>
+
+<h3>⭐ Share Your Experience</h3>
+<p>Help build our community by rating your experience with {{ donor.username }}. Your feedback helps maintain trust and quality in the FoodLoop community.</p>
+
+<div style="text-align: center; margin: 25px 0;">
+    <a href="{{ donation_url }}" class="btn">Rate This Donation</a>
+</div>
+
+<div style="background: #e7f3ff; padding: 15px; border-radius: 8px; margin: 20px 0;">
+    <h4 style="color: #0066cc; margin-bottom: 10px;">🏆 Community Impact</h4>
+    <p style="margin: 0; color: #0066cc;">
+        With this donation, you've helped prevent food waste and supported someone in need. 
+        Thank you for making a difference!
+    </p>
+</div>
+
+<p>We hope you had a positive experience and look forward to seeing you again on FoodLoop!</p>
+
+<p>Best regards,<br>
+<strong>The FoodLoop Team</strong></p>
+{% endblock %}

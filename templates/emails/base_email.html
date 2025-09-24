@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FoodLoop{% endblock %}</title>
+    <style>
+        /* Reset styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .email-header {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        .email-header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .email-header .subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .email-content {
+            padding: 30px;
+        }
+        
+        .email-footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid #e9ecef;
+            color: #6c757d;
+            font-size: 14px;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            margin: 15px 0;
+        }
+        
+        .donation-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #28a745;
+        }
+        
+        .donation-info {
+            margin: 10px 0;
+        }
+        
+        .donation-info strong {
+            color: #28a745;
+        }
+        
+        .rating-stars {
+            color: #ffc107;
+            font-size: 18px;
+            margin: 10px 0;
+        }
+        
+        @media (max-width: 600px) {
+            .email-content {
+                padding: 20px;
+            }
+            
+            .email-header {
+                padding: 20px 15px;
+            }
+            
+            .email-header h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="email-header">
+            <h1>🍎 FoodLoop</h1>
+            <div class="subtitle">Fighting Food Waste, Feeding Communities</div>
+        </div>
+        
+        <div class="email-content">
+            {% block content %}{% endblock %}
+        </div>
+        
+        <div class="email-footer">
+            <p>Thank you for being part of the FoodLoop community! 🌟</p>
+            <p>If you have any questions, please contact us at <a href="mailto:support@foodloop.com">support@foodloop.com</a></p>
+            <p>&copy; 2025 FoodLoop. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

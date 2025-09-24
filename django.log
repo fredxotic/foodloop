@@ -1,0 +1,718 @@
+Watching for file changes with StatReloader
+HTTP/2 support not enabled (install the http2 and tls Twisted extras)
+Configuring endpoint tcp:port=8000:interface=127.0.0.1
+Listening on TCP address 127.0.0.1:8000
+[32mHTTP GET / 301 [0.03, 127.0.0.1:47378][0m
+Watching for file changes with StatReloader
+HTTP/2 support not enabled (install the http2 and tls Twisted extras)
+Configuring endpoint tcp:port=8000:interface=127.0.0.1
+Listening on TCP address 127.0.0.1:8000
+Invalid HTTP_HOST header: '0.0.0.0:8000'. You may need to add '0.0.0.0' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/home/fred/Desktop/FoodLoop/.venv/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/fred/Desktop/FoodLoop/.venv/lib/python3.13/site-packages/django/utils/deprecation.py", line 119, in __call__
+    response = self.process_request(request)
+  File "/home/fred/Desktop/FoodLoop/.venv/lib/python3.13/site-packages/django/middleware/security.py", line 28, in process_request
+    host = self.redirect_host or request.get_host()
+                                 ~~~~~~~~~~~~~~~~^^
+  File "/home/fred/Desktop/FoodLoop/.venv/lib/python3.13/site-packages/django/http/request.py", line 202, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '0.0.0.0:8000'. You may need to add '0.0.0.0' to ALLOWED_HOSTS.
+Invalid HTTP_HOST header: '0.0.0.0:8000'. You may need to add '0.0.0.0' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/home/fred/Desktop/FoodLoop/.venv/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/fred/Desktop/FoodLoop/.venv/lib/python3.13/site-packages/django/utils/deprecation.py", line 119, in __call__
+    response = self.process_request(request)
+  File "/home/fred/Desktop/FoodLoop/.venv/lib/python3.13/site-packages/django/middleware/security.py", line 28, in process_request
+    host = self.redirect_host or request.get_host()
+                                 ~~~~~~~~~~~~~~~~^^
+  File "/home/fred/Desktop/FoodLoop/.venv/lib/python3.13/site-packages/django/http/request.py", line 202, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '0.0.0.0:8000'. You may need to add '0.0.0.0' to ALLOWED_HOSTS.
+HTTP/2 support not enabled (install the http2 and tls Twisted extras)
+Configuring endpoint tcp:port=8000:interface=127.0.0.1
+Listening on TCP address 127.0.0.1:8000
+Killed 0 pending application instances
+INFO 2025-09-24 12:34:32,766 autoreload Watching for file changes with StatReloader
+INFO 2025-09-24 12:34:38,792 basehttp code 400, message Bad request version ('Æ\x8dF\x04m\x86\x17l\x7fè1mô\x1bÖ\x10y´sj<')
+ERROR 2025-09-24 12:34:38,799 basehttp You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO 2025-09-24 12:34:38,835 basehttp code 400, message Bad request syntax ('\x16\x03\x01\x06À\x01\x00\x06¼\x03\x03\x92;RÄ\x11\x18øÒeK¯P×\x84b\x83#+\x9cS\x12%Á¢%k¤·')
+ERROR 2025-09-24 12:34:38,836 basehttp You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO 2025-09-24 12:39:47,367 autoreload Watching for file changes with StatReloader
+INFO 2025-09-24 12:39:53,481 basehttp code 400, message Bad request version ('ÃZ\x8e')
+ERROR 2025-09-24 12:39:53,495 basehttp You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO 2025-09-24 12:39:53,550 basehttp code 400, message Bad request version ('ñq\x00\x90,¾ÝèËîrMN\x9fH\x9d\x94,]\x17Wwcÿ7w\x03c\x01Â\x9bx?\x89É}\x8c=\x95OÖ\x81')
+ERROR 2025-09-24 12:39:53,550 basehttp You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO 2025-09-24 12:40:04,660 basehttp code 400, message Bad request version ("\x83Ì\\^Á5ûFÝ')¦eà\x81-\x8fK×w\\\x95ðu")
+ERROR 2025-09-24 12:40:04,660 basehttp You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO 2025-09-24 12:40:04,668 basehttp code 400, message Bad request syntax ("\x16\x03\x01\x06À\x01\x00\x06¼\x03\x03Å\x0fà¬<³\x8c?ðÉj'ÿ»2Ç\x1b\x8d\x89W\x05N\x1e")
+ERROR 2025-09-24 12:40:04,674 basehttp You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO 2025-09-24 12:40:19,058 basehttp code 400, message Bad request version ('ü¼YD\x82x@Ao_´\x08\x0e<pM¼N\x15\x93@QâDe\x86ÃÎQ#¹`\x96$hFdU;\x9aq>=')
+ERROR 2025-09-24 12:40:19,062 basehttp You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO 2025-09-24 12:40:19,099 basehttp code 400, message Bad request version ('\x00\x12\x00\x10\x04\x03\x08\x04\x04\x01\x05\x03\x08\x05\x05\x01\x08\x06\x06\x01\x00+\x00\x07\x06êê\x03\x04\x03\x03\x00')
+ERROR 2025-09-24 12:40:19,103 basehttp You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO 2025-09-24 13:16:20,040 autoreload /home/fred/Desktop/FoodLoop/foodloop/settings.py changed, reloading.
+INFO 2025-09-24 15:00:31,093 autoreload Watching for file changes with StatReloader
+INFO 2025-09-24 15:00:41,287 basehttp code 400, message Bad request version ('\x00\x02\x01\x00\x00+\x00\x07\x06')
+ERROR 2025-09-24 15:00:41,317 basehttp You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO 2025-09-24 15:00:41,482 basehttp code 400, message Bad request version ('\x9eª^\x1a\x96&\x9bâª¾\x94ß×´Þ=\x94\x83ùÌè\x90Z\x89\x9d\x19BÏ{.Q')
+ERROR 2025-09-24 15:00:41,483 basehttp You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO 2025-09-24 15:04:48,004 autoreload Watching for file changes with StatReloader
+INFO 2025-09-24 15:05:01,796 basehttp code 400, message Bad request version (';ó4_2\x86Úá\x08¼ºËµ')
+ERROR 2025-09-24 15:05:01,805 basehttp You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO 2025-09-24 15:05:01,822 basehttp code 400, message Bad request version ('\x11§¿ø»´(')
+ERROR 2025-09-24 15:05:01,823 basehttp You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO 2025-09-24 15:06:44,535 basehttp code 400, message Bad HTTP/0.9 request type ('\x16\x03\x01\x07\x00\x01\x00\x06ü\x03\x03Ï;ÐUû¯¸D\x80\x8eµM´£áõS\x9f\x9eæ')
+INFO 2025-09-24 15:06:44,550 basehttp code 400, message Bad request version ('\x00+\x00\x07\x06')
+ERROR 2025-09-24 15:06:44,560 basehttp You're accessing the development server over HTTPS, but it only supports HTTP.
+ERROR 2025-09-24 15:06:44,560 basehttp You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO 2025-09-24 15:06:44,637 basehttp code 400, message Bad request version ('úú\x13\x01\x13\x02\x13\x03À+À/À,À0Ì©Ì¨À\x13À\x14\x00\x9c\x00\x9d\x00/\x005\x01\x00\x06sÊÊ\x00\x00\x003\x04ï\x04í\x8a\x8a\x00\x01\x00\x11ì\x04À5ÀK\x0f\x86²\x1bb\x8e')
+ERROR 2025-09-24 15:06:44,638 basehttp You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO 2025-09-24 15:06:44,638 basehttp code 400, message Bad request version ('\x00\x12\x00\x10\x04\x03\x08\x04\x04\x01\x05\x03\x08\x05\x05\x01\x08\x06\x06\x01\x00\x1b\x00\x03\x02\x00\x02DÍ\x00\x05\x00\x03\x02h2\x00')
+ERROR 2025-09-24 15:06:44,640 basehttp You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO 2025-09-24 15:07:39,039 basehttp "GET / HTTP/1.1" 200 19068
+INFO 2025-09-24 15:07:39,185 basehttp "GET /static/js/notifications.js HTTP/1.1" 200 9280
+WARNING 2025-09-24 15:07:41,801 log Not Found: /favicon.ico
+WARNING 2025-09-24 15:07:41,808 basehttp "GET /favicon.ico HTTP/1.1" 404 8627
+INFO 2025-09-24 15:07:46,704 basehttp "GET /login/ HTTP/1.1" 200 10560
+INFO 2025-09-24 15:07:52,698 basehttp "POST /login/ HTTP/1.1" 302 0
+INFO 2025-09-24 15:07:52,867 basehttp "GET /donor/dashboard/ HTTP/1.1" 200 56395
+WARNING 2025-09-24 15:07:52,975 log Not Found: /ws/notifications/3/
+WARNING 2025-09-24 15:07:52,982 basehttp "GET /ws/notifications/3/ HTTP/1.1" 404 8651
+INFO 2025-09-24 15:07:52,990 basehttp - Broken pipe from ('127.0.0.1', 38328)
+INFO 2025-09-24 15:07:52,999 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 15:07:53,007 basehttp "GET /media/donation_images/donation_None/default-donation.png HTTP/1.1" 200 64260
+INFO 2025-09-24 15:07:53,010 basehttp "GET /media/donation_images/donation_1/mangoes.jpg HTTP/1.1" 200 125364
+INFO 2025-09-24 15:07:53,016 basehttp "GET /media/donation_images/donation_None/cakes.jpg HTTP/1.1" 200 159995
+INFO 2025-09-24 15:07:53,054 basehttp "GET /media/profile_pictures/user_3/ChatGPT_Image_Sep_18_2025_07_46_38_PM.png HTTP/1.1" 200 2287795
+INFO 2025-09-24 15:07:54,675 basehttp "GET /donor/dashboard/ HTTP/1.1" 200 56395
+WARNING 2025-09-24 15:07:54,916 log Not Found: /ws/notifications/3/
+WARNING 2025-09-24 15:07:54,917 basehttp "GET /ws/notifications/3/ HTTP/1.1" 404 8651
+INFO 2025-09-24 15:07:54,918 basehttp - Broken pipe from ('127.0.0.1', 38340)
+INFO 2025-09-24 15:07:54,927 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+WARNING 2025-09-24 15:07:55,224 log Not Found: /ws/notifications/3/
+WARNING 2025-09-24 15:07:55,225 basehttp "GET /ws/notifications/3/ HTTP/1.1" 404 8651
+INFO 2025-09-24 15:07:55,226 basehttp - Broken pipe from ('127.0.0.1', 38342)
+WARNING 2025-09-24 15:07:57,387 log Not Found: /ws/notifications/3/
+WARNING 2025-09-24 15:07:57,389 basehttp "GET /ws/notifications/3/ HTTP/1.1" 404 8651
+INFO 2025-09-24 15:07:57,389 basehttp - Broken pipe from ('127.0.0.1', 38356)
+WARNING 2025-09-24 15:07:59,255 log Not Found: /ws/notifications/3/
+WARNING 2025-09-24 15:07:59,256 basehttp "GET /ws/notifications/3/ HTTP/1.1" 404 8651
+INFO 2025-09-24 15:07:59,257 basehttp - Broken pipe from ('127.0.0.1', 38372)
+WARNING 2025-09-24 15:08:02,383 log Not Found: /ws/notifications/3/
+WARNING 2025-09-24 15:08:02,384 basehttp "GET /ws/notifications/3/ HTTP/1.1" 404 8651
+INFO 2025-09-24 15:08:02,385 basehttp - Broken pipe from ('127.0.0.1', 40132)
+WARNING 2025-09-24 15:08:07,351 log Not Found: /ws/notifications/3/
+WARNING 2025-09-24 15:08:07,362 basehttp "GET /ws/notifications/3/ HTTP/1.1" 404 8651
+WARNING 2025-09-24 15:08:11,384 log Not Found: /ws/notifications/3/
+WARNING 2025-09-24 15:08:11,385 basehttp "GET /ws/notifications/3/ HTTP/1.1" 404 8651
+INFO 2025-09-24 15:08:11,385 basehttp - Broken pipe from ('127.0.0.1', 60398)
+INFO 2025-09-24 15:08:22,992 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+WARNING 2025-09-24 15:08:23,384 log Not Found: /ws/notifications/3/
+WARNING 2025-09-24 15:08:23,385 basehttp "GET /ws/notifications/3/ HTTP/1.1" 404 8651
+INFO 2025-09-24 15:08:23,386 basehttp - Broken pipe from ('127.0.0.1', 40194)
+INFO 2025-09-24 15:08:31,644 autoreload Watching for file changes with StatReloader
+INFO 2025-09-24 15:08:36,412 basehttp code 400, message Bad request version ('\x02h2\x08http/1.1\x00\x1b\x00\x03\x02\x00\x02\x00')
+ERROR 2025-09-24 15:08:36,413 basehttp You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO 2025-09-24 15:08:36,418 basehttp code 400, message Bad request version ('ÚÚ\x13\x01\x13\x02\x13\x03À+À/À,À0Ì©Ì¨À\x13À\x14\x00\x9c\x00\x9d\x00/\x005\x01\x00\x06Szz\x00\x00\x00')
+ERROR 2025-09-24 15:08:36,423 basehttp You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO 2025-09-24 15:08:52,575 basehttp "GET /donor/dashboard/ HTTP/1.1" 200 56395
+WARNING 2025-09-24 15:08:52,968 log Not Found: /ws/notifications/3/
+INFO 2025-09-24 15:08:52,969 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+WARNING 2025-09-24 15:08:52,970 basehttp "GET /ws/notifications/3/ HTTP/1.1" 404 8651
+INFO 2025-09-24 15:08:52,973 basehttp - Broken pipe from ('127.0.0.1', 43698)
+INFO 2025-09-24 15:09:02,969 basehttp code 400, message Bad request version ('\x00\x12\x00\x10\x04\x03\x08\x04\x04\x01\x05\x03\x08\x05\x05\x01\x08\x06\x06\x01\x00+\x00\x07\x06')
+ERROR 2025-09-24 15:09:02,975 basehttp You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO 2025-09-24 15:09:02,993 basehttp code 400, message Bad request version ("¤\x9a)-º\x02\x974)6nô\x99Ú\x88\x17vI,¹êb\\\x08K1T\x02\x18\x07}\x07ÂZ9\x06xÁJvm°v'\\:N¦¸\x04Pd2\x12B\x8dÂ³àØ\x1bµ\x1a\x87åê\x068Á`ò\x95:Ä#\x00ùÜ£A¸\x13K«KCø:_l®\x9bá)J0KG")
+ERROR 2025-09-24 15:09:02,995 basehttp You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO 2025-09-24 15:09:15,382 basehttp "GET / HTTP/1.1" 200 19068
+INFO 2025-09-24 15:09:15,472 basehttp "GET /static/js/notifications.js HTTP/1.1" 200 9280
+INFO 2025-09-24 15:09:20,537 basehttp "GET /login/ HTTP/1.1" 200 10560
+INFO 2025-09-24 15:09:26,132 basehttp "POST /login/ HTTP/1.1" 302 0
+INFO 2025-09-24 15:09:26,224 basehttp "GET /donor/dashboard/ HTTP/1.1" 200 56395
+INFO 2025-09-24 15:09:26,304 basehttp "GET /media/donation_images/donation_None/cakes.jpg HTTP/1.1" 200 159995
+INFO 2025-09-24 15:09:26,348 basehttp "GET /media/donation_images/donation_None/default-donation.png HTTP/1.1" 200 64260
+INFO 2025-09-24 15:09:26,356 basehttp "GET /media/donation_images/donation_1/mangoes.jpg HTTP/1.1" 200 125364
+INFO 2025-09-24 15:09:26,362 basehttp "GET /media/profile_pictures/user_3/ChatGPT_Image_Sep_18_2025_07_46_38_PM.png HTTP/1.1" 200 2287795
+WARNING 2025-09-24 15:09:26,541 log Not Found: /ws/notifications/3/
+WARNING 2025-09-24 15:09:26,550 basehttp "GET /ws/notifications/3/ HTTP/1.1" 404 8651
+INFO 2025-09-24 15:09:26,551 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 15:09:26,552 basehttp - Broken pipe from ('127.0.0.1', 44312)
+WARNING 2025-09-24 15:09:28,599 log Not Found: /ws/notifications/3/
+WARNING 2025-09-24 15:09:28,600 basehttp "GET /ws/notifications/3/ HTTP/1.1" 404 8651
+INFO 2025-09-24 15:09:28,600 basehttp - Broken pipe from ('127.0.0.1', 44320)
+WARNING 2025-09-24 15:09:32,630 log Not Found: /ws/notifications/3/
+WARNING 2025-09-24 15:09:32,631 basehttp "GET /ws/notifications/3/ HTTP/1.1" 404 8651
+INFO 2025-09-24 15:09:32,632 basehttp - Broken pipe from ('127.0.0.1', 60728)
+WARNING 2025-09-24 15:09:40,716 log Not Found: /ws/notifications/3/
+WARNING 2025-09-24 15:09:40,717 basehttp "GET /ws/notifications/3/ HTTP/1.1" 404 8651
+INFO 2025-09-24 15:09:40,723 basehttp - Broken pipe from ('127.0.0.1', 60736)
+INFO 2025-09-24 15:09:56,518 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+WARNING 2025-09-24 15:09:56,770 log Not Found: /ws/notifications/3/
+WARNING 2025-09-24 15:09:56,772 basehttp "GET /ws/notifications/3/ HTTP/1.1" 404 8651
+INFO 2025-09-24 15:09:56,773 basehttp - Broken pipe from ('127.0.0.1', 44922)
+INFO 2025-09-24 15:10:26,509 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+WARNING 2025-09-24 15:10:26,803 log Not Found: /ws/notifications/3/
+WARNING 2025-09-24 15:10:26,804 basehttp "GET /ws/notifications/3/ HTTP/1.1" 404 8651
+INFO 2025-09-24 15:10:26,804 basehttp - Broken pipe from ('127.0.0.1', 59640)
+INFO 2025-09-24 15:10:56,512 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 15:42:17,238 autoreload Watching for file changes with StatReloader
+INFO 2025-09-24 15:42:21,725 basehttp code 400, message Bad request version ('JJ\x13\x01\x13\x02\x13\x03À+À/À,À0Ì©Ì¨À\x13À\x14\x00\x9c\x00\x9d\x00/\x005\x01\x00\x06\x93ÊÊ\x00\x00\x00\x05\x00\x05\x01\x00\x00\x00\x00\x00\x12\x00\x00DÍ\x00\x05\x00\x03\x02h2\x003\x04ï\x04í::\x00\x01\x00\x11ì\x04Àß\x84\x89NØZ\x03\x01,àÌ\x02ØR\x0e©\x12Â\x1bê6È\x83XCÑ\x00¥ô\x98ýÊÇ§')
+ERROR 2025-09-24 15:42:21,730 basehttp You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO 2025-09-24 15:42:21,757 basehttp code 400, message Bad request version ('í')
+ERROR 2025-09-24 15:42:21,759 basehttp You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO 2025-09-24 15:42:34,354 basehttp code 400, message Bad request version ('®·¢\x03ó\x96\x03\x9e\\/v')
+ERROR 2025-09-24 15:42:34,357 basehttp You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO 2025-09-24 15:42:34,365 basehttp code 400, message Bad request version ('\x90\x7fÊ¨ÏêÔ\x9e\x8f\x0f')
+ERROR 2025-09-24 15:42:34,366 basehttp You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO 2025-09-24 15:42:41,639 basehttp "GET / HTTP/1.1" 200 19068
+INFO 2025-09-24 15:42:41,751 basehttp "GET /static/js/notifications.js HTTP/1.1" 200 6056
+WARNING 2025-09-24 15:42:43,706 log Not Found: /favicon.ico
+WARNING 2025-09-24 15:42:43,707 basehttp "GET /favicon.ico HTTP/1.1" 404 8627
+INFO 2025-09-24 15:42:49,716 basehttp "GET /login/ HTTP/1.1" 200 10560
+INFO 2025-09-24 15:42:56,579 basehttp "POST /login/ HTTP/1.1" 302 0
+INFO 2025-09-24 15:42:56,849 basehttp "GET /donor/dashboard/ HTTP/1.1" 200 54440
+INFO 2025-09-24 15:42:56,985 basehttp "GET /media/donation_images/donation_None/cakes.jpg HTTP/1.1" 200 159995
+INFO 2025-09-24 15:42:57,037 basehttp "GET /media/profile_pictures/user_3/ChatGPT_Image_Sep_18_2025_07_46_38_PM.png HTTP/1.1" 200 2287795
+INFO 2025-09-24 15:42:57,040 basehttp "GET /media/donation_images/donation_None/default-donation.png HTTP/1.1" 200 64260
+INFO 2025-09-24 15:42:57,049 basehttp "GET /media/donation_images/donation_1/mangoes.jpg HTTP/1.1" 200 125364
+INFO 2025-09-24 15:42:57,441 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 15:43:22,574 basehttp "GET /map/ HTTP/1.1" 200 17609
+INFO 2025-09-24 15:43:23,994 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 15:43:30,135 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-09-24 15:43:30,496 basehttp "GET /donor/dashboard/ HTTP/1.1" 200 54440
+INFO 2025-09-24 15:43:31,413 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 17:38:18,620 autoreload Watching for file changes with StatReloader
+INFO 2025-09-24 17:38:26,385 basehttp code 400, message Bad request version ('ü\x91\x06j\x8c56\x90³)§Ë)þ§ðÑàPDü\x8eY\x7fmd\x19¦¿')
+ERROR 2025-09-24 17:38:26,386 basehttp You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO 2025-09-24 17:38:26,396 basehttp code 400, message Bad request version ('æB[_9deq>\x96h\x04W¤¢5»,!0\x9e¡D\x80cÓif#¢\x1a:xf')
+ERROR 2025-09-24 17:38:26,397 basehttp You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO 2025-09-24 17:38:49,244 basehttp "GET / HTTP/1.1" 200 19068
+INFO 2025-09-24 17:38:49,339 basehttp "GET /static/js/notifications.js HTTP/1.1" 200 6056
+INFO 2025-09-24 17:38:56,300 basehttp "GET /login/ HTTP/1.1" 200 10560
+INFO 2025-09-24 17:39:03,462 basehttp "POST /login/ HTTP/1.1" 302 0
+INFO 2025-09-24 17:39:03,642 basehttp "GET /donor/dashboard/ HTTP/1.1" 200 54440
+INFO 2025-09-24 17:39:03,829 basehttp "GET /media/donation_images/donation_None/default-donation.png HTTP/1.1" 200 64260
+INFO 2025-09-24 17:39:03,835 basehttp "GET /media/donation_images/donation_None/cakes.jpg HTTP/1.1" 200 159995
+INFO 2025-09-24 17:39:03,839 basehttp "GET /media/donation_images/donation_1/mangoes.jpg HTTP/1.1" 200 125364
+INFO 2025-09-24 17:39:03,848 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 17:39:03,865 basehttp "GET /media/profile_pictures/user_3/ChatGPT_Image_Sep_18_2025_07_46_38_PM.png HTTP/1.1" 200 2287795
+INFO 2025-09-24 17:39:33,827 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 17:42:44,387 basehttp "GET / HTTP/1.1" 200 19068
+INFO 2025-09-24 17:42:44,465 basehttp "GET /static/js/notifications.js HTTP/1.1" 200 6056
+INFO 2025-09-24 17:42:51,131 basehttp "GET / HTTP/1.1" 200 19068
+INFO 2025-09-24 17:42:52,653 basehttp "GET /search/ HTTP/1.1" 200 15764
+INFO 2025-09-24 17:42:54,382 basehttp "GET /map/ HTTP/1.1" 302 0
+INFO 2025-09-24 17:42:54,423 basehttp "GET /login/?next=/map/ HTTP/1.1" 200 10560
+INFO 2025-09-24 17:43:01,047 basehttp "POST /login/?next=/map/ HTTP/1.1" 302 0
+INFO 2025-09-24 17:43:01,132 basehttp "GET /map/ HTTP/1.1" 200 17302
+INFO 2025-09-24 17:43:01,252 basehttp "GET /media/profile_pictures/user_7/default-profile.jpg HTTP/1.1" 200 26781
+INFO 2025-09-24 17:43:02,144 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+WARNING 2025-09-24 17:43:11,625 log Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-09-24 17:43:11,628 basehttp "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 8738
+INFO 2025-09-24 17:43:19,543 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-09-24 17:43:19,797 basehttp "GET /recipient/dashboard/ HTTP/1.1" 200 35203
+WARNING 2025-09-24 17:43:19,979 log Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-09-24 17:43:19,980 basehttp "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 8738
+INFO 2025-09-24 17:43:20,039 basehttp "GET /media/donation_images/donation_None/cakes.jpg HTTP/1.1" 200 159995
+INFO 2025-09-24 17:43:20,051 basehttp "GET /media/donation_images/donation_None/default-donation.png HTTP/1.1" 200 64260
+INFO 2025-09-24 17:43:20,511 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 17:43:40,258 basehttp "GET /search/ HTTP/1.1" 200 19238
+WARNING 2025-09-24 17:43:40,389 log Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-09-24 17:43:40,391 basehttp "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 8738
+INFO 2025-09-24 17:43:40,789 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 17:43:54,386 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-09-24 17:43:54,477 basehttp "GET /recipient/dashboard/ HTTP/1.1" 200 35203
+WARNING 2025-09-24 17:43:54,654 log Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-09-24 17:43:54,657 basehttp "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 8738
+INFO 2025-09-24 17:43:55,126 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 17:44:01,187 basehttp "GET /profile/ HTTP/1.1" 200 30907
+WARNING 2025-09-24 17:44:01,392 log Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-09-24 17:44:01,394 basehttp "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 8738
+INFO 2025-09-24 17:44:01,673 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 17:44:13,925 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-09-24 17:44:14,012 basehttp "GET /recipient/dashboard/ HTTP/1.1" 200 35203
+WARNING 2025-09-24 17:44:14,154 log Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-09-24 17:44:14,156 basehttp "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 8738
+INFO 2025-09-24 17:44:14,555 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 17:44:33,936 basehttp "GET /recipient/dashboard/ HTTP/1.1" 200 35203
+WARNING 2025-09-24 17:44:34,036 log Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-09-24 17:44:34,037 basehttp "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 8738
+INFO 2025-09-24 17:44:34,215 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 17:44:41,651 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+WARNING 2025-09-24 17:44:41,756 log Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-09-24 17:44:41,760 basehttp "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 8738
+WARNING 2025-09-24 17:44:41,862 log Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-09-24 17:44:41,866 basehttp "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 8738
+INFO 2025-09-24 17:44:42,559 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+WARNING 2025-09-24 17:44:42,629 log Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-09-24 17:44:42,634 basehttp "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 8738
+WARNING 2025-09-24 17:44:42,747 log Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-09-24 17:44:42,752 basehttp "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 8738
+INFO 2025-09-24 17:44:43,137 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+WARNING 2025-09-24 17:44:43,256 log Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-09-24 17:44:43,259 basehttp "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 8738
+WARNING 2025-09-24 17:44:43,416 log Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-09-24 17:44:43,420 basehttp "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 8738
+WARNING 2025-09-24 17:44:43,496 log Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-09-24 17:44:43,500 basehttp "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 8738
+WARNING 2025-09-24 17:44:43,671 log Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-09-24 17:44:43,674 basehttp "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 8738
+INFO 2025-09-24 17:44:43,735 basehttp "GET /login/?next=/map/ HTTP/1.1" 200 14229
+WARNING 2025-09-24 17:44:43,885 log Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-09-24 17:44:43,887 basehttp "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 8738
+WARNING 2025-09-24 17:44:44,036 log Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-09-24 17:44:44,039 basehttp "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 8738
+WARNING 2025-09-24 17:44:44,187 log Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-09-24 17:44:44,189 basehttp "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 8738
+WARNING 2025-09-24 17:44:47,372 log Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-09-24 17:44:47,373 basehttp "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 8738
+WARNING 2025-09-24 17:44:47,448 log Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-09-24 17:44:47,451 basehttp "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 8738
+INFO 2025-09-24 17:45:02,326 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-09-24 17:45:02,430 basehttp "GET /recipient/dashboard/ HTTP/1.1" 200 35203
+INFO 2025-09-24 17:45:02,770 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 17:45:15,216 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-09-24 17:45:15,286 basehttp "GET /recipient/dashboard/ HTTP/1.1" 200 35203
+INFO 2025-09-24 17:45:15,397 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 17:45:16,928 basehttp "GET /search/ HTTP/1.1" 200 19238
+INFO 2025-09-24 17:45:17,007 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 17:45:18,051 basehttp "GET /map/ HTTP/1.1" 200 17302
+INFO 2025-09-24 17:45:18,211 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 17:45:19,229 basehttp "GET /recipient/dashboard/ HTTP/1.1" 200 35203
+INFO 2025-09-24 17:45:19,333 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 17:45:49,329 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 17:46:19,330 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 17:49:42,960 autoreload Watching for file changes with StatReloader
+INFO 2025-09-24 17:49:46,648 basehttp code 400, message Bad request version ('ºº\x13\x01\x13\x02\x13\x03À+À/À,À0Ì©Ì¨À\x13À\x14\x00\x9c\x00\x9d\x00/\x005\x01\x00\x06S')
+ERROR 2025-09-24 17:49:46,650 basehttp You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO 2025-09-24 17:49:46,677 basehttp code 400, message Bad request version ('A\x96º§\x01Ê§áÓ\x00-KMbsÏª4')
+ERROR 2025-09-24 17:49:46,678 basehttp You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO 2025-09-24 17:49:49,345 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 17:50:00,330 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-09-24 17:50:00,457 basehttp "GET /recipient/dashboard/ HTTP/1.1" 200 34371
+INFO 2025-09-24 17:50:00,581 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 17:50:18,208 basehttp "GET /profile/ HTTP/1.1" 200 30075
+INFO 2025-09-24 17:50:18,374 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 17:50:24,455 basehttp "GET /logout/ HTTP/1.1" 302 0
+INFO 2025-09-24 17:50:24,484 basehttp "GET / HTTP/1.1" 200 20262
+INFO 2025-09-24 17:50:27,721 basehttp "GET /login/ HTTP/1.1" 200 11184
+INFO 2025-09-24 17:50:34,066 basehttp "POST /login/ HTTP/1.1" 302 0
+INFO 2025-09-24 17:50:34,131 basehttp "GET /donor/dashboard/ HTTP/1.1" 200 21581
+WARNING 2025-09-24 17:50:34,265 log Not Found: /media/profile_pictures/default.png
+INFO 2025-09-24 17:50:34,274 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+WARNING 2025-09-24 17:50:34,275 basehttp "GET /media/profile_pictures/default.png HTTP/1.1" 404 8750
+INFO 2025-09-24 17:50:53,721 basehttp "GET /profile/ HTTP/1.1" 200 30704
+WARNING 2025-09-24 17:50:53,821 log Not Found: /media/profile_pictures/default.png
+WARNING 2025-09-24 17:50:53,829 basehttp "GET /media/profile_pictures/default.png HTTP/1.1" 404 8750
+INFO 2025-09-24 17:50:53,908 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 17:51:23,901 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 17:51:53,899 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 17:51:55,959 basehttp "POST /profile/ HTTP/1.1" 302 0
+INFO 2025-09-24 17:51:56,015 basehttp "GET /profile/ HTTP/1.1" 200 31413
+INFO 2025-09-24 17:51:56,165 basehttp "GET /media/profile_pictures/user_1/1.jpg HTTP/1.1" 200 6356
+INFO 2025-09-24 17:51:56,317 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 17:52:05,652 basehttp "POST /profile/ HTTP/1.1" 302 0
+INFO 2025-09-24 17:52:05,698 basehttp "GET /profile/ HTTP/1.1" 200 31413
+INFO 2025-09-24 17:52:05,806 basehttp "GET /media/profile_pictures/user_1/1.jpg HTTP/1.1" 304 0
+INFO 2025-09-24 17:52:05,878 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 17:52:22,797 basehttp "GET /logout/ HTTP/1.1" 302 0
+INFO 2025-09-24 17:52:22,813 basehttp "GET / HTTP/1.1" 200 20262
+INFO 2025-09-24 17:52:34,184 basehttp "GET /login/ HTTP/1.1" 200 11184
+INFO 2025-09-24 17:52:38,767 basehttp "POST /login/ HTTP/1.1" 200 11394
+INFO 2025-09-24 17:52:40,686 basehttp "GET /signup/ HTTP/1.1" 200 20835
+INFO 2025-09-24 17:53:13,086 basehttp "POST /signup/ HTTP/1.1" 200 21114
+INFO 2025-09-24 17:53:31,184 basehttp "GET /login/ HTTP/1.1" 200 11184
+INFO 2025-09-24 17:53:36,524 basehttp "POST /login/ HTTP/1.1" 302 0
+INFO 2025-09-24 17:53:36,619 basehttp "GET /donor/dashboard/ HTTP/1.1" 200 53608
+INFO 2025-09-24 17:53:36,732 basehttp "GET /media/donation_images/donation_1/mangoes.jpg HTTP/1.1" 200 125364
+INFO 2025-09-24 17:53:36,786 basehttp "GET /media/profile_pictures/user_3/ChatGPT_Image_Sep_18_2025_07_46_38_PM.png HTTP/1.1" 200 2287795
+INFO 2025-09-24 17:53:36,838 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 17:53:46,679 basehttp "GET /donation/1/ HTTP/1.1" 200 24900
+INFO 2025-09-24 17:53:46,763 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 17:54:01,133 basehttp "GET /logout/ HTTP/1.1" 302 0
+INFO 2025-09-24 17:54:01,156 basehttp "GET / HTTP/1.1" 200 20262
+INFO 2025-09-24 17:54:03,557 basehttp "GET /login/ HTTP/1.1" 200 11184
+INFO 2025-09-24 17:54:13,745 basehttp "POST /login/ HTTP/1.1" 302 0
+INFO 2025-09-24 17:54:13,802 basehttp "GET /recipient/dashboard/ HTTP/1.1" 200 28265
+WARNING 2025-09-24 17:54:13,925 log Not Found: /media/profile_pictures/default.png
+WARNING 2025-09-24 17:54:13,927 basehttp "GET /media/profile_pictures/default.png HTTP/1.1" 404 8750
+INFO 2025-09-24 17:54:13,955 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 17:54:18,706 basehttp "GET /donation/1/rate/ HTTP/1.1" 200 18658
+WARNING 2025-09-24 17:54:18,804 log Not Found: /media/profile_pictures/default.png
+WARNING 2025-09-24 17:54:18,807 basehttp "GET /media/profile_pictures/default.png HTTP/1.1" 404 8750
+INFO 2025-09-24 17:54:18,837 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+ERROR 2025-09-24 17:54:23,216 log Internal Server Error: /donation/1/rate/
+Traceback (most recent call last):
+  File "/home/fred/Desktop/FoodLoop/.venv/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/fred/Desktop/FoodLoop/.venv/lib/python3.13/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/fred/Desktop/FoodLoop/.venv/lib/python3.13/site-packages/django/contrib/auth/decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "/home/fred/Desktop/FoodLoop/.venv/lib/python3.13/site-packages/django/views/decorators/http.py", line 64, in inner
+    return func(request, *args, **kwargs)
+  File "/home/fred/Desktop/FoodLoop/core/views.py", line 716, in create_rating
+    send_rating_notification(rating)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "/home/fred/Desktop/FoodLoop/core/views.py", line 308, in send_rating_notification
+    rated_user = rating.recipient if rating.donor == rating.rated_user else rating.donor
+                                                     ^^^^^^^^^^^^^^^^^
+AttributeError: 'Rating' object has no attribute 'rated_user'
+ERROR 2025-09-24 17:54:23,222 basehttp "POST /donation/1/rate/ HTTP/1.1" 500 96357
+INFO 2025-09-24 17:55:05,706 basehttp "GET /map/ HTTP/1.1" 200 16456
+WARNING 2025-09-24 17:55:05,784 log Not Found: /media/profile_pictures/default.png
+WARNING 2025-09-24 17:55:05,786 basehttp "GET /media/profile_pictures/default.png HTTP/1.1" 404 8750
+INFO 2025-09-24 17:55:05,852 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 17:55:12,298 basehttp "GET /profile/ HTTP/1.1" 200 30008
+WARNING 2025-09-24 17:55:12,368 log Not Found: /media/profile_pictures/default.png
+WARNING 2025-09-24 17:55:12,372 basehttp "GET /media/profile_pictures/default.png HTTP/1.1" 404 8750
+INFO 2025-09-24 17:55:12,437 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 17:55:42,431 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 17:56:12,433 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 17:56:42,440 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:02:04,848 autoreload Watching for file changes with StatReloader
+INFO 2025-09-24 18:04:15,306 autoreload Watching for file changes with StatReloader
+INFO 2025-09-24 18:14:21,891 autoreload Watching for file changes with StatReloader
+INFO 2025-09-24 18:14:30,332 basehttp code 400, message Bad request version ('\x04(ÒvG{7j)\x12&>Õ')
+ERROR 2025-09-24 18:14:30,338 basehttp You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO 2025-09-24 18:14:30,346 basehttp code 400, message Bad request version ('óhþv]Î¡u')
+ERROR 2025-09-24 18:14:30,347 basehttp You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO 2025-09-24 18:14:53,885 basehttp "GET / HTTP/1.1" 200 19692
+INFO 2025-09-24 18:14:53,979 basehttp "GET /static/js/notifications.js HTTP/1.1" 200 6056
+ERROR 2025-09-24 18:15:05,072 log Internal Server Error: /login/
+Traceback (most recent call last):
+  File "/home/fred/Desktop/FoodLoop/.venv/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/fred/Desktop/FoodLoop/.venv/lib/python3.13/site-packages/django/core/handlers/base.py", line 204, in _get_response
+    self.check_response(response, callback)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/home/fred/Desktop/FoodLoop/.venv/lib/python3.13/site-packages/django/core/handlers/base.py", line 332, in check_response
+    raise ValueError(
+    ...<2 lines>...
+    )
+ValueError: The view core.views.login_view didn't return an HttpResponse object. It returned None instead.
+ERROR 2025-09-24 18:15:05,076 basehttp "GET /login/ HTTP/1.1" 500 80592
+INFO 2025-09-24 18:16:14,527 autoreload /home/fred/Desktop/FoodLoop/core/views.py changed, reloading.
+INFO 2025-09-24 18:16:15,998 autoreload Watching for file changes with StatReloader
+ERROR 2025-09-24 18:16:21,683 log Internal Server Error: /login/
+Traceback (most recent call last):
+  File "/home/fred/Desktop/FoodLoop/.venv/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/fred/Desktop/FoodLoop/.venv/lib/python3.13/site-packages/django/core/handlers/base.py", line 204, in _get_response
+    self.check_response(response, callback)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/home/fred/Desktop/FoodLoop/.venv/lib/python3.13/site-packages/django/core/handlers/base.py", line 332, in check_response
+    raise ValueError(
+    ...<2 lines>...
+    )
+ValueError: The view core.views.login_view didn't return an HttpResponse object. It returned None instead.
+ERROR 2025-09-24 18:16:21,689 basehttp "GET /login/ HTTP/1.1" 500 80729
+ERROR 2025-09-24 18:16:26,171 log Internal Server Error: /login/
+Traceback (most recent call last):
+  File "/home/fred/Desktop/FoodLoop/.venv/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/fred/Desktop/FoodLoop/.venv/lib/python3.13/site-packages/django/core/handlers/base.py", line 204, in _get_response
+    self.check_response(response, callback)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/home/fred/Desktop/FoodLoop/.venv/lib/python3.13/site-packages/django/core/handlers/base.py", line 332, in check_response
+    raise ValueError(
+    ...<2 lines>...
+    )
+ValueError: The view core.views.login_view didn't return an HttpResponse object. It returned None instead.
+ERROR 2025-09-24 18:16:26,174 basehttp "GET /login/ HTTP/1.1" 500 80592
+INFO 2025-09-24 18:16:55,742 autoreload /home/fred/Desktop/FoodLoop/core/views.py changed, reloading.
+INFO 2025-09-24 18:16:57,887 autoreload Watching for file changes with StatReloader
+INFO 2025-09-24 18:17:06,778 autoreload Watching for file changes with StatReloader
+INFO 2025-09-24 18:17:15,975 basehttp "GET / HTTP/1.1" 200 19692
+ERROR 2025-09-24 18:17:18,506 log Internal Server Error: /login/
+Traceback (most recent call last):
+  File "/home/fred/Desktop/FoodLoop/.venv/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/fred/Desktop/FoodLoop/.venv/lib/python3.13/site-packages/django/core/handlers/base.py", line 204, in _get_response
+    self.check_response(response, callback)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/home/fred/Desktop/FoodLoop/.venv/lib/python3.13/site-packages/django/core/handlers/base.py", line 332, in check_response
+    raise ValueError(
+    ...<2 lines>...
+    )
+ValueError: The view core.views.login_view didn't return an HttpResponse object. It returned None instead.
+ERROR 2025-09-24 18:17:18,511 basehttp "GET /login/ HTTP/1.1" 500 80592
+INFO 2025-09-24 18:19:08,800 autoreload Watching for file changes with StatReloader
+INFO 2025-09-24 18:19:12,675 basehttp code 400, message Bad request version ('\x1a\x1a\x13\x01\x13\x02\x13\x03À+À/À,À0Ì©Ì¨À\x13À\x14\x00\x9c\x00\x9d\x00/\x005\x01\x00\x063ºº\x00\x00\x00')
+ERROR 2025-09-24 18:19:12,702 basehttp You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO 2025-09-24 18:19:12,721 basehttp code 400, message Bad request version ('\x00\x12\x00\x10\x04\x03\x08\x04\x04\x01\x05\x03\x08\x05\x05\x01\x08\x06\x06\x01\x00')
+ERROR 2025-09-24 18:19:12,725 basehttp You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO 2025-09-24 18:19:30,508 basehttp "GET / HTTP/1.1" 200 19692
+INFO 2025-09-24 18:19:33,241 basehttp "GET /login/ HTTP/1.1" 200 11184
+INFO 2025-09-24 18:19:40,393 basehttp "POST /login/ HTTP/1.1" 302 0
+INFO 2025-09-24 18:19:40,666 basehttp "GET /donor/dashboard/ HTTP/1.1" 200 55738
+INFO 2025-09-24 18:19:40,926 basehttp "GET /media/donation_images/donation_None/cakes.jpg HTTP/1.1" 200 159995
+INFO 2025-09-24 18:19:40,937 basehttp "GET /media/donation_images/donation_None/default-donation.png HTTP/1.1" 200 64260
+INFO 2025-09-24 18:19:40,970 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:19:40,975 basehttp "GET /media/donation_images/donation_1/mangoes.jpg HTTP/1.1" 200 125364
+INFO 2025-09-24 18:19:41,007 basehttp "GET /media/profile_pictures/user_3/ChatGPT_Image_Sep_18_2025_07_46_38_PM.png HTTP/1.1" 200 2287795
+WARNING 2025-09-24 18:19:53,659 log Forbidden (CSRF token from the 'X-Csrftoken' HTTP header has incorrect length.): /notifications/read-all/
+WARNING 2025-09-24 18:19:53,660 basehttp "POST /notifications/read-all/ HTTP/1.1" 403 2549
+INFO 2025-09-24 18:20:10,081 basehttp "GET /logout/ HTTP/1.1" 302 0
+INFO 2025-09-24 18:20:10,105 basehttp "GET / HTTP/1.1" 200 20262
+INFO 2025-09-24 18:20:16,030 basehttp "GET /login/ HTTP/1.1" 200 11184
+INFO 2025-09-24 18:20:21,981 basehttp "POST /login/ HTTP/1.1" 200 11398
+INFO 2025-09-24 18:20:30,732 basehttp "POST /login/ HTTP/1.1" 200 11394
+INFO 2025-09-24 18:20:36,341 basehttp "POST /login/ HTTP/1.1" 302 0
+INFO 2025-09-24 18:20:36,386 basehttp "GET /donor/dashboard/ HTTP/1.1" 200 21582
+INFO 2025-09-24 18:20:36,480 basehttp "GET /media/profile_pictures/user_1/1.jpg HTTP/1.1" 200 6356
+INFO 2025-09-24 18:20:36,522 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:20:44,602 basehttp "GET /profile/ HTTP/1.1" 200 30819
+INFO 2025-09-24 18:20:46,137 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:21:10,283 basehttp "GET /donor/dashboard/ HTTP/1.1" 200 21582
+INFO 2025-09-24 18:21:10,403 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:21:17,076 basehttp "GET /search/ HTTP/1.1" 200 18675
+INFO 2025-09-24 18:21:17,189 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:21:32,600 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-09-24 18:21:32,669 basehttp "GET /donor/dashboard/ HTTP/1.1" 200 21582
+INFO 2025-09-24 18:21:32,800 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:22:00,218 basehttp "GET /map/ HTTP/1.1" 200 16739
+INFO 2025-09-24 18:22:00,437 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:22:30,434 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:22:34,649 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-09-24 18:22:34,699 basehttp "GET /donor/dashboard/ HTTP/1.1" 200 21582
+INFO 2025-09-24 18:22:34,805 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:22:38,886 basehttp "GET /donation/create/ HTTP/1.1" 200 38903
+INFO 2025-09-24 18:22:39,008 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:22:59,396 basehttp "GET /logout/ HTTP/1.1" 302 0
+INFO 2025-09-24 18:22:59,414 basehttp "GET / HTTP/1.1" 200 20262
+INFO 2025-09-24 18:23:01,257 basehttp "GET /login/ HTTP/1.1" 200 11184
+INFO 2025-09-24 18:23:08,293 basehttp "POST /login/ HTTP/1.1" 302 0
+INFO 2025-09-24 18:23:08,338 basehttp "GET /donor/dashboard/ HTTP/1.1" 200 21438
+WARNING 2025-09-24 18:23:08,477 log Not Found: /media/profile_pictures/default.png
+WARNING 2025-09-24 18:23:08,480 basehttp "GET /media/profile_pictures/default.png HTTP/1.1" 404 8750
+INFO 2025-09-24 18:23:08,495 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:23:16,732 basehttp "GET /logout/ HTTP/1.1" 302 0
+INFO 2025-09-24 18:23:16,756 basehttp "GET / HTTP/1.1" 200 20262
+INFO 2025-09-24 18:23:18,268 basehttp "GET /signup/ HTTP/1.1" 200 20835
+INFO 2025-09-24 18:24:27,452 basehttp "POST /signup/ HTTP/1.1" 200 21108
+INFO 2025-09-24 18:25:11,912 basehttp "POST /signup/ HTTP/1.1" 302 0
+INFO 2025-09-24 18:25:11,990 basehttp "GET /recipient/dashboard/ HTTP/1.1" 200 24035
+INFO 2025-09-24 18:25:12,220 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:25:32,237 basehttp "GET /profile/ HTTP/1.1" 200 30158
+INFO 2025-09-24 18:25:32,387 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:25:35,779 basehttp "POST /verify-email/ HTTP/1.1" 302 0
+INFO 2025-09-24 18:25:35,850 basehttp "GET /profile/ HTTP/1.1" 200 30858
+INFO 2025-09-24 18:25:36,018 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:26:06,022 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:26:35,779 basehttp "POST /profile/ HTTP/1.1" 302 0
+INFO 2025-09-24 18:26:35,832 basehttp "GET /profile/ HTTP/1.1" 200 30901
+INFO 2025-09-24 18:26:35,977 basehttp "GET /media/profile_pictures/user_8/0755625a1ece0704baf53b2aa406aa85.jpg HTTP/1.1" 200 34746
+INFO 2025-09-24 18:26:36,156 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:26:42,497 basehttp "POST /profile/ HTTP/1.1" 302 0
+INFO 2025-09-24 18:26:42,570 basehttp "GET /profile/ HTTP/1.1" 200 30901
+INFO 2025-09-24 18:26:42,673 basehttp "GET /media/profile_pictures/user_8/0755625a1ece0704baf53b2aa406aa85.jpg HTTP/1.1" 304 0
+INFO 2025-09-24 18:26:42,807 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:26:46,183 basehttp "POST /verify-email/ HTTP/1.1" 302 0
+INFO 2025-09-24 18:26:46,229 basehttp "GET /profile/ HTTP/1.1" 200 31007
+INFO 2025-09-24 18:26:46,332 basehttp "GET /media/profile_pictures/user_8/0755625a1ece0704baf53b2aa406aa85.jpg HTTP/1.1" 304 0
+INFO 2025-09-24 18:26:46,420 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:26:57,748 basehttp "GET /verify/gEwDUmBF4I-KqF6EsZRo2YFRe8u_RBfSynvnXDmx-IM/ HTTP/1.1" 302 0
+INFO 2025-09-24 18:26:57,819 basehttp "GET /profile/ HTTP/1.1" 200 30779
+INFO 2025-09-24 18:26:57,960 basehttp "GET /media/profile_pictures/user_8/0755625a1ece0704baf53b2aa406aa85.jpg HTTP/1.1" 304 0
+INFO 2025-09-24 18:26:58,202 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:27:17,374 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:27:28,197 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:27:35,251 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-09-24 18:27:35,315 basehttp "GET /recipient/dashboard/ HTTP/1.1" 200 23139
+INFO 2025-09-24 18:27:35,439 basehttp "GET /media/profile_pictures/user_8/0755625a1ece0704baf53b2aa406aa85.jpg HTTP/1.1" 304 0
+INFO 2025-09-24 18:27:35,581 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:27:47,150 basehttp "GET /recipient/dashboard/ HTTP/1.1" 200 23139
+INFO 2025-09-24 18:27:47,238 basehttp "GET /media/profile_pictures/user_8/0755625a1ece0704baf53b2aa406aa85.jpg HTTP/1.1" 304 0
+INFO 2025-09-24 18:27:47,278 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:27:47,378 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:27:49,925 basehttp "GET /recipient/dashboard/ HTTP/1.1" 200 23139
+INFO 2025-09-24 18:27:50,011 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:27:52,965 basehttp "GET /recipient/dashboard/ HTTP/1.1" 200 23139
+INFO 2025-09-24 18:27:53,067 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:27:56,154 basehttp "GET /profile/ HTTP/1.1" 200 30186
+INFO 2025-09-24 18:27:56,234 basehttp "GET /media/profile_pictures/user_8/0755625a1ece0704baf53b2aa406aa85.jpg HTTP/1.1" 304 0
+INFO 2025-09-24 18:27:56,344 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:28:05,888 basehttp "GET /logout/ HTTP/1.1" 302 0
+INFO 2025-09-24 18:28:05,910 basehttp "GET / HTTP/1.1" 200 20262
+INFO 2025-09-24 18:28:09,809 basehttp "GET /login/ HTTP/1.1" 200 11184
+INFO 2025-09-24 18:28:14,825 basehttp "POST /login/ HTTP/1.1" 302 0
+INFO 2025-09-24 18:28:14,925 basehttp "GET /donor/dashboard/ HTTP/1.1" 200 55738
+INFO 2025-09-24 18:28:15,045 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:28:17,376 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:28:27,245 basehttp "GET /logout/ HTTP/1.1" 302 0
+INFO 2025-09-24 18:28:27,272 basehttp "GET / HTTP/1.1" 200 20262
+INFO 2025-09-24 18:28:29,144 basehttp "GET /login/ HTTP/1.1" 200 11184
+INFO 2025-09-24 18:28:34,460 basehttp "POST /login/ HTTP/1.1" 302 0
+INFO 2025-09-24 18:28:34,515 basehttp "GET /donor/dashboard/ HTTP/1.1" 200 21438
+WARNING 2025-09-24 18:28:34,664 log Not Found: /media/profile_pictures/default.png
+WARNING 2025-09-24 18:28:34,665 basehttp "GET /media/profile_pictures/default.png HTTP/1.1" 404 8750
+INFO 2025-09-24 18:28:34,679 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:28:39,380 basehttp "GET /donation/create/ HTTP/1.1" 302 0
+INFO 2025-09-24 18:28:39,440 basehttp "GET /profile/ HTTP/1.1" 200 31410
+WARNING 2025-09-24 18:28:39,578 log Not Found: /media/profile_pictures/default.png
+WARNING 2025-09-24 18:28:39,580 basehttp "GET /media/profile_pictures/default.png HTTP/1.1" 404 8750
+INFO 2025-09-24 18:28:39,733 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:28:48,250 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-09-24 18:28:48,320 basehttp "GET /donor/dashboard/ HTTP/1.1" 200 21438
+WARNING 2025-09-24 18:28:48,451 log Not Found: /media/profile_pictures/default.png
+WARNING 2025-09-24 18:28:48,454 basehttp "GET /media/profile_pictures/default.png HTTP/1.1" 404 8750
+INFO 2025-09-24 18:28:48,566 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:28:51,792 basehttp "GET /profile/ HTTP/1.1" 200 30776
+WARNING 2025-09-24 18:28:51,877 log Not Found: /media/profile_pictures/default.png
+WARNING 2025-09-24 18:28:51,878 basehttp "GET /media/profile_pictures/default.png HTTP/1.1" 404 8750
+INFO 2025-09-24 18:28:52,014 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:28:54,671 basehttp "POST /verify-email/ HTTP/1.1" 302 0
+INFO 2025-09-24 18:28:54,750 basehttp "GET /profile/ HTTP/1.1" 200 31476
+WARNING 2025-09-24 18:28:54,891 log Not Found: /media/profile_pictures/default.png
+WARNING 2025-09-24 18:28:54,894 basehttp "GET /media/profile_pictures/default.png HTTP/1.1" 404 8750
+INFO 2025-09-24 18:28:55,002 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:29:05,711 basehttp "GET /verify/6XMbGmrp-_rwxon-6HGL7EiC0gHynFSivaObrHOfQNw/ HTTP/1.1" 302 0
+INFO 2025-09-24 18:29:05,779 basehttp "GET /profile/ HTTP/1.1" 200 31248
+WARNING 2025-09-24 18:29:05,970 log Not Found: /media/profile_pictures/default.png
+WARNING 2025-09-24 18:29:05,975 basehttp "GET /media/profile_pictures/default.png HTTP/1.1" 404 8750
+INFO 2025-09-24 18:29:06,226 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:29:23,547 basehttp "POST /profile/ HTTP/1.1" 302 0
+INFO 2025-09-24 18:29:23,614 basehttp "GET /profile/ HTTP/1.1" 200 31345
+INFO 2025-09-24 18:29:23,733 basehttp "GET /media/profile_pictures/user_2/0755625a1ece0704baf53b2aa406aa85.jpg HTTP/1.1" 200 34746
+INFO 2025-09-24 18:29:23,843 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:29:45,624 basehttp "POST /profile/ HTTP/1.1" 302 0
+INFO 2025-09-24 18:29:45,684 basehttp "GET /profile/ HTTP/1.1" 200 31490
+INFO 2025-09-24 18:29:45,809 basehttp "GET /media/profile_pictures/user_2/0755625a1ece0704baf53b2aa406aa85.jpg HTTP/1.1" 304 0
+INFO 2025-09-24 18:29:45,899 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:29:52,673 basehttp "POST /profile/ HTTP/1.1" 302 0
+INFO 2025-09-24 18:29:52,769 basehttp "GET /profile/ HTTP/1.1" 200 31490
+INFO 2025-09-24 18:29:52,873 basehttp "GET /media/profile_pictures/user_2/0755625a1ece0704baf53b2aa406aa85.jpg HTTP/1.1" 304 0
+INFO 2025-09-24 18:29:52,976 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:30:22,958 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:30:26,371 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-09-24 18:30:26,437 basehttp "GET /donor/dashboard/ HTTP/1.1" 200 21618
+INFO 2025-09-24 18:30:26,553 basehttp "GET /media/profile_pictures/user_2/0755625a1ece0704baf53b2aa406aa85.jpg HTTP/1.1" 304 0
+INFO 2025-09-24 18:30:26,575 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:30:31,144 basehttp "GET /profile/ HTTP/1.1" 200 30896
+INFO 2025-09-24 18:30:31,277 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:30:33,737 basehttp "GET /donation/create/ HTTP/1.1" 200 38939
+INFO 2025-09-24 18:30:33,811 basehttp "GET /media/profile_pictures/user_2/0755625a1ece0704baf53b2aa406aa85.jpg HTTP/1.1" 304 0
+INFO 2025-09-24 18:30:33,938 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:31:03,918 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:31:33,942 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:32:03,918 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:32:33,915 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:33:03,928 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:33:33,928 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:34:04,386 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:34:33,926 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:35:03,919 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:35:33,923 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:36:04,388 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:36:34,382 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:37:28,444 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:37:37,239 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:38:05,947 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:38:33,927 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+ERROR 2025-09-24 18:39:01,888 log Internal Server Error: /donation/create/
+Traceback (most recent call last):
+  File "/home/fred/Desktop/FoodLoop/.venv/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/fred/Desktop/FoodLoop/.venv/lib/python3.13/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/fred/Desktop/FoodLoop/.venv/lib/python3.13/site-packages/django/contrib/auth/decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "/home/fred/Desktop/FoodLoop/core/decorators.py", line 16, in _wrapped_view
+    return view_func(request, *args, **kwargs)
+  File "/home/fred/Desktop/FoodLoop/core/decorators.py", line 60, in _wrapped_view
+    return view_func(request, *args, **kwargs)
+  File "/home/fred/Desktop/FoodLoop/core/views.py", line 472, in create_donation
+    donation.save()
+    ~~~~~~~~~~~~~^^
+  File "/home/fred/Desktop/FoodLoop/core/models.py", line 157, in save
+    os.path.join(settings.MEDIA_ROOT, original_path),
+                 ^^^^^^^^
+NameError: name 'settings' is not defined
+ERROR 2025-09-24 18:39:01,922 basehttp "POST /donation/create/ HTTP/1.1" 500 101471
+INFO 2025-09-24 18:40:24,661 autoreload /home/fred/Desktop/FoodLoop/core/models.py changed, reloading.
+INFO 2025-09-24 18:40:27,710 autoreload Watching for file changes with StatReloader
+INFO 2025-09-24 18:41:33,732 autoreload /home/fred/Desktop/FoodLoop/core/views.py changed, reloading.
+INFO 2025-09-24 18:41:39,863 autoreload Watching for file changes with StatReloader
+INFO 2025-09-24 18:44:35,214 autoreload /home/fred/Desktop/FoodLoop/core/models.py changed, reloading.
+INFO 2025-09-24 18:44:40,351 autoreload Watching for file changes with StatReloader
+INFO 2025-09-24 18:49:06,237 autoreload Watching for file changes with StatReloader
+INFO 2025-09-24 18:49:13,412 basehttp code 400, message Bad request version ('ï®\x12¸\x9an\x06âpÒ²±N0};\x88zØò´i\x9e\x99\x82\x8e×=Wüìq\x00')
+ERROR 2025-09-24 18:49:13,416 basehttp You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO 2025-09-24 18:49:13,425 basehttp code 400, message Bad HTTP/0.9 request type ('\x16\x03\x01\x06')
+ERROR 2025-09-24 18:49:13,429 basehttp You're accessing the development server over HTTPS, but it only supports HTTP.
+INFO 2025-09-24 18:49:27,939 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-09-24 18:49:28,040 basehttp "GET /donor/dashboard/ HTTP/1.1" 200 30748
+INFO 2025-09-24 18:49:28,104 basehttp "GET /media/profile_pictures/user_2/0755625a1ece0704baf53b2aa406aa85.jpg HTTP/1.1" 304 0
+INFO 2025-09-24 18:49:28,119 basehttp "GET /media/donation_images/temp/buffet.jpg HTTP/1.1" 200 168732
+INFO 2025-09-24 18:49:28,151 basehttp "GET /static/js/notifications.js HTTP/1.1" 304 0
+INFO 2025-09-24 18:49:28,217 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:49:36,137 basehttp "GET /donation/4/ HTTP/1.1" 200 24597
+INFO 2025-09-24 18:49:36,283 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:49:55,726 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-09-24 18:49:55,775 basehttp "GET /donor/dashboard/ HTTP/1.1" 200 30748
+INFO 2025-09-24 18:49:55,900 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:50:11,819 basehttp "GET /logout/ HTTP/1.1" 302 0
+INFO 2025-09-24 18:50:11,850 basehttp "GET / HTTP/1.1" 200 23197
+INFO 2025-09-24 18:50:14,789 basehttp "GET /login/ HTTP/1.1" 200 11184
+INFO 2025-09-24 18:50:26,513 basehttp "POST /login/ HTTP/1.1" 302 0
+INFO 2025-09-24 18:50:26,616 basehttp "GET /recipient/dashboard/ HTTP/1.1" 200 36641
+INFO 2025-09-24 18:50:26,730 basehttp "GET /media/profile_pictures/user_7/default-profile.jpg HTTP/1.1" 200 26781
+INFO 2025-09-24 18:50:26,730 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:50:37,586 basehttp "GET /donation/4/ HTTP/1.1" 200 25220
+INFO 2025-09-24 18:50:37,717 basehttp "GET /media/donation_images/temp/buffet.jpg HTTP/1.1" 304 0
+INFO 2025-09-24 18:50:37,966 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:51:07,181 basehttp "POST /donation/4/claim/ HTTP/1.1" 302 0
+INFO 2025-09-24 18:51:07,267 basehttp "GET /recipient/dashboard/ HTTP/1.1" 200 39747
+INFO 2025-09-24 18:51:07,738 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:51:37,789 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:52:07,765 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:52:37,735 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:53:07,738 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:53:08,936 basehttp "GET /logout/ HTTP/1.1" 302 0
+INFO 2025-09-24 18:53:08,961 basehttp "GET / HTTP/1.1" 200 20262
+INFO 2025-09-24 18:53:11,104 basehttp "GET /login/ HTTP/1.1" 200 11184
+INFO 2025-09-24 18:53:18,347 basehttp "POST /login/ HTTP/1.1" 302 0
+INFO 2025-09-24 18:53:18,405 basehttp "GET /donor/dashboard/ HTTP/1.1" 200 32637
+INFO 2025-09-24 18:53:18,502 basehttp "GET /media/profile_pictures/user_2/0755625a1ece0704baf53b2aa406aa85.jpg HTTP/1.1" 304 0
+INFO 2025-09-24 18:53:18,506 basehttp "GET /media/donation_images/temp/buffet.jpg HTTP/1.1" 304 0
+INFO 2025-09-24 18:53:18,529 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:53:38,369 basehttp "POST /donation/4/complete/ HTTP/1.1" 302 0
+INFO 2025-09-24 18:53:38,438 basehttp "GET /donor/dashboard/ HTTP/1.1" 200 33168
+INFO 2025-09-24 18:53:38,712 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:53:51,896 basehttp "GET /donation/4/ HTTP/1.1" 200 24985
+INFO 2025-09-24 18:53:52,037 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:53:55,748 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-09-24 18:53:55,818 basehttp "GET /donor/dashboard/ HTTP/1.1" 200 32541
+INFO 2025-09-24 18:53:55,918 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:53:58,216 basehttp "GET /donation/4/rate/ HTTP/1.1" 200 18968
+INFO 2025-09-24 18:53:58,298 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:54:28,286 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:54:45,210 basehttp "POST /donation/4/rate/ HTTP/1.1" 302 0
+INFO 2025-09-24 18:54:45,285 basehttp "GET /donor/dashboard/ HTTP/1.1" 200 35261
+INFO 2025-09-24 18:54:45,389 basehttp "GET /media/donation_images/temp/buffet.jpg HTTP/1.1" 304 0
+INFO 2025-09-24 18:54:45,405 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:54:54,536 basehttp "GET /logout/ HTTP/1.1" 302 0
+INFO 2025-09-24 18:54:54,559 basehttp "GET / HTTP/1.1" 200 20262
+INFO 2025-09-24 18:54:59,170 basehttp "GET /login/ HTTP/1.1" 200 11184
+INFO 2025-09-24 18:55:03,693 basehttp "POST /login/ HTTP/1.1" 302 0
+INFO 2025-09-24 18:55:03,804 basehttp "GET /recipient/dashboard/ HTTP/1.1" 200 39398
+INFO 2025-09-24 18:55:03,976 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:55:11,230 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-09-24 18:55:11,351 basehttp "GET /recipient/dashboard/ HTTP/1.1" 200 39398
+INFO 2025-09-24 18:55:11,470 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:55:24,095 basehttp "GET /donation/2/ HTTP/1.1" 200 24890
+INFO 2025-09-24 18:55:24,175 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:55:40,820 basehttp "GET /map/?lat=-1.2874422&lon=36.7845225 HTTP/1.1" 200 16476
+INFO 2025-09-24 18:55:41,099 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:55:54,753 basehttp "GET / HTTP/1.1" 302 0
+INFO 2025-09-24 18:55:54,843 basehttp "GET /recipient/dashboard/ HTTP/1.1" 200 39398
+INFO 2025-09-24 18:55:55,113 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:56:25,114 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:56:55,136 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:57:25,140 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:57:55,207 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
+INFO 2025-09-24 18:58:25,115 basehttp "GET /notifications/count/ HTTP/1.1" 200 12
