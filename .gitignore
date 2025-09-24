@@ -5,12 +5,12 @@ __pycache__/
 *.sqlite3
 
 .venv/
-.env
 
 staticfiles/
 media/
 
 .DS_Store
 Thumbs.db
+.env
 
 .vscode/
