@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_POST
 from django.utils import timezone
 from django.contrib.auth.models import User
@@ -17,7 +17,7 @@ from django.views.decorators.http import require_http_methods
 from .models import UserProfile, Donation, EmailVerification, Notification
 from .forms import SignUpForm, DonationForm, ProfileUpdateForm
 from .decorators import donor_required, recipient_required, email_verified_required
-from .utils import generate_verification_token, send_verification_email, send_donation_claimed_email
+from .utils import generate_verification_token, send_verification_email, send_donation_claimed_email, send_real_time_notification
 from django.conf import settings
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
@@ -73,50 +73,34 @@ def login_view(request):
     # This handles GET requests (when user visits the login page)
     return render(request, 'registration/login.html')
 
+# -----------------------------
+# USER REGISTRATION
+# -----------------------------
 def signup_view(request):
-    if request.method == 'POST':
-        form = SignUpForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            
-            user_type = request.POST.get('user_type')
-            user_profile, created = UserProfile.objects.get_or_create(user=user)
-            user_profile.user_type = user_type
-            user_profile.phone_number = request.POST.get('phone_number', '')
-            user_profile.address = request.POST.get('address', '')
-            
-            if hasattr(user_profile, 'email_verified'):
-                user_profile.email_verified = False
-                
-            user_profile.save()
-            
-            try:
-                token = generate_verification_token()
-                EmailVerification.objects.create(user=user, token=token)
-                verification_url = f"{request.scheme}://{request.get_host()}/verify/{token}/"
-                send_verification_email(user, verification_url)
-                messages.success(request, 'Account created successfully! Please check your email for verification.')
-            except Exception as e:
-                print(f"Error sending verification email: {e}")
-                messages.success(request, 'Account created successfully!')
-            
-            # Authenticate and login the user
-            user = authenticate(username=user.username, password=form.cleaned_data['password1'])
-            if user is not None:
-                login(request, user)
-                messages.success(request, f'Welcome {user.username}! You are now logged in.')
-                
-                if user_type == 'donor':
-                    return redirect('donor_dashboard')
-                else:
-                    return redirect('recipient_dashboard')
-            else:
-                messages.error(request, 'Login failed after signup. Please log in manually.')
-                return redirect('login')
-    else:
-        form = SignUpForm()
-    
-    return render(request, 'registration/signup.html', {'form': form})
+    if request.method == "POST":
+        username = request.POST.get("username")
+        email = request.POST.get("email")
+        password = request.POST.get("password")
+
+        if User.objects.filter(email=email).exists():
+            messages.error(request, "Email already registered.")
+            return redirect("signup")
+
+        user = User.objects.create_user(username=username, email=email, password=password)
+        user.is_active = False  # require verification
+        user.save()
+
+        # create token
+        token = generate_verification_token()
+        EmailVerification.objects.create(user=user, token=token, created_at=timezone.now())
+
+        verification_url = f"{request.scheme}://{request.get_host()}/verify/{token}/"
+        send_verification_email(user, verification_url)
+
+        messages.success(request, "Account created! Please check your email to verify.")
+        return redirect("login")
+
+    return render(request, "signup.html")
 
 def logout_view(request):
     logout(request)
@@ -163,34 +147,22 @@ def profile_view(request):
         'pending_verification': pending_verification
     })
 
-@login_required
-def verify_email(request):
-    if request.method == 'POST':
-        try:
-            # Delete old verification tokens
-            EmailVerification.objects.filter(user=request.user).delete()
-            
-            # Create new verification token
-            token = generate_verification_token()
-            EmailVerification.objects.create(user=request.user, token=token)
-            
-            verification_url = f"{request.scheme}://{request.get_host()}/verify/{token}/"
-            
-            # Try to send email
-            try:
-                send_verification_email(request.user, verification_url)
-                messages.info(request, 'Verification email sent! Please check your inbox.')
-            except Exception as e:
-                # If email fails, show the link directly
-                messages.warning(request, f'Email sending failed. Here is your verification link: {verification_url}')
-                print(f"Email error: {e}")
-            
-            return redirect('profile')
-        except Exception as e:
-            messages.error(request, f'Error creating verification: {e}')
-            return redirect('profile')
-    
-    return redirect('profile')
+# -----------------------------
+# EMAIL VERIFICATION
+# -----------------------------
+def verify_email(request, token):
+    try:
+        vtoken = EmailVerification.objects.get(token=token)
+        user = vtoken.user
+        user.is_active = True
+        user.save()
+        vtoken.delete()
+
+        messages.success(request, "✅ Email verified! You can now log in.")
+        return redirect("login")
+
+    except EmailVerification.DoesNotExist:
+        return HttpResponse("❌ Invalid or expired verification link.", status=400)
 
 def verify_email_confirm(request, token):
     if not request.user.is_authenticated:

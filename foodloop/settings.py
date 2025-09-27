@@ -8,7 +8,6 @@ import os
 import sys
 from pathlib import Path
 import dj_database_url
-import socket
 from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -18,31 +17,20 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # CORE SETTINGS
 # =============================================================================
 
-# Security settings
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-dev-key-change-in-production')
-DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
-DEVELOPMENT = os.environ.get('DEVELOPMENT', 'True').lower() == 'true'
+# Security settings - USE ENVIRONMENT VARIABLES IN PRODUCTION
+SECRET_KEY = os.environ.get('SECRET_KEY', config('SECRET_KEY', default='your-production-secret-key-change-this'))
+DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
+DEVELOPMENT = os.environ.get('DEVELOPMENT', 'False').lower() == 'true'
 
 # Hosts configuration
 ALLOWED_HOSTS = [
-    "127.0.0.1", 
-    "localhost", 
-    "0.0.0.0",
     "fredxotic.pythonanywhere.com",
+    "www.fredxotic.pythonanywhere.com",  # Add www subdomain
 ]
 
-# Add hostname for development
-try:
-    ALLOWED_HOSTS.append(socket.gethostname())
-except:
-    pass
-
-# Add your production domain here
-if not DEBUG:
-    ALLOWED_HOSTS.extend([
-        'yourdomain.com',
-        'www.yourdomain.com',
-    ])
+# Add localhost for management commands
+if DEBUG:
+    ALLOWED_HOSTS.extend(["127.0.0.1", "localhost", "0.0.0.0"])
 
 # =============================================================================
 # APPLICATION DEFINITION
@@ -68,31 +56,16 @@ PROJECT_APPS = [
     'core',
 ]
 
-# Development-specific apps
-DEV_APPS = [
-    # Add development-only apps here
-]
-
-# Production-specific apps
-PROD_APPS = [
-    'channels',
-]
-
-# Combine apps based on environment
+# Combine apps
 INSTALLED_APPS = BASE_APPS + THIRD_PARTY_APPS + PROJECT_APPS
-
-if DEVELOPMENT:
-    INSTALLED_APPS = DEV_APPS + INSTALLED_APPS
-else:
-    INSTALLED_APPS = PROD_APPS + INSTALLED_APPS
 
 # =============================================================================
 # MIDDLEWARE
 # =============================================================================
 
-BASE_MIDDLEWARE = [
+MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # For static files
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -100,8 +73,6 @@ BASE_MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
-MIDDLEWARE = BASE_MIDDLEWARE
 
 # =============================================================================
 # TEMPLATES
@@ -128,41 +99,44 @@ TEMPLATES = [
 # DATABASE
 # =============================================================================
 
-if DEVELOPMENT:
-    # Development database (SQLite)
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
+# Use SQLite for PythonAnywhere (compatible with free tier)
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
-else:
-    # Production database (PostgreSQL)
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=os.environ.get('DATABASE_URL'),
-            conn_max_age=600,
-            ssl_require=not DEVELOPMENT
-        )
-    }
+}
+
+# Optional: If you want to use PostgreSQL (requires paid tier)
+# DATABASES = {
+#     'default': dj_database_url.config(
+#         default=os.environ.get('DATABASE_URL', 'sqlite:///db.sqlite3'),
+#         conn_max_age=600,
+#         ssl_require=not DEVELOPMENT
+#     )
+# }
 
 # =============================================================================
-# PASSWORD VALIDATION
+# PASSWORD VALIDATION (Less strict for better UX)
 # =============================================================================
 
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        'OPTIONS': {
+            'max_similarity': 0.7,  # Less strict than default 0.7
+        }
     },
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 8,  # Reasonable minimum
+        }
     },
     {
         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
     },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    # Removed NumericPasswordValidator for better UX
 ]
 
 # =============================================================================
@@ -197,59 +171,22 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # =============================================================================
 
 ROOT_URLCONF = 'foodloop.urls'
+WSGI_APPLICATION = 'foodloop.wsgi.application'
 
 # =============================================================================
-# WSGI/ASGI CONFIGURATION
+# CACHE CONFIGURATION (Using file-based cache for PythonAnywhere free tier)
 # =============================================================================
 
-# if DEVELOPMENT and 'runserver' in sys.argv:
-#     # Use WSGI for development
-#     WSGI_APPLICATION = 'foodloop.wsgi.application'
-# else:
-#     # Use ASGI for production (with Channels)
-#     ASGI_APPLICATION = 'foodloop.asgi.application'
-
-# =============================================================================
-# CHANNELS (WebSockets)
-# =============================================================================
-
-# if not DEVELOPMENT:
-#     CHANNEL_LAYERS = {
-#         'default': {
-#             'BACKEND': 'channels_redis.core.RedisChannelLayer',
-#             'CONFIG': {
-#                 'hosts': [os.environ.get('REDIS_URL', 'redis://localhost:6379')],
-#             },
-#         },
-#     }
-# else:
-#     CHANNEL_LAYERS = {
-#         'default': {
-#             'BACKEND': 'channels.layers.InMemoryChannelLayer'
-#         }
-#     }
-
-# =============================================================================
-# CACHE CONFIGURATION
-# =============================================================================
-
-if DEVELOPMENT:
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-            'LOCATION': 'unique-snowflake',
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': BASE_DIR / 'django_cache',
+        'TIMEOUT': 300,  # 5 minutes
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000
         }
     }
-else:
-    CACHES = {
-        'default': {
-            'BACKEND': 'django_redis.cache.RedisCache',
-            'LOCATION': os.environ.get('REDIS_URL', 'redis://localhost:6379/1'),
-            'OPTIONS': {
-                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-            }
-        }
-    }
+}
 
 # =============================================================================
 # COMPRESSOR CONFIGURATION
@@ -274,41 +211,30 @@ STATICFILES_FINDERS = [
 ]
 
 # =============================================================================
-# EMAIL CONFIGURATION - REAL GMAIL SENDING
+# EMAIL CONFIGURATION - PRODUCTION READY
 # =============================================================================
 
-if DEVELOPMENT:
-    # REAL Gmail sending in development
-    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-    EMAIL_HOST = 'smtp.gmail.com'
-    EMAIL_PORT = 587
-    EMAIL_USE_TLS = True
-    EMAIL_HOST_USER = 'charlesfred285@gmail.com'  # FIXED: removed extra @
-    EMAIL_HOST_PASSWORD = 'weia npua yyni juxz'   # Your app password
-    DEFAULT_FROM_EMAIL = 'FoodLoop <charlesfred285@gmail.com>'
-    
-    # Base URL for email links
+# For PythonAnywhere, use their SMTP or your Gmail
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = os.environ.get('EMAIL_HOST', config('EMAIL_HOST', default='smtp.gmail.com'))
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', config('EMAIL_PORT', default=587)))
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', config('EMAIL_USE_TLS', default=True, cast=bool))
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', config('EMAIL_HOST_USER', default='charlesfred285@gmail.com'))
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', config('EMAIL_HOST_PASSWORD', default='weia npua yyni juxz'))
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', config('DEFAULT_FROM_EMAIL', default='FoodLoop <charlesfred285@gmail.com>'))
+
+# Base URL for email links
+if DEBUG:
     EMAIL_VERIFICATION_URL = 'http://127.0.0.1:8000'
-    
-    print("📧 Development mode: Sending REAL emails via Gmail")
-    
 else:
-    # Production email settings
-    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-    EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
-    EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
-    EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
-    EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
-    EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-    DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='FoodLoop <noreply@foodloop.com>')
     EMAIL_VERIFICATION_URL = 'https://fredxotic.pythonanywhere.com'
 
 # =============================================================================
-# SECURITY SETTINGS (Production only)
+# SECURITY SETTINGS (Production)
 # =============================================================================
 
-if not DEVELOPMENT:
-    # HTTPS settings
+if not DEBUG:
+    # HTTPS settings (PythonAnywhere provides SSL)
     SECURE_SSL_REDIRECT = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     
@@ -323,6 +249,12 @@ if not DEVELOPMENT:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     X_FRAME_OPTIONS = 'DENY'
+    
+    # CSRF trusted origins
+    CSRF_TRUSTED_ORIGINS = [
+        'https://fredxotic.pythonanywhere.com',
+        'https://www.fredxotic.pythonanywhere.com',
+    ]
 
 # =============================================================================
 # AUTHENTICATION
@@ -332,8 +264,12 @@ LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
+# Session settings
+SESSION_COOKIE_AGE = 1209600  # 2 weeks in seconds
+SESSION_SAVE_EVERY_REQUEST = True
+
 # =============================================================================
-# LOGGING
+# LOGGING (Production-appropriate)
 # =============================================================================
 
 LOGGING = {
@@ -341,7 +277,7 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '{levelname} {asctime} {module} {message}',
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
             'style': '{',
         },
         'simple': {
@@ -351,25 +287,34 @@ LOGGING = {
     },
     'handlers': {
         'file': {
-            'level': 'INFO',
+            'level': 'WARNING',
             'class': 'logging.FileHandler',
             'filename': BASE_DIR / 'django.log',
             'formatter': 'verbose',
         },
         'console': {
-            'level': 'DEBUG' if DEBUG else 'INFO',
+            'level': 'INFO',
             'class': 'logging.StreamHandler',
             'formatter': 'simple',
         },
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler',
+        }
     },
     'root': {
         'handlers': ['console', 'file'],
-        'level': 'INFO',
+        'level': 'WARNING',
     },
     'loggers': {
         'django': {
             'handlers': ['console', 'file'],
             'level': 'INFO',
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['mail_admins', 'file'],
+            'level': 'ERROR',
             'propagate': False,
         },
     },
@@ -382,35 +327,51 @@ LOGGING = {
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # =============================================================================
-# CUSTOM SETTINGS
+# FOODLOOP SPECIFIC SETTINGS
 # =============================================================================
 
-# FoodLoop specific settings
 FOODLOOP_SETTINGS = {
     'MAX_DONATION_QUANTITY': 1000,
     'DONATION_EXPIRY_DAYS': 7,
     'MAX_IMAGE_SIZE': 5 * 1024 * 1024,  # 5MB
     'ALLOWED_IMAGE_TYPES': ['image/jpeg', 'image/png', 'image/gif'],
+    'SITE_URL': 'https://fredxotic.pythonanywhere.com',
 }
+
+# =============================================================================
+# PERFORMANCE OPTIMIZATIONS
+# =============================================================================
+
+# Database connection persistence
+DATABASES['default']['CONN_MAX_AGE'] = 60  # 1 minute
+
+# Template caching in production
+if not DEBUG:
+    TEMPLATES[0]['OPTIONS']['loaders'] = [
+        ('django.template.loaders.cached.Loader', [
+            'django.template.loaders.filesystem.Loader',
+            'django.template.loaders.app_directories.Loader',
+        ]),
+    ]
 
 # =============================================================================
 # ENVIRONMENT CHECKS
 # =============================================================================
 
-if DEVELOPMENT:
-    print("🚀 Development mode: DEBUG=True, Using SQLite database")
-    print("📧 Emails will be printed to console")
+if DEBUG:
+    print("🚀 Development mode: DEBUG=True")
 else:
     print("🏭 Production mode: DEBUG=False")
     print("🔒 Security headers enabled")
     print("📧 Using SMTP email backend")
 
-# Ensure required environment variables in production
-if not DEVELOPMENT:
-    required_vars = ['SECRET_KEY', 'DATABASE_URL']
-    missing_vars = [var for var in required_vars if not os.environ.get(var)]
+# Check for required settings in production
+if not DEBUG:
+    if SECRET_KEY == 'your-production-secret-key-change-this':
+        print("❌ WARNING: You should change the default SECRET_KEY in production!")
     
-    if missing_vars:
-        print(f"❌ Missing required environment variables: {', '.join(missing_vars)}")
-        print("💡 Please set these variables before running in production")
-        sys.exit(1)
+    # Validate email configuration
+    if not EMAIL_HOST_USER or not EMAIL_HOST_PASSWORD:
+        print("❌ WARNING: Email configuration may be incomplete")
+
+print(f"✅ Settings loaded successfully for {'development' if DEBUG else 'production'}")
