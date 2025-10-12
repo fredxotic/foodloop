@@ -1,0 +1,553 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Sign Up - FoodLoop{% endblock %}
+
+{% block extra_css %}
+<style>
+    .role-card {
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+    .role-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .role-card input[type="radio"] {
+        display: none;
+    }
+    .role-card.border-primary {
+        border-color: #28a745 !important;
+        background-color: #f8fff9;
+    }
+    .feature-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #28a745, #20c997);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 2rem;
+    }
+    .dietary-section {
+        background: linear-gradient(135deg, #f8fff9, #e8f5e8);
+        border-radius: 10px;
+        padding: 20px;
+        border: 1px solid #e8f5e8;
+    }
+    .dietary-checkbox {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 10px;
+        background: white;
+        transition: all 0.3s ease;
+    }
+    .dietary-checkbox:hover {
+        border-color: #28a745;
+        background: #f8fff9;
+    }
+    .dietary-checkbox.checked {
+        border-color: #28a745;
+        background: #f8fff9;
+    }
+    .form-section {
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .password-strength {
+        height: 5px;
+        border-radius: 3px;
+        margin-top: 5px;
+    }
+    .step-indicator {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+        position: relative;
+    }
+    .step-indicator::before {
+        content: '';
+        position: absolute;
+        top: 15px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: #e9ecef;
+        z-index: 1;
+    }
+    .step {
+        text-align: center;
+        position: relative;
+        z-index: 2;
+        flex: 1;
+    }
+    .step-number {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: #e9ecef;
+        color: #6c757d;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 5px;
+        font-weight: bold;
+    }
+    .step.active .step-number {
+        background: #28a745;
+        color: white;
+    }
+    .step-label {
+        font-size: 0.8em;
+        color: #6c757d;
+    }
+    .step.active .step-label {
+        color: #28a745;
+        font-weight: bold;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow border-0">
+                <!-- Header -->
+                <div class="card-header bg-success text-white text-center py-4">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-user-plus me-2"></i>Join FoodLoop Today
+                    </h4>
+                    <p class="mb-0 mt-2">Start fighting food waste in your community</p>
+                </div>
+
+                <!-- Step Indicator -->
+                <div class="card-body px-4 pt-4">
+                    <div class="step-indicator">
+                        <div class="step active">
+                            <div class="step-number">1</div>
+                            <div class="step-label">Role</div>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">2</div>
+                            <div class="step-label">Account</div>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">3</div>
+                            <div class="step-label">Preferences</div>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">4</div>
+                            <div class="step-label">Complete</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Registration Form -->
+                <div class="card-body p-4">
+                    <form method="post" id="signupForm">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <!-- ============================================================================
+                        STEP 1: ROLE SELECTION
+                        ============================================================================= -->
+                        <div class="form-section">
+                            <div class="mb-4">
+                                <label class="form-label fw-bold fs-5">
+                                    <i class="fas fa-users me-2 text-primary"></i>I want to join as a:
+                                </label>
+                                <div class="row">
+                                    <!-- Donor Option -->
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card role-card h-100 {% if form.user_type.value == 'donor' %}border-primary{% endif %}">
+                                            <label class="form-check-label card-body text-center">
+                                                <input type="radio" name="user_type" value="donor" 
+                                                       class="form-check-input" required 
+                                                       {% if form.user_type.value == 'donor' %}checked{% endif %}>
+                                                <div class="feature-icon mx-auto mb-3">
+                                                    <i class="fas fa-donate"></i>
+                                                </div>
+                                                <h5>Food Donor</h5>
+                                                <p class="text-muted small">
+                                                    I have surplus food from my restaurant, cafe, or home that I'd like to share with the community.
+                                                </p>
+                                                <ul class="list-unstyled small text-start">
+                                                    <li><i class="fas fa-check text-success me-2"></i>Post food donations</li>
+                                                    <li><i class="fas fa-check text-success me-2"></i>Help reduce waste</li>
+                                                    <li><i class="fas fa-check text-success me-2"></i>Support your community</li>
+                                                </ul>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Recipient Option -->
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card role-card h-100 {% if form.user_type.value == 'recipient' %}border-primary{% endif %}">
+                                            <label class="form-check-label card-body text-center">
+                                                <input type="radio" name="user_type" value="recipient" 
+                                                       class="form-check-input" required
+                                                       {% if form.user_type.value == 'recipient' %}checked{% endif %}>
+                                                <div class="feature-icon mx-auto mb-3">
+                                                    <i class="fas fa-hands-helping"></i>
+                                                </div>
+                                                <h5>Food Recipient</h5>
+                                                <p class="text-muted small">
+                                                    I want to receive food donations for myself, my family, or my organization.
+                                                </p>
+                                                <ul class="list-unstyled small text-start">
+                                                    <li><i class="fas fa-check text-success me-2"></i>Claim food donations</li>
+                                                    <li><i class="fas fa-check text-success me-2"></i>Save money on groceries</li>
+                                                    <li><i class="fas fa-check text-success me-2"></i>Access fresh food</li>
+                                                </ul>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% if form.user_type.errors %}
+                                    <div class="text-danger small">{{ form.user_type.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- ============================================================================
+                        STEP 2: ACCOUNT INFORMATION
+                        ============================================================================= -->
+                        <div class="form-section">
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h5 class="border-bottom pb-2">
+                                        <i class="fas fa-user-circle me-2 text-primary"></i>Account Information
+                                    </h5>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <!-- Username -->
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="username" class="form-label fw-bold">Username *</label>
+                                        {{ form.username }}
+                                        {% if form.username.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.username.errors.0 }}</div>
+                                        {% else %}
+                                            <div class="form-text">This will be your public display name</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <!-- Email -->
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="email" class="form-label fw-bold">Email Address *</label>
+                                        {{ form.email }}
+                                        {% if form.email.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.email.errors.0 }}</div>
+                                        {% else %}
+                                            <div class="form-text">We'll send a verification email</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <!-- Password -->
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="password1" class="form-label fw-bold">Password *</label>
+                                        {{ form.password1 }}
+                                        {% if form.password1.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.password1.errors.0 }}</div>
+                                        {% endif %}
+                                        <div class="password-strength-container mt-2">
+                                            <div class="password-strength bg-light" id="passwordStrengthBar"></div>
+                                            <small class="text-muted" id="passwordStrengthText">Password strength</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Confirm Password -->
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="password2" class="form-label fw-bold">Confirm Password *</label>
+                                        {{ form.password2 }}
+                                        {% if form.password2.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.password2.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ============================================================================
+                        STEP 3: PERSONAL INFORMATION & DIETARY PREFERENCES
+                        ============================================================================= -->
+                        <div class="form-section">
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h5 class="border-bottom pb-2">
+                                        <i class="fas fa-address-card me-2 text-primary"></i>Personal Information
+                                    </h5>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <!-- First Name -->
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="first_name" class="form-label">First Name</label>
+                                        {{ form.first_name }}
+                                    </div>
+                                </div>
+                                
+                                <!-- Last Name -->
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="last_name" class="form-label">Last Name</label>
+                                        {{ form.last_name }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Contact Information -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h6 class="border-bottom pb-2">
+                                        <i class="fas fa-phone me-2 text-info"></i>Contact Information
+                                    </h6>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="phone_number" class="form-label">Phone Number</label>
+                                {{ form.phone_number }}
+                                {% if form.phone_number.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.phone_number.errors.0 }}</div>
+                                {% else %}
+                                    <div class="form-text">Optional - for pickup coordination</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="address" class="form-label">Address</label>
+                                {{ form.address }}
+                                <div class="form-text">Optional - helps show you relevant nearby donations</div>
+                            </div>
+
+                            <!-- Dietary Preferences Section -->
+                            <div class="dietary-section mb-4">
+                                <h6 class="border-bottom pb-2 mb-3">
+                                    <i class="fas fa-apple-alt me-2 text-success"></i>Dietary Preferences
+                                    <small class="text-muted">(Optional - helps us match you with suitable food)</small>
+                                </h6>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Dietary Restrictions</label>
+                                    <div class="row">
+                                        {% for choice in dietary_choices %}
+                                        <div class="col-md-6 mb-2">
+                                            <div class="dietary-checkbox" data-value="{{ choice.0 }}">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" 
+                                                           name="dietary_restrictions" value="{{ choice.0 }}" 
+                                                           id="dietary_{{ choice.0 }}"
+                                                           {% if choice.0 in form.dietary_restrictions.value %}checked{% endif %}>
+                                                    <label class="form-check-label fw-normal" for="dietary_{{ choice.0 }}">
+                                                        {{ choice.1 }}
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    <div class="form-text">
+                                        Select any dietary restrictions that apply. This helps us recommend suitable donations.
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="allergies" class="form-label">Food Allergies</label>
+                                    {{ form.allergies }}
+                                    <div class="form-text">Separate multiple allergies with commas</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="nutrition_goals" class="form-label">Nutrition Goals</label>
+                                    {{ form.nutrition_goals }}
+                                    <div class="form-text">This helps us provide better food recommendations</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ============================================================================
+                        STEP 4: TERMS AND SUBMISSION
+                        ============================================================================= -->
+                        <div class="form-section">
+                            <!-- Terms Agreement -->
+                            <div class="mb-4">
+                                <div class="form-check">
+                                    {{ form.terms }}
+                                    <label class="form-check-label" for="terms">
+                                        I agree to the <a href="#" class="text-decoration-none">Terms of Service</a> 
+                                        and <a href="#" class="text-decoration-none">Privacy Policy</a>
+                                    </label>
+                                    {% if form.terms.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.terms.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <button type="submit" class="btn btn-success btn-lg w-100 py-3">
+                                <i class="fas fa-user-plus me-2"></i>Create My Account
+                            </button>
+
+                            <!-- Login Link -->
+                            <div class="text-center mt-3">
+                                <p class="mb-0">Already have an account? 
+                                    <a href="{% url 'login' %}" class="text-decoration-none fw-bold text-success">
+                                        Sign in here
+                                    </a>
+                                </p>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // ============================================================================
+    // ROLE SELECTION
+    // ============================================================================
+    const roleCards = document.querySelectorAll('.role-card');
+    roleCards.forEach(card => {
+        card.addEventListener('click', function() {
+            roleCards.forEach(c => c.classList.remove('border-primary'));
+            this.classList.add('border-primary');
+            const radio = this.querySelector('input[type="radio"]');
+            radio.checked = true;
+        });
+    });
+
+    // ============================================================================
+    // PASSWORD STRENGTH INDICATOR
+    // ============================================================================
+    const password1 = document.getElementById('password1');
+    const password2 = document.getElementById('password2');
+    const strengthBar = document.getElementById('passwordStrengthBar');
+    const strengthText = document.getElementById('passwordStrengthText');
+
+    if (password1 && strengthBar && strengthText) {
+        password1.addEventListener('input', function() {
+            const strength = calculatePasswordStrength(this.value);
+            updateStrengthIndicator(strength);
+        });
+    }
+
+    function calculatePasswordStrength(password) {
+        let strength = 0;
+        if (password.length >= 8) strength++;
+        if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength++;
+        if (password.match(/\d/)) strength++;
+        if (password.match(/[^a-zA-Z\d]/)) strength++;
+        return strength;
+    }
+
+    function updateStrengthIndicator(strength) {
+        const colors = ['danger', 'danger', 'warning', 'info', 'success'];
+        const messages = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong'];
+        const widths = ['20%', '40%', '60%', '80%', '100%'];
+        
+        strengthBar.className = `password-strength bg-${colors[strength]}`;
+        strengthBar.style.width = widths[strength];
+        strengthText.className = `text-${colors[strength]}`;
+        strengthText.textContent = `Password strength: ${messages[strength]}`;
+    }
+
+    // ============================================================================
+    // DIETARY PREFERENCES INTERACTION
+    // ============================================================================
+    const dietaryCheckboxes = document.querySelectorAll('.dietary-checkbox');
+    dietaryCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('click', function(e) {
+            if (e.target.type !== 'checkbox') {
+                const input = this.querySelector('input[type="checkbox"]');
+                input.checked = !input.checked;
+            }
+            updateDietaryCheckboxStyle(this);
+        });
+    });
+
+    function updateDietaryCheckboxStyle(checkbox) {
+        const input = checkbox.querySelector('input[type="checkbox"]');
+        if (input.checked) {
+            checkbox.classList.add('checked');
+        } else {
+            checkbox.classList.remove('checked');
+        }
+    }
+
+    // Initialize dietary checkbox styles
+    dietaryCheckboxes.forEach(updateDietaryCheckboxStyle);
+
+    // ============================================================================
+    // FORM VALIDATION AND ENHANCEMENTS
+    // ============================================================================
+    const signupForm = document.getElementById('signupForm');
+    
+    // Real-time password confirmation check
+    if (password1 && password2) {
+        password2.addEventListener('input', function() {
+            if (password1.value !== password2.value && password2.value.length > 0) {
+                password2.classList.add('is-invalid');
+            } else {
+                password2.classList.remove('is-invalid');
+            }
+        });
+    }
+
+    // Email format validation
+    const emailField = document.getElementById('email');
+    if (emailField) {
+        emailField.addEventListener('blur', function() {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (this.value && !emailRegex.test(this.value)) {
+                this.classList.add('is-invalid');
+            } else {
+                this.classList.remove('is-invalid');
+            }
+        });
+    }
+
+    // Phone number formatting (basic)
+    const phoneField = document.getElementById('phone_number');
+    if (phoneField) {
+        phoneField.addEventListener('blur', function() {
+            if (this.value && !this.value.match(/^[\+]?[0-9\s\-\(\)]{10,}$/)) {
+                this.classList.add('is-invalid');
+            } else {
+                this.classList.remove('is-invalid');
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,430 +1,627 @@
 {% extends 'base.html' %}
 {% load static %}
-
-{% block title %}{{ donation.food_type|title }} Donation - FoodLoop | {{ donation.location }}{% endblock %}
+{% load humanize %}
+{% load custom_filters %}
+{% block title %}{{ donation.food_type }} Donation - FoodLoop{% endblock %}
 
 {% block extra_css %}
 <style>
-    .donation-hero {
-        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    .donation-header {
+        background: linear-gradient(135deg, #28a745, #20c997);
         border-radius: 15px 15px 0 0;
         color: white;
     }
-    .donation-image-main {
+    .nutrition-card {
+        background: linear-gradient(135deg, #e8f5e8, #c8e6c9);
+        border: none;
+        border-radius: 12px;
+    }
+    .compatibility-card {
+        background: linear-gradient(135deg, #fff3e0, #ffecb3);
+        border: none;
+        border-radius: 12px;
+    }
+    .dietary-card {
+        background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+        border: none;
+        border-radius: 12px;
+    }
+    .nutrition-badge {
+        background: linear-gradient(135deg, #00b894, #00a085);
+        color: white;
+        border: none;
+    }
+    .dietary-badge {
+        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+        color: white;
+        border: none;
+    }
+    .match-badge {
+        background: linear-gradient(135deg, #74b9ff, #0984e3);
+        color: white;
+        border: none;
+    }
+    .warning-badge {
+        background: linear-gradient(135deg, #ff7675, #d63031);
+        color: white;
+        border: none;
+    }
+    .food-image {
         height: 400px;
         object-fit: cover;
-        border-radius: 10px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        border-radius: 12px;
     }
-    .image-placeholder-large {
-        height: 400px;
-        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #6c757d;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    .nutrition-score-bar {
+        height: 8px;
+        background: #e9ecef;
+        border-radius: 4px;
+        overflow: hidden;
     }
-    .detail-card {
-        border: none;
-        border-radius: 15px;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
-        margin-bottom: 20px;
+    .nutrition-score-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #ff6b6b, #ffa726, #66bb6a);
+        transition: width 0.5s ease;
     }
-    .timeline {
+    .compatibility-meter {
+        width: 100px;
+        height: 100px;
         position: relative;
-        padding-left: 30px;
     }
-    .timeline-item {
-        position: relative;
-        margin-bottom: 25px;
-    }
-    .timeline-marker {
-        position: absolute;
-        left: -30px;
-        top: 0;
-        width: 20px;
-        height: 20px;
+    .meter-background {
+        width: 100%;
+        height: 100%;
         border-radius: 50%;
-        background: #dee2e6;
-        border: 3px solid white;
-        z-index: 2;
+        background: #f8f9fa;
+        border: 8px solid #e9ecef;
     }
-    .timeline-item.active .timeline-marker {
-        background: #28a745;
-        box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.2);
-    }
-    .timeline-content {
-        margin-left: 0;
-    }
-    .timeline::before {
-        content: '';
+    .meter-fill {
         position: absolute;
-        left: -21px;
-        top: 0;
-        bottom: 0;
-        width: 2px;
-        background: #dee2e6;
-        z-index: 1;
+        top: -8px;
+        left: -8px;
+        width: calc(100% + 16px);
+        height: calc(100% + 16px);
+        border-radius: 50%;
+        clip: rect(0px, 100px, 100px, 50px);
     }
-    .action-buttons .btn {
-        border-radius: 10px;
-        padding: 12px 20px;
+    .meter-fill-inner {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        width: calc(100% - 16px);
+        height: calc(100% - 16px);
+        border-radius: 50%;
+        background: #f8f9fa;
+    }
+    .meter-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-weight: bold;
+        font-size: 1.2em;
+    }
+    .info-item {
+        padding: 10px 0;
+        border-bottom: 1px solid #f1f1f1;
+    }
+    .info-item:last-child {
+        border-bottom: none;
+    }
+    .action-btn {
+        border-radius: 25px;
+        padding: 12px 30px;
         font-weight: 600;
+        transition: all 0.3s ease;
     }
-    .donor-avatar {
-        width: 80px;
-        height: 80px;
-        border: 3px solid #28a745;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    }
-    .status-badge-large {
-        font-size: 1rem;
-        padding: 8px 16px;
+    .dietary-tag {
+        background: #e3f2fd;
+        color: #1976d2;
+        border: 1px solid #bbdefb;
         border-radius: 20px;
+        padding: 6px 15px;
+        font-size: 0.85em;
+        margin: 3px;
+        display: inline-block;
     }
-    .food-icon {
-        font-size: 2rem;
-        color: #28a745;
+    .warning-alert {
+        border-left: 4px solid #ff9800;
+        background: #fff3e0;
+    }
+    .success-alert {
+        border-left: 4px solid #4caf50;
+        background: #e8f5e8;
     }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container py-4">
-    <!-- Donation Header -->
-    <div class="card detail-card">
-        <div class="donation-hero py-4">
-            <div class="card-body">
-                <div class="row align-items-center">
-                    <div class="col-md-8">
-                        <nav aria-label="breadcrumb" class="mb-3">
-                            <ol class="breadcrumb">
-                                <li class="breadcrumb-item"><a href="{% url 'home' %}" class="text-white-50">Home</a></li>
-                                <li class="breadcrumb-item"><a href="{% url 'search_donations' %}" class="text-white-50">Donations</a></li>
-                                <li class="breadcrumb-item active text-white" aria-current="page">{{ donation.food_type|title }}</li>
-                            </ol>
-                        </nav>
-                        
-                        <div class="d-flex align-items-center mb-3">
-                            <i class="food-icon fas fa-{% if donation.food_type == 'vegetables' %}carrot{% elif donation.food_type == 'fruits' %}apple-alt{% elif donation.food_type == 'dairy' %}cheese{% elif donation.food_type == 'bakery' %}bread-slice{% else %}utensils{% endif %} me-3"></i>
-                            <div>
-                                <h1 class="display-6 fw-bold mb-1">{{ donation.food_type|title }} Donation</h1>
-                                <p class="lead mb-0">Available for pickup in {{ donation.location }}</p>
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Donation Header -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="donation-header text-white py-4">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h1 class="card-title mb-2">
+                                    <i class="fas fa-utensils me-2"></i>{{ donation.food_type|title }} Donation
+                                </h1>
+                                <p class="lead mb-0">Shared by {{ donation.donor.username }}</p>
+                                
+                                <!-- Nutrition Score -->
+                                <div class="mt-3">
+                                    <span class="badge nutrition-badge me-2 fs-6">
+                                        <i class="fas fa-apple-alt me-1"></i>Nutrition Score: {{ donation.nutrition_score }}/100
+                                    </span>
+                                    {% if donation.estimated_calories %}
+                                    <span class="badge bg-warning me-2 fs-6">
+                                        <i class="fas fa-fire me-1"></i>{{ donation.estimated_calories|intcomma }} Calories
+                                    </span>
+                                    {% endif %}
+                                    <span class="badge bg-info fs-6">
+                                        <i class="fas fa-weight me-1"></i>{{ donation.quantity }}
+                                    </span>
+                                </div>
                             </div>
-                        </div>
-                        
-                        <span class="status-badge-large badge bg-{% if donation.status == 'available' %}light text-dark{% elif donation.status == 'claimed' %}warning{% elif donation.status == 'completed' %}success{% else %}secondary{% endif %}">
-                            <i class="fas fa-{% if donation.status == 'available' %}check-circle{% elif donation.status == 'claimed' %}clock{% elif donation.status == 'completed' %}check-double{% else %}times-circle{% endif %} me-1"></i>
-                            {{ donation.get_status_display }}
-                        </span>
-                    </div>
-                    <div class="col-md-4 text-md-end">
-                        <div class="action-buttons">
-                            {% if donation.status == 'available' and is_recipient %}
-                            <form method="post" action="{% url 'claim_donation' donation.id %}">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-light btn-lg w-100 mb-2"
-                                        onclick="return confirm('Are you sure you want to claim this {{ donation.food_type }} donation?')">
-                                    <i class="fas fa-hand-holding-heart me-2"></i>Claim This Donation
-                                </button>
-                            </form>
-                            {% elif donation.status == 'claimed' %}
-                            <div class="alert alert-{% if donation.recipient == user %}info{% else %}warning{% endif %} text-start">
-                                <h6><i class="fas fa-{% if donation.recipient == user %}user-check{% else %}clock{% endif %} me-2"></i> 
-                                    {% if donation.recipient == user %}You've Claimed This!{% else %}Already Claimed{% endif %}
-                                </h6>
-                                {% if donation.recipient == user %}
-                                <p class="mb-2">Contact the donor to arrange pickup:</p>
-                                <strong><i class="fas fa-envelope me-1"></i> {{ donation.donor.email }}</strong>
-                                {% if donation.donor.userprofile.phone_number %}
-                                <br><strong><i class="fas fa-phone me-1"></i> {{ donation.donor.userprofile.phone_number }}</strong>
-                                {% endif %}
-                                {% else %}
-                                <p class="mb-0">This donation has been claimed by another recipient.</p>
-                                {% endif %}
+                            <div class="col-md-4 text-md-end">
+                                <div class="btn-group">
+                                    {% if user.is_authenticated and user.userprofile.user_type == 'recipient' and donation.status == 'available' %}
+                                    <form method="post" action="{% url 'claim_donation' donation.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-light btn-lg">
+                                            <i class="fas fa-hand-holding-heart me-2"></i>Claim Donation
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                    <a href="{% url 'search_donations' %}" class="btn btn-outline-light btn-lg ms-2">
+                                        <i class="fas fa-arrow-left me-2"></i>Back to Browse
+                                    </a>
+                                </div>
                             </div>
-                            {% elif donation.status == 'completed' %}
-                            <div class="alert alert-success text-start">
-                                <h6><i class="fas fa-check-double me-2"></i> Successfully Completed</h6>
-                                <p class="mb-0">This donation has been successfully collected and completed.</p>
-                            </div>
-                            {% endif %}
-                            
-                            {% if not user.is_authenticated %}
-                            <a href="{% url 'login' %}?next={% url 'donation_detail' donation.id %}" class="btn btn-light btn-lg w-100">
-                                <i class="fas fa-sign-in-alt me-2"></i>Login to Claim
-                            </a>
-                            {% endif %}
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-        
-        <!-- Donation Image and Basic Info -->
-        <div class="card-body">
-            <div class="row">
-                <div class="col-lg-8">
-                    {% if donation.get_image_url %}
-                    <img src="{{ donation.get_image_url }}" class="donation-image-main w-100" alt="{{ donation.food_type }}">
+
+            <!-- Compatibility Alert -->
+            {% if compatibility and not compatibility.is_compatible %}
+            <div class="alert warning-alert border-0 mb-4">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-exclamation-triangle fa-2x text-warning me-3"></i>
+                    <div class="flex-grow-1">
+                        <h5 class="alert-heading mb-2">Dietary Compatibility Note</h5>
+                        <p class="mb-2">This donation may not be fully compatible with your dietary preferences.</p>
+                        {% if compatibility.dietary_issues %}
+                        <p class="mb-1"><strong>Potential issues:</strong></p>
+                        <ul class="mb-0">
+                            {% for issue in compatibility.dietary_issues %}
+                            <li>{{ issue|title }} restriction may not be fully supported</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% elif compatibility and compatibility.is_compatible %}
+            <div class="alert success-alert border-0 mb-4">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-check-circle fa-2x text-success me-3"></i>
+                    <div>
+                        <h5 class="alert-heading mb-1">Perfect Match!</h5>
+                        <p class="mb-0">This donation is fully compatible with your dietary preferences ({{ compatibility.match_score }}% match).</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Food Image -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body p-0">
+                    {% if donation.image %}
+                    <img src="{{ donation.image.url }}" class="food-image w-100" alt="{{ donation.food_type }}">
                     {% else %}
-                    <div class="image-placeholder-large">
-                        <i class="fas fa-utensils fa-5x"></i>
+                    <div class="food-image bg-light d-flex align-items-center justify-content-center w-100">
+                        <div class="text-center text-muted">
+                            <i class="fas fa-utensils fa-5x mb-3"></i>
+                            <h4>No Image Available</h4>
+                        </div>
                     </div>
                     {% endif %}
                 </div>
-                <div class="col-lg-4">
-                    <div class="card detail-card">
-                        <div class="card-header bg-transparent border-0">
-                            <h5 class="card-title mb-0">
-                                <i class="fas fa-info-circle me-2 text-primary"></i>Quick Details
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="row g-3">
-                                <div class="col-12">
-                                    <label class="fw-bold text-muted small mb-1">QUANTITY</label>
-                                    <div class="fs-5 text-dark">
-                                        <i class="fas fa-box text-primary me-2"></i>{{ donation.quantity }}
+            </div>
+
+            <!-- Description -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-transparent border-0 py-3">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-align-left me-2 text-primary"></i>Description
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="card-text" style="font-size: 1.1em; line-height: 1.6;">{{ donation.description }}</p>
+                </div>
+            </div>
+
+            <!-- Nutrition Information -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-transparent border-0 py-3">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-apple-alt me-2 text-success"></i>Nutrition Information
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Nutrition Score -->
+                        <div class="col-md-6 mb-4">
+                            <h6 class="fw-bold mb-3">Nutrition Quality</h6>
+                            <div class="d-flex align-items-center">
+                                <div class="compatibility-meter me-4">
+                                    <div class="meter-background"></div>
+                                    <div class="meter-fill" style="transform: rotate({{ donation.nutrition_score|multiply:3.6 }}deg); background: conic-gradient(
+                                        #ff6b6b 0% 20%, 
+                                        #ffa726 20% 60%, 
+                                        #66bb6a 60% 100%
+                                    );"></div>
+                                    <div class="meter-fill-inner"></div>
+                                    <div class="meter-text {% if donation.nutrition_score > 80 %}text-success{% elif donation.nutrition_score > 60 %}text-warning{% else %}text-danger{% endif %}">
+                                        {{ donation.nutrition_score }}
                                     </div>
                                 </div>
-                                <div class="col-12">
-                                    <label class="fw-bold text-muted small mb-1">LOCATION</label>
-                                    <div class="fs-5 text-dark">
-                                        <i class="fas fa-map-marker-alt text-success me-2"></i>{{ donation.location }}
-                                    </div>
-                                </div>
-                                <div class="col-12">
-                                    <label class="fw-bold text-muted small mb-1">PICKUP TIME</label>
-                                    <div class="fs-6 text-dark">
-                                        <i class="fas fa-clock text-warning me-2"></i>{{ donation.pickup_time|date:"F j, Y, g:i a" }}
-                                    </div>
-                                </div>
-                                <div class="col-12">
-                                    <label class="fw-bold text-muted small mb-1">EXPIRES</label>
-                                    <div class="fs-6 text-dark">
-                                        <i class="fas fa-calendar-times text-danger me-2"></i>{{ donation.expiry_date|date:"F j, Y, g:i a" }}
-                                    </div>
-                                </div>
-                                <div class="col-12">
-                                    <label class="fw-bold text-muted small mb-1">PICKUP DEADLINE</label>
-                                    <div class="fs-6 text-dark">
-                                        <i class="fas fa-hourglass-half text-info me-2"></i>{{ donation.pickup_deadline|date:"F j, Y, g:i a" }}
-                                    </div>
-                                </div>
-                                <div class="col-12">
-                                    <label class="fw-bold text-muted small mb-1">POSTED</label>
-                                    <div class="fs-6 text-dark">
-                                        <i class="fas fa-calendar text-secondary me-2"></i>{{ donation.created_at|date:"F j, Y" }}
-                                    </div>
+                                <div>
+                                    <p class="mb-2">
+                                        {% if donation.nutrition_score > 80 %}
+                                        <span class="text-success fw-bold">Excellent Quality</span>
+                                        {% elif donation.nutrition_score > 60 %}
+                                        <span class="text-warning fw-bold">Good Quality</span>
+                                        {% else %}
+                                        <span class="text-danger fw-bold">Basic Quality</span>
+                                        {% endif %}
+                                    </p>
+                                    <small class="text-muted">
+                                        Score based on food type and nutritional value
+                                    </small>
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Calorie Information -->
+                        <div class="col-md-6 mb-4">
+                            <h6 class="fw-bold mb-3">Calorie Estimate</h6>
+                            <div class="text-center">
+                                {% if nutrition_info.calories %}
+                                <div class="display-4 fw-bold text-warning">{{ nutrition_info.calories|intcomma }}</div>
+                                <p class="text-muted mb-0">Total Calories</p>
+                                <small class="text-muted">
+                                    {% widthratio nutrition_info.calories 500 1 %} average meals
+                                </small>
+                                {% else %}
+                                <div class="text-muted">
+                                    <i class="fas fa-question-circle fa-3x mb-2"></i>
+                                    <p class="mb-0">Calories not specified</p>
+                                    <small>Estimated based on food type</small>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
+
+                    <!-- Additional Nutrition Details -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <strong><i class="fas fa-mortar-pestle me-2 text-info"></i>Preparation:</strong>
+                                <span class="float-end">{{ nutrition_info.preparation|default:"Not specified" }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <strong><i class="fas fa-clock me-2 text-warning"></i>Expires:</strong>
+                                <span class="float-end">{{ donation.expiry_date|date:"M j, Y g:i A" }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ingredients -->
+                    {% if nutrition_info.ingredients %}
+                    <div class="mt-4">
+                        <h6 class="fw-bold mb-3">
+                            <i class="fas fa-list me-2 text-primary"></i>Ingredients
+                        </h6>
+                        <div class="bg-light rounded p-3">
+                            <p class="mb-0">{{ nutrition_info.ingredients }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Detailed Information Sections -->
-    <div class="row">
-        <!-- Left Column -->
-        <div class="col-lg-8">
-            <!-- Description Card -->
-            <div class="card detail-card">
-                <div class="card-header bg-transparent border-0">
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Quick Actions -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-transparent border-0 py-3">
                     <h5 class="card-title mb-0">
-                        <i class="fas fa-align-left me-2 text-primary"></i>Description
+                        <i class="fas fa-bolt me-2 text-warning"></i>Quick Actions
                     </h5>
                 </div>
                 <div class="card-body">
-                    <div class="description-content">
-                        {{ donation.description|linebreaks }}
+                    {% if user.is_authenticated %}
+                        {% if user.userprofile.user_type == 'recipient' and donation.status == 'available' %}
+                        <form method="post" action="{% url 'claim_donation' donation.id %}" class="mb-3">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success action-btn w-100">
+                                <i class="fas fa-hand-holding-heart me-2"></i>Claim This Donation
+                            </button>
+                        </form>
+                        {% elif donation.status == 'claimed' %}
+                        <div class="alert alert-info text-center">
+                            <i class="fas fa-info-circle me-2"></i>
+                            This donation has been claimed
+                        </div>
+                        {% elif donation.status == 'completed' %}
+                        <div class="alert alert-success text-center">
+                            <i class="fas fa-check-circle me-2"></i>
+                            Donation completed successfully
+                        </div>
+                        {% endif %}
+                    {% else %}
+                    <div class="text-center">
+                        <p class="text-muted mb-3">Sign in to claim this donation</p>
+                        <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-primary action-btn w-100">
+                            <i class="fas fa-sign-in-alt me-2"></i>Sign In to Claim
+                        </a>
+                    </div>
+                    {% endif %}
+
+                    <div class="d-grid gap-2 mt-3">
+                        <a href="{% url 'search_donations' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-search me-2"></i>Browse More
+                        </a>
+                        <a href="{% url 'map_view' %}?lat={{ donation.latitude }}&lon={{ donation.longitude }}" class="btn btn-outline-success">
+                            <i class="fas fa-map me-2"></i>View on Map
+                        </a>
+                        {% if user.is_authenticated and user.userprofile.user_type == 'recipient' %}
+                        <a href="{% url 'ai_recommendations' %}" class="btn btn-outline-info">
+                            <i class="fas fa-robot me-2"></i>Get Recommendations
+                        </a>
+                        {% endif %}
                     </div>
                 </div>
             </div>
 
-            <!-- Donor Information Card -->
-            <div class="card detail-card">
-                <div class="card-header bg-transparent border-0">
+            <!-- Dietary Information -->
+            <div class="card dietary-card shadow-sm border-0 mb-4">
+                <div class="card-header bg-transparent border-0 py-3">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-utensils me-2 text-info"></i>Dietary Tags
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if nutrition_info.dietary_tags %}
+                    <div class="d-flex flex-wrap">
+                        {% for tag in nutrition_info.dietary_tags %}
+                        <span class="dietary-tag">{{ tag|title }}</span>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-3">
+                        <i class="fas fa-tags fa-2x mb-2"></i>
+                        <p class="mb-0">No dietary tags specified</p>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Compatibility Score -->
+                    {% if compatibility %}
+                    <div class="mt-4 text-center">
+                        <h6 class="fw-bold mb-2">Your Match Score</h6>
+                        <div class="display-6 fw-bold 
+                            {% if compatibility.match_score > 80 %}text-success
+                            {% elif compatibility.match_score > 60 %}text-warning
+                            {% else %}text-danger{% endif %}">
+                            {{ compatibility.match_score }}%
+                        </div>
+                        <small class="text-muted">
+                            Compatibility with your preferences
+                        </small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Donation Details -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-transparent border-0 py-3">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2 text-primary"></i>Donation Details
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="info-item">
+                        <strong>Status:</strong>
+                        <span class="float-end badge 
+                            {% if donation.status == 'available' %}bg-success
+                            {% elif donation.status == 'claimed' %}bg-warning text-dark
+                            {% elif donation.status == 'completed' %}bg-info
+                            {% else %}bg-danger{% endif %}">
+                            {{ donation.get_status_display }}
+                        </span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Donor:</strong>
+                        <span class="float-end">{{ donation.donor.username }}</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Food Type:</strong>
+                        <span class="float-end">{{ donation.get_food_type_display }}</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Quantity:</strong>
+                        <span class="float-end">{{ donation.quantity }}</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Location:</strong>
+                        <span class="float-end">{{ donation.location }}</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Pickup Time:</strong>
+                        <span class="float-end">{{ donation.pickup_time|date:"M j, g:i A" }}</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Pickup Deadline:</strong>
+                        <span class="float-end">{{ donation.pickup_deadline|date:"M j, g:i A" }}</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Expiry Date:</strong>
+                        <span class="float-end">{{ donation.expiry_date|date:"M j, g:i A" }}</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Created:</strong>
+                        <span class="float-end">{{ donation.created_at|date:"M j, Y" }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Donor Information -->
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-transparent border-0 py-3">
                     <h5 class="card-title mb-0">
                         <i class="fas fa-user me-2 text-success"></i>About the Donor
                     </h5>
                 </div>
                 <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-auto">
-                            {% if donation.donor.userprofile.profile_picture %}
-                            <img src="{{ donation.donor.userprofile.get_profile_picture_url }}" 
-                                 class="donor-avatar rounded-circle" 
-                                 alt="{{ donation.donor.username }}">
-                            {% else %}
-                            <div class="donor-avatar rounded-circle bg-light d-flex align-items-center justify-content-center">
-                                <i class="fas fa-user fa-2x text-muted"></i>
-                            </div>
-                            {% endif %}
+                    <div class="text-center mb-3">
+                        {% if donation.donor.userprofile.profile_picture %}
+                        <img src="{{ donation.donor.userprofile.profile_picture.url }}" 
+                             class="rounded-circle mb-2" 
+                             style="width: 80px; height: 80px; object-fit: cover;" 
+                             alt="{{ donation.donor.username }}">
+                        {% else %}
+                        <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto mb-2" 
+                             style="width: 80px; height: 80px;">
+                            <i class="fas fa-user fa-2x text-muted"></i>
                         </div>
-                        <div class="col">
-                            <h5 class="mb-1">{{ donation.donor.get_full_name|default:donation.donor.username }}</h5>
-                            <p class="text-muted mb-2">Member since {{ donation.donor.date_joined|date:"F Y" }}</p>
-                            <span class="badge bg-{% if donation.donor.userprofile.user_type == 'donor' %}success{% else %}info{% endif %}">
-                                <i class="fas fa-{% if donation.donor.userprofile.user_type == 'donor' %}heart{% else %}hands-helping{% endif %} me-1"></i>
-                                {{ donation.donor.userprofile.get_user_type_display }}
-                            </span>
-                            {% if donation.donor.userprofile.email_verified %}
-                            <span class="badge bg-success ms-2">
-                                <i class="fas fa-check-circle me-1"></i>Verified
-                            </span>
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% if donation.donor.userprofile.address %}
-                    <div class="mt-3 p-3 bg-light rounded">
-                        <h6 class="mb-2"><i class="fas fa-map-marker-alt me-2"></i>Donor Location</h6>
-                        <p class="mb-0 text-muted">{{ donation.donor.userprofile.address }}</p>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Right Column -->
-        <div class="col-lg-4">
-            <!-- Status Timeline Card -->
-            <div class="card detail-card">
-                <div class="card-header bg-transparent border-0">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-stream me-2 text-warning"></i>Donation Timeline
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="timeline">
-                        <div class="timeline-item active">
-                            <div class="timeline-marker"></div>
-                            <div class="timeline-content">
-                                <h6 class="mb-1">Donation Posted</h6>
-                                <p class="text-muted mb-0 small">{{ donation.created_at|date:"F j, Y g:i a" }}</p>
-                            </div>
-                        </div>
-                        
-                        <div class="timeline-item {% if donation.status != 'available' %}active{% endif %}">
-                            <div class="timeline-marker"></div>
-                            <div class="timeline-content">
-                                <h6 class="mb-1">
-                                    {% if donation.status == 'claimed' or donation.status == 'completed' %}
-                                    Claimed by Recipient
-                                    {% else %}
-                                    Available for Claiming
-                                    {% endif %}
-                                </h6>
-                                <p class="text-muted mb-0 small">
-                                    {% if donation.status != 'available' %}
-                                        {{ donation.updated_at|date:"F j, Y g:i a" }}
-                                    {% else %}
-                                        Waiting for recipient...
-                                    {% endif %}
-                                </p>
-                            </div>
-                        </div>
-                        
-                        <div class="timeline-item {% if donation.status == 'completed' %}active{% endif %}">
-                            <div class="timeline-marker"></div>
-                            <div class="timeline-content">
-                                <h6 class="mb-1">Successfully Completed</h6>
-                                <p class="text-muted mb-0 small">
-                                    {% if donation.status == 'completed' %}
-                                        {{ donation.updated_at|date:"F j, Y g:i a" }}
-                                    {% else %}
-                                        Collection pending...
-                                    {% endif %}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Action Card -->
-            <div class="card detail-card">
-                <div class="card-header bg-transparent border-0">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-bolt me-2 text-info"></i>Quick Actions
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <a href="{% if is_recipient %}{% url 'recipient_dashboard' %}{% else %}{% url 'search_donations' %}{% endif %}" 
-                           class="btn btn-outline-primary">
-                            <i class="fas fa-arrow-left me-2"></i>Back to {% if is_recipient %}Dashboard{% else %}Browse{% endif %}
-                        </a>
-                        <a href="{% url 'map_view' %}?lat={{ donation.latitude|default:'' }}&lon={{ donation.longitude|default:'' }}" 
-                           class="btn btn-outline-success">
-                            <i class="fas fa-map-marked-alt me-2"></i>View on Map
-                        </a>
-                        {% if user.is_authenticated and user != donation.donor %}
-                        <button class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#contactModal">
-                            <i class="fas fa-envelope me-2"></i>Contact Donor
-                        </button>
                         {% endif %}
+                        <h6 class="mb-1">{{ donation.donor.username }}</h6>
+                        <small class="text-muted">FoodLoop Donor</small>
+                    </div>
+                    
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="fw-bold text-primary">{{ donation.donor.donations.count }}</div>
+                            <small class="text-muted">Donations</small>
+                        </div>
+                        <div class="col-6">
+                            <div class="fw-bold text-success">
+                                {{ donation.donor.userprofile.get_average_rating|default:"0.0" }}
+                            </div>
+                            <small class="text-muted">Rating</small>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Contact Modal -->
-<div class="modal fade" id="contactModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Contact {{ donation.donor.username }}</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Contact the donor to coordinate pickup details for the {{ donation.food_type }} donation.</p>
-                <div class="contact-info">
-                    <p><strong>Email:</strong> {{ donation.donor.email }}</p>
-                    {% if donation.donor.userprofile.phone_number %}
-                    <p><strong>Phone:</strong> {{ donation.donor.userprofile.phone_number }}</p>
-                    {% endif %}
+    <!-- Rating Section (for completed donations) -->
+    {% if can_rate %}
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-transparent border-0 py-3">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-star me-2 text-warning"></i>Rate This Donation
+                    </h4>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <div class="card-body">
+                    {% if existing_rating %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        You've already rated this donation. You can update your rating below.
+                    </div>
+                    {% endif %}
+                    
+                    <form method="post" action="{% url 'create_rating' donation.id %}">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Your Rating</label>
+                                    <div class="rating-stars">
+                                        {% for choice in rating_form.rating %}
+                                        <div class="form-check form-check-inline">
+                                            {{ choice.tag }}
+                                            <label class="form-check-label" for="{{ choice.id_for_label }}">
+                                                {{ choice.choice_label }}
+                                            </label>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="comment" class="form-label fw-bold">Comments (Optional)</label>
+                                    {{ rating_form.comment }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-warning btn-lg">
+                                        <i class="fas fa-star me-2"></i>
+                                        {% if existing_rating %}Update Rating{% else %}Submit Rating{% endif %}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
+    {% endif %}
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Add fade-in animation to cards
-    const cards = document.querySelectorAll('.detail-card');
-    cards.forEach((card, index) => {
-        card.style.opacity = '0';
-        card.style.transform = 'translateY(20px)';
-        card.style.transition = 'all 0.5s ease';
-        
-        setTimeout(() => {
-            card.style.opacity = '1';
-            card.style.transform = 'translateY(0)';
-        }, index * 100);
-    });
-    
-    // Add confirmation for claim action
-    const claimButtons = document.querySelectorAll('form[action*="claim_donation"] button');
-    claimButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            if (!confirm('Are you sure you want to claim this donation? This action cannot be undone.')) {
-                e.preventDefault();
-            }
+    // Nutrition score visualization
+    const nutritionScore = {{ donation.nutrition_score }};
+    const nutritionFill = document.querySelector('.nutrition-score-fill');
+    if (nutritionFill) {
+        nutritionFill.style.width = nutritionScore + '%';
+    }
+
+    // Rating stars interaction
+    const ratingInputs = document.querySelectorAll('input[name="rating"]');
+    ratingInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            // Add any rating interaction logic here
+            console.log('Rating selected:', this.value);
         });
     });
+
+    // Image zoom functionality
+    const foodImage = document.querySelector('.food-image');
+    if (foodImage) {
+        foodImage.addEventListener('click', function() {
+            this.classList.toggle('img-fluid');
+        });
+    }
+
+    // Compatibility meter animation
+    const compatibilityMeter = document.querySelector('.meter-fill');
+    if (compatibilityMeter) {
+        // Already set via inline style, but could add animation here
+        setTimeout(() => {
+            compatibilityMeter.style.transition = 'transform 1s ease';
+        }, 100);
+    }
 });
+
+// Custom filter for multiplication (if not available)
+function multiply(value, arg) {
+    return value * arg;
+}
 </script>
 {% endblock %}

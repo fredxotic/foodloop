@@ -54,6 +54,34 @@
     .stat-card:hover {
         transform: translateY(-5px);
     }
+    .dietary-badge {
+        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+        color: white;
+        border: none;
+    }
+    .nutrition-badge {
+        background: linear-gradient(135deg, #00b894, #00a085);
+        color: white;
+        border: none;
+    }
+    .preference-badge {
+        background: linear-gradient(135deg, #74b9ff, #0984e3);
+        color: white;
+        border: none;
+    }
+    .dietary-checkboxes {
+        border: 1px solid #e9ecef;
+        border-radius: 10px;
+        padding: 15px;
+        background: #f8f9fa;
+    }
+    .dietary-checkboxes .form-check {
+        margin-bottom: 10px;
+        padding-left: 2.5em;
+    }
+    .dietary-checkboxes .form-check-input {
+        margin-left: -2.5em;
+    }
 </style>
 {% endblock %}
 
@@ -88,6 +116,15 @@
                                 <span class="badge bg-{% if user_profile.user_type == 'donor' %}success{% else %}info{% endif %} fs-6">
                                     {{ user_profile.get_user_type_display }}
                                 </span>
+                                
+                                <!-- Dietary Badges -->
+                                {% if dietary_badges %}
+                                <div class="mt-2">
+                                    {% for restriction in dietary_badges %}
+                                        <span class="badge dietary-badge me-1 mb-1">{{ restriction }}</span>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
                             </div>
                             <div class="col-md-9">
                                 <div class="row">
@@ -100,6 +137,15 @@
                                             <small class="text-white-50">Email</small>
                                             <div class="text-white fw-bold">{{ user.email }}</div>
                                         </div>
+                                        {% if user_profile.nutrition_goals != 'balanced' %}
+                                        <div class="mb-3">
+                                            <small class="text-white-50">Nutrition Goals</small>
+                                            <div class="text-white fw-bold">
+                                                <i class="fas fa-bullseye me-1"></i>
+                                                {{ user_profile.get_nutrition_goals_display }}
+                                            </div>
+                                        </div>
+                                        {% endif %}
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
@@ -119,6 +165,16 @@
                                                 {% endif %}
                                             </div>
                                         </div>
+                                        {% if user_profile.preferred_food_types %}
+                                        <div class="mb-3">
+                                            <small class="text-white-50">Preferred Foods</small>
+                                            <div class="text-white fw-bold">
+                                                {% for food in user_profile.preferred_food_types %}
+                                                    <span class="badge preference-badge me-1">{{ food }}</span>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </div>
@@ -127,18 +183,19 @@
                 </div>
                 
                 <!-- Verification Status -->
+                <!-- Verification Status -->
                 <div class="card-body border-bottom">
                     {% if not user_profile.email_verified %}
                     <div class="alert alert-warning p-4">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-exclamation-triangle fa-2x text-warning me-3"></i>
+                        <div class="d-flex align-items-center gap-4">
+                            <i class="fas fa-exclamation-triangle fa-2x text-warning"></i>
                             <div class="flex-grow-1">
-                                <h5 class="alert-heading mb-2">Email Verification Required</h5>
-                                <p class="mb-3">Verify your email to access all FoodLoop features including creating donations and claiming food.</p>
-                                <form method="post" action="{% url 'verify_email' %}" class="d-inline">
+                                <h5 class="title-large mb-2">Email Verification Required</h5>
+                                <p class="body-medium mb-3">Verify your email to access all FoodLoop features including creating donations and claiming food.</p>
+                                <form method="post" action="{% url 'resend_verification' %}" class="d-inline">
                                     {% csrf_token %}
                                     <button type="submit" class="btn btn-warning">
-                                        <i class="fas fa-envelope me-1"></i>Send Verification Email
+                                        <i class="fas fa-envelope me-2"></i>Send Verification Email
                                     </button>
                                 </form>
                             </div>
@@ -146,17 +203,42 @@
                     </div>
                     {% else %}
                     <div class="alert alert-success p-4">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-check-circle fa-2x text-success me-3"></i>
+                        <div class="d-flex align-items-center gap-4">
+                            <i class="fas fa-check-circle fa-2x text-success"></i>
                             <div>
-                                <h5 class="alert-heading mb-1">Account Verified</h5>
-                                <p class="mb-0">Your email address has been verified. You have full access to all FoodLoop features.</p>
+                                <h5 class="title-large mb-1">Account Verified</h5>
+                                <p class="body-medium mb-0">Your email address has been verified. You have full access to all FoodLoop features.</p>
                             </div>
                         </div>
                     </div>
                     {% endif %}
                 </div>
             </div>
+
+            <!-- Nutrition Insights -->
+            {% if nutrition_insights %}
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-transparent border-0 py-3">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-chart-line me-2 text-success"></i>Nutrition Insights
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for insight in nutrition_insights %}
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-start">
+                                <i class="fas fa-lightbulb text-warning me-3 mt-1"></i>
+                                <div>
+                                    <p class="mb-0 text-muted">{{ insight }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
 
             <!-- Edit Profile Form with Map -->
             <div class="card shadow-sm border-0 mb-4">
@@ -270,6 +352,76 @@
                                     <input type="text" class="form-control" id="last_name" name="last_name" 
                                            value="{{ form.last_name.value|default:user.last_name }}"
                                            placeholder="Your last name">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dietary Preferences & Nutrition -->
+                        <h5 class="border-bottom pb-2 mb-4">
+                            <i class="fas fa-apple-alt me-2 text-success"></i>Dietary Preferences & Nutrition
+                        </h5>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Dietary Restrictions</label>
+                                    <div class="dietary-checkboxes">
+                                        {% for choice in form.dietary_restrictions %}
+                                            <div class="form-check">
+                                                {{ choice.tag }}
+                                                <label class="form-check-label" for="{{ choice.id_for_label }}">
+                                                    {{ choice.choice_label }}
+                                                </label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                    <div class="form-text">Select any dietary restrictions that apply to you.</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="nutrition_goals" class="form-label fw-bold">Nutrition Goals</label>
+                                    <select class="form-control" id="nutrition_goals" name="nutrition_goals">
+                                        {% for value, text in form.fields.nutrition_goals.choices %}
+                                            <option value="{{ value }}" {% if form.nutrition_goals.value == value %}selected{% endif %}>
+                                                {{ text }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="form-text">This helps us recommend suitable donations.</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="preferred_food_types" class="form-label fw-bold">Preferred Food Types</label>
+                                    <div class="dietary-checkboxes">
+                                        {% for choice in form.preferred_food_types %}
+                                            <div class="form-check">
+                                                {{ choice.tag }}
+                                                <label class="form-check-label" for="{{ choice.id_for_label }}">
+                                                    {{ choice.choice_label }}
+                                                </label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="allergies" class="form-label fw-bold">Food Allergies</label>
+                                    <textarea class="form-control" id="allergies" name="allergies" rows="2"
+                                              placeholder="List any food allergies (e.g., peanuts, shellfish, dairy)...">{{ form.allergies.value|default:user_profile.allergies }}</textarea>
+                                    <div class="form-text">Separate multiple allergies with commas.</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="health_notes" class="form-label fw-bold">Health Notes</label>
+                                    <textarea class="form-control" id="health_notes" name="health_notes" rows="2"
+                                              placeholder="Any additional health information...">{{ form.health_notes.value|default:user_profile.health_notes }}</textarea>
+                                    <div class="form-text">Optional: Share any relevant health information.</div>
                                 </div>
                             </div>
                         </div>

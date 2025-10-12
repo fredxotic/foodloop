@@ -1,0 +1,695 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% load custom_filters %}
+{% block title %}Nutrition Analytics - FoodLoop{% endblock %}
+
+{% block extra_css %}
+<style>
+    .analytics-header {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        border-radius: 15px 15px 0 0;
+        color: white;
+    }
+    .metric-card {
+        border: none;
+        border-radius: 12px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border-left: 4px solid transparent;
+    }
+    .metric-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    .nutrition-card {
+        background: linear-gradient(135deg, #e8f5e8, #c8e6c9);
+        border: none;
+        border-radius: 12px;
+    }
+    .impact-card {
+        background: linear-gradient(135deg, #fff3e0, #ffecb3);
+        border: none;
+        border-radius: 12px;
+    }
+    .environment-card {
+        background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+        border: none;
+        border-radius: 12px;
+    }
+    .chart-container {
+        height: 300px;
+        position: relative;
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+    }
+    .progress-ring {
+        width: 120px;
+        height: 120px;
+        position: relative;
+    }
+    .ring-background {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: #f8f9fa;
+        border: 10px solid #e9ecef;
+    }
+    .ring-fill {
+        position: absolute;
+        top: -10px;
+        left: -10px;
+        width: calc(100% + 20px);
+        height: calc(100% + 20px);
+        border-radius: 50%;
+        clip: rect(0px, 120px, 120px, 60px);
+    }
+    .ring-inner {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        width: calc(100% - 20px);
+        height: calc(100% - 20px);
+        border-radius: 50%;
+        background: white;
+    }
+    .ring-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-weight: bold;
+        font-size: 1.5em;
+        text-align: center;
+    }
+    .stat-badge {
+        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+        color: white;
+        border: none;
+        font-size: 0.9em;
+    }
+    .nutrition-badge {
+        background: linear-gradient(135deg, #00b894, #00a085);
+        color: white;
+        border: none;
+    }
+    .impact-badge {
+        background: linear-gradient(135deg, #74b9ff, #0984e3);
+        color: white;
+        border: none;
+    }
+    .time-filter-btn {
+        border-radius: 20px;
+        padding: 6px 15px;
+        font-size: 0.85em;
+        margin: 2px;
+    }
+    .food-type-pill {
+        background: #e3f2fd;
+        color: #1976d2;
+        border: 1px solid #bbdefb;
+        border-radius: 20px;
+        padding: 5px 12px;
+        font-size: 0.8em;
+        margin: 2px;
+        display: inline-block;
+    }
+    .insight-card {
+        background: linear-gradient(135deg, #f3e5f5, #e1bee7);
+        border: none;
+        border-radius: 12px;
+    }
+    .trend-indicator {
+        font-size: 0.9em;
+        font-weight: 600;
+    }
+    .trend-up {
+        color: #00b894;
+    }
+    .trend-down {
+        color: #ff6b6b;
+    }
+    .trend-neutral {
+        color: #6c757d;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Analytics Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="analytics-header text-white py-4">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h1 class="card-title mb-2">
+                                    <i class="fas fa-chart-line me-2"></i>Nutrition Analytics
+                                </h1>
+                                <p class="lead mb-0">
+                                    Track your food impact and nutrition contributions
+                                    {% if user_profile.user_type == 'donor' %}
+                                    as a donor
+                                    {% else %}
+                                    as a recipient
+                                    {% endif %}
+                                </p>
+                                
+                                <!-- Time Period Filter -->
+                                <div class="mt-3">
+                                    <small class="text-white-50">Time Period:</small>
+                                    <div class="btn-group btn-group-sm mt-1">
+                                        <a href="?period=7d" class="btn btn-outline-light time-filter-btn {% if time_period == '7d' %}active{% endif %}">7 Days</a>
+                                        <a href="?period=30d" class="btn btn-outline-light time-filter-btn {% if time_period == '30d' or not time_period %}active{% endif %}">30 Days</a>
+                                        <a href="?period=90d" class="btn btn-outline-light time-filter-btn {% if time_period == '90d' %}active{% endif %}">90 Days</a>
+                                        <a href="?period=1y" class="btn btn-outline-light time-filter-btn {% if time_period == '1y' %}active{% endif %}">1 Year</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 text-md-end">
+                                <div class="btn-group">
+                                    {% if user_profile.user_type == 'donor' %}
+                                    <a href="{% url 'donor_dashboard' %}" class="btn btn-light btn-lg">
+                                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                                    </a>
+                                    {% else %}
+                                    <a href="{% url 'recipient_dashboard' %}" class="btn btn-light btn-lg">
+                                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics Overview -->
+    <div class="row mb-5">
+        <div class="col-md-3 mb-3">
+            <div class="card metric-card text-center p-4 bg-success bg-opacity-10 border-left-success">
+                <i class="fas fa-utensils fa-2x text-success mb-3"></i>
+                <h2 class="fw-bold text-dark">{{ metrics.total_donations }}</h2>
+                <p class="text-muted mb-0">
+                    {% if user_profile.user_type == 'donor' %}
+                    Donations Made
+                    {% else %}
+                    Donations Received
+                    {% endif %}
+                </p>
+                <small class="text-success trend-indicator trend-up">
+                    <i class="fas fa-arrow-up me-1"></i>12%
+                </small>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card metric-card text-center p-4 bg-primary bg-opacity-10 border-left-primary">
+                <i class="fas fa-fire fa-2x text-warning mb-3"></i>
+                <h2 class="fw-bold text-dark">{{ metrics.total_calories|intcomma }}</h2>
+                <p class="text-muted mb-0">Total Calories</p>
+                <small class="text-success trend-indicator trend-up">
+                    <i class="fas fa-arrow-up me-1"></i>8%
+                </small>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card metric-card text-center p-4 bg-info bg-opacity-10 border-left-info">
+                <i class="fas fa-apple-alt fa-2x text-info mb-3"></i>
+                <h2 class="fw-bold text-dark">{{ metrics.avg_nutrition_score }}</h2>
+                <p class="text-muted mb-0">Avg Nutrition Score</p>
+                <small class="text-success trend-indicator trend-up">
+                    <i class="fas fa-arrow-up me-1"></i>5%
+                </small>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card metric-card text-center p-4 bg-warning bg-opacity-10 border-left-warning">
+                <i class="fas fa-leaf fa-2x text-success mb-3"></i>
+                <h2 class="fw-bold text-dark">{{ environmental_impact.co2_saved_kg }}kg</h2>
+                <p class="text-muted mb-0">CO₂ Saved</p>
+                <small class="text-success trend-indicator trend-up">
+                    <i class="fas fa-arrow-up me-1"></i>15%
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Main Analytics Content -->
+        <div class="col-lg-8">
+            <!-- Nutrition Impact Overview -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-transparent border-0 py-3">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-chart-bar me-2 text-primary"></i>Nutrition Impact Overview
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Calories Donated/Received -->
+                        <div class="col-md-6 mb-4">
+                            <div class="chart-container">
+                                <h6 class="fw-bold mb-3 text-center">
+                                    {% if user_profile.user_type == 'donor' %}
+                                    Calories Donated
+                                    {% else %}
+                                    Calories Received
+                                    {% endif %}
+                                </h6>
+                                <div class="text-center">
+                                    <div class="progress-ring mx-auto mb-3">
+                                        <div class="ring-background"></div>
+                                        <div class="ring-fill" style="transform: rotate({{ metrics.total_calories|divide:1000|multiply:3.6 }}deg); 
+                                            background: conic-gradient(#ffa726 0% 100%);"></div>
+                                        <div class="ring-inner"></div>
+                                        <div class="ring-text">
+                                            <div class="fw-bold text-warning">{{ metrics.total_calories|divide:1000|floatformat:1 }}K</div>
+                                            <small class="text-muted">cal</small>
+                                        </div>
+                                    </div>
+                                    <p class="text-muted mb-0">
+                                        Equivalent to <strong>{{ environmental_impact.meals_provided }} meals</strong>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Nutrition Quality -->
+                        <div class="col-md-6 mb-4">
+                            <div class="chart-container">
+                                <h6 class="fw-bold mb-3 text-center">Nutrition Quality</h6>
+                                <div class="text-center">
+                                    <div class="progress-ring mx-auto mb-3">
+                                        <div class="ring-background"></div>
+                                        <div class="ring-fill" style="transform: rotate({{ metrics.avg_nutrition_score|multiply:3.6 }}deg); 
+                                            background: conic-gradient(
+                                                #ff6b6b 0% 20%, 
+                                                #ffa726 20% 60%, 
+                                                #66bb6a 60% 100%
+                                            );"></div>
+                                        <div class="ring-inner"></div>
+                                        <div class="ring-text">
+                                            <div class="fw-bold 
+                                                {% if metrics.avg_nutrition_score > 80 %}text-success
+                                                {% elif metrics.avg_nutrition_score > 60 %}text-warning
+                                                {% else %}text-danger{% endif %}">
+                                                {{ metrics.avg_nutrition_score }}
+                                            </div>
+                                            <small class="text-muted">/100</small>
+                                        </div>
+                                    </div>
+                                    <p class="text-muted mb-0">
+                                        {% if metrics.avg_nutrition_score > 80 %}
+                                        <span class="text-success fw-bold">Excellent Quality</span>
+                                        {% elif metrics.avg_nutrition_score > 60 %}
+                                        <span class="text-warning fw-bold">Good Quality</span>
+                                        {% else %}
+                                        <span class="text-danger fw-bold">Basic Quality</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Food Type Distribution -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-transparent border-0 py-3">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-chart-pie me-2 text-success"></i>Food Type Distribution
+                    </h4>
+                </div>
+                <div class="card-body">
+                    {% if food_type_distribution %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="chart-container">
+                                <h6 class="fw-bold mb-3 text-center">Distribution by Type</h6>
+                                <!-- Simple bar chart representation -->
+                                {% for food_type, count in food_type_distribution.items %}
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span class="fw-bold">{{ food_type|title }}</span>
+                                        <span class="text-muted">{{ count }}</span>
+                                    </div>
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar" 
+                                             style="width: {% widthratio count metrics.total_donations 100 %}%;
+                                                    background: {% cycle '#ff6b6b' '#ffa726' '#66bb6a' '#74b9ff' '#a29bfe' '#fd79a8' '#00cec9' %}">
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="chart-container">
+                                <h6 class="fw-bold mb-3 text-center">Dietary Impact</h6>
+                                {% if dietary_impact %}
+                                    {% for tag, count in dietary_impact.items %}
+                                    <div class="mb-3">
+                                        <span class="food-type-pill">{{ tag|title }}</span>
+                                        <span class="badge bg-primary float-end">{{ count }}</span>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                <div class="text-center text-muted py-5">
+                                    <i class="fas fa-tags fa-3x mb-3"></i>
+                                    <p class="mb-0">No dietary tags recorded</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-chart-pie fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No data available</h5>
+                        <p class="text-muted">
+                            {% if user_profile.user_type == 'donor' %}
+                            Start making donations to see your impact distribution
+                            {% else %}
+                            Start receiving donations to see your nutrition patterns
+                            {% endif %}
+                        </p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Environmental Impact -->
+            <div class="card environment-card shadow-sm border-0">
+                <div class="card-header bg-transparent border-0 py-3">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-leaf me-2 text-success"></i>Environmental Impact
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3 mb-4">
+                            <div class="display-4 fw-bold text-success">{{ environmental_impact.co2_saved_kg }}</div>
+                            <p class="text-muted mb-0">kg CO₂ Saved</p>
+                            <small class="text-muted">Equivalent to {{ environmental_impact.co2_saved_kg|divide:21|floatformat:1 }} days of electricity</small>
+                        </div>
+                        <div class="col-md-3 mb-4">
+                            <div class="display-4 fw-bold text-primary">{{ environmental_impact.water_saved_liters|intcomma }}</div>
+                            <p class="text-muted mb-0">Liters Water Saved</p>
+                            <small class="text-muted">{{ environmental_impact.water_saved_liters|divide:150|floatformat:0 }} shower equivalents</small>
+                        </div>
+                        <div class="col-md-3 mb-4">
+                            <div class="display-4 fw-bold text-warning">{{ environmental_impact.meals_provided }}</div>
+                            <p class="text-muted mb-0">Meals Provided</p>
+                            <small class="text-muted">Based on 500 calories per meal</small>
+                        </div>
+                        <div class="col-md-3 mb-4">
+                            <div class="display-4 fw-bold text-info">{{ environmental_impact.food_waste_prevented_kg }}</div>
+                            <p class="text-muted mb-0">kg Waste Prevented</p>
+                            <small class="text-muted">Food saved from landfills</small>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h6 class="fw-bold mb-3">Environmental Impact Breakdown</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <small class="text-muted d-block mb-1">Carbon Footprint Reduction</small>
+                                    <div class="progress mb-2" style="height: 10px;">
+                                        <div class="progress-bar bg-success" style="width: 85%"></div>
+                                    </div>
+                                    <small class="text-muted">85% better than food waste</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <small class="text-muted d-block mb-1">Water Conservation</small>
+                                    <div class="progress mb-2" style="height: 10px;">
+                                        <div class="progress-bar bg-primary" style="width: 78%"></div>
+                                    </div>
+                                    <small class="text-muted">78% water savings</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- AI Insights -->
+            <div class="card insight-card shadow-sm border-0 mb-4">
+                <div class="card-header bg-transparent border-0 py-3">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-robot me-2 text-primary"></i>AI Insights
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6 class="fw-bold text-success">
+                            <i class="fas fa-trophy me-2"></i>Your Top Achievement
+                        </h6>
+                        <p class="text-muted mb-0">
+                            {% if metrics.total_calories > 5000 %}
+                            You've provided over {{ environmental_impact.meals_provided }} nutritious meals to your community!
+                            {% elif metrics.total_donations > 5 %}
+                            Great consistency! You're building a reliable food sharing habit.
+                            {% else %}
+                            Every donation makes a difference. Keep up the great work!
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    <div class="mb-3">
+                        <h6 class="fw-bold text-info">
+                            <i class="fas fa-lightbulb me-2"></i>Improvement Tip
+                        </h6>
+                        <p class="text-muted mb-0">
+                            {% if metrics.avg_nutrition_score < 70 %}
+                            Consider adding more fruits and vegetables to increase nutrition scores.
+                            {% else %}
+                            Your nutrition quality is excellent! Consider variety for balanced diets.
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    <div>
+                        <h6 class="fw-bold text-warning">
+                            <i class="fas fa-bullseye me-2"></i>Next Goal
+                        </h6>
+                        <p class="text-muted mb-0">
+                            Reach {{ metrics.total_donations|add:5 }} total 
+                            {% if user_profile.user_type == 'donor' %}donations{% else %}receipts{% endif %}
+                            to unlock your next achievement badge.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Impact Comparison -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-transparent border-0 py-3">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-users me-2 text-info"></i>Community Impact
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="display-6 fw-bold text-success">{{ metrics.total_donations }}</div>
+                        <p class="text-muted mb-0">
+                            {% if user_profile.user_type == 'donor' %}
+                            Your Donations
+                            {% else %}
+                            Donations Received
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    <div class="mb-3">
+                        <small class="text-muted d-block mb-1">Community Rank</small>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-bold">Top 15%</span>
+                            <span class="badge nutrition-badge">Elite</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <small class="text-muted d-block mb-1">Environmental Impact</small>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>{{ environmental_impact.co2_saved_kg }}kg CO₂</span>
+                            <span class="text-success">✓ Saved</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <small class="text-muted d-block mb-1">Nutrition Contribution</small>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>{{ metrics.avg_nutrition_score }}/100</span>
+                            <span class="text-success">Above Avg</span>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <small class="text-muted">
+                            <i class="fas fa-globe-americas me-1"></i>
+                            Together we've saved {{ environmental_impact.co2_saved_kg|multiply:10 }}kg CO₂
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-transparent border-0 py-3">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-bolt me-2 text-warning"></i>Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        {% if user_profile.user_type == 'donor' %}
+                        <a href="{% url 'create_donation' %}" class="btn btn-success">
+                            <i class="fas fa-plus-circle me-2"></i>New Donation
+                        </a>
+                        {% else %}
+                        <a href="{% url 'ai_recommendations' %}" class="btn btn-primary">
+                            <i class="fas fa-robot me-2"></i>AI Recommendations
+                        </a>
+                        {% endif %}
+                        <a href="{% url 'search_donations' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-search me-2"></i>Browse Donations
+                        </a>
+                        <a href="{% url 'profile' %}" class="btn btn-outline-info">
+                            <i class="fas fa-user-edit me-2"></i>Update Preferences
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Achievement Badges -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-transparent border-0 py-3">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-award me-2 text-warning"></i>Achievements & Badges
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-2 col-4 mb-3">
+                            <div class="bg-success rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2" 
+                                 style="width: 80px; height: 80px;">
+                                <i class="fas fa-seedling fa-2x text-white"></i>
+                            </div>
+                            <small class="fw-bold">First Donation</small>
+                            <div class="text-success">
+                                <i class="fas fa-check"></i>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-4 mb-3">
+                            <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2" 
+                                 style="width: 80px; height: 80px;">
+                                <i class="fas fa-fire fa-2x text-white"></i>
+                            </div>
+                            <small class="fw-bold">5K Calories</small>
+                            <div class="text-success">
+                                <i class="fas fa-check"></i>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-4 mb-3">
+                            <div class="bg-warning rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2" 
+                                 style="width: 80px; height: 80px;">
+                                <i class="fas fa-apple-alt fa-2x text-white"></i>
+                            </div>
+                            <small class="fw-bold">Quality Donor</small>
+                            <div class="text-muted">
+                                <i class="fas fa-lock"></i>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-4 mb-3">
+                            <div class="bg-info rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2" 
+                                 style="width: 80px; height: 80px;">
+                                <i class="fas fa-leaf fa-2x text-white"></i>
+                            </div>
+                            <small class="fw-bold">Eco Warrior</small>
+                            <div class="text-muted">
+                                <i class="fas fa-lock"></i>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-4 mb-3">
+                            <div class="bg-danger rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2" 
+                                 style="width: 80px; height: 80px;">
+                                <i class="fas fa-heart fa-2x text-white"></i>
+                            </div>
+                            <small class="fw-bold">Community Hero</small>
+                            <div class="text-muted">
+                                <i class="fas fa-lock"></i>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-4 mb-3">
+                            <div class="bg-dark rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2" 
+                                 style="width: 80px; height: 80px;">
+                                <i class="fas fa-crown fa-2x text-white"></i>
+                            </div>
+                            <small class="fw-bold">Nutrition Master</small>
+                            <div class="text-muted">
+                                <i class="fas fa-lock"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize progress ring animations
+    const progressRings = document.querySelectorAll('.ring-fill');
+    progressRings.forEach(ring => {
+        // Animation is handled via CSS transforms
+        ring.style.transition = 'transform 1.5s ease-in-out';
+    });
+
+    // Time period filter functionality
+    const timeFilterButtons = document.querySelectorAll('.time-filter-btn');
+    timeFilterButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            timeFilterButtons.forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+            // Page will reload with new filter parameter
+        });
+    });
+
+    // Mock data for charts (in a real implementation, this would come from the backend)
+    function initializeCharts() {
+        console.log('Initializing analytics charts...');
+        // This is where you would integrate with a charting library like Chart.js
+        // For now, we're using CSS-based visualizations
+    }
+
+    initializeCharts();
+});
+
+// Custom template filters
+function divide(value, arg) {
+    return value / arg;
+}
+
+function multiply(value, arg) {
+    return value * arg;
+}
+</script>
+{% endblock %}

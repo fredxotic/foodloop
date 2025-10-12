@@ -6,6 +6,7 @@ import os
 from geopy.geocoders import Nominatim
 import geopy.exc
 from django.conf import settings
+import json
 
 def user_profile_picture_path(instance, filename):
     """Ensure proper path for profile pictures"""
@@ -15,7 +16,7 @@ def user_profile_picture_path(instance, filename):
         return f'profile_pictures/temp/{filename}'
 
 def donation_image_path(instance, filename):
-    if instance.pk:  # Use primary key instead of id
+    if instance.pk:
         return f'donation_images/donation_{instance.pk}/{filename}'
     else:
         return f'donation_images/temp/{filename}'
@@ -26,6 +27,27 @@ class UserProfile(models.Model):
     USER_TYPE_CHOICES = [
         (DONOR, 'Donor'),
         (RECIPIENT, 'Recipient'),
+    ]
+    
+    # Dietary & Nutrition Goals
+    DIETARY_RESTRICTION_CHOICES = [
+        ('vegetarian', 'Vegetarian'),
+        ('vegan', 'Vegan'),
+        ('gluten_free', 'Gluten-Free'),
+        ('dairy_free', 'Dairy-Free'),
+        ('nut_free', 'Nut-Free'),
+        ('halal', 'Halal'),
+        ('kosher', 'Kosher'),
+        ('low_carb', 'Low-Carb'),
+        ('diabetic', 'Diabetic-Friendly'),
+    ]
+    
+    NUTRITION_GOAL_CHOICES = [
+        ('balanced', 'Balanced Diet'),
+        ('weight_loss', 'Weight Loss'),
+        ('muscle_gain', 'Muscle Gain'),
+        ('maintenance', 'Maintenance'),
+        ('health_condition', 'Specific Health Condition'),
     ]
     
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -39,6 +61,38 @@ class UserProfile(models.Model):
         null=True
     )
     
+    # NEW: Dietary Preference Fields
+    dietary_restrictions = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="List of dietary restrictions"
+    )
+    allergies = models.TextField(
+        blank=True,
+        help_text="List any food allergies (comma separated)"
+    )
+    preferred_food_types = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Preferred food categories"
+    )
+    nutrition_goals = models.CharField(
+        max_length=20,
+        choices=NUTRITION_GOAL_CHOICES,
+        default='balanced'
+    )
+    health_notes = models.TextField(
+        blank=True,
+        help_text="Any additional health or nutrition notes"
+    )
+    
+    # Location coordinates
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
     def __str__(self):
         return f"{self.user.username} - {self.user_type}"
     
@@ -46,7 +100,6 @@ class UserProfile(models.Model):
         """Safe method to get profile picture URL"""
         if self.profile_picture and hasattr(self.profile_picture, 'url'):
             return self.profile_picture.url
-        # Use absolute path to static file
         return '/static/images/default-profile.png'
 
     def get_average_rating(self):
@@ -73,6 +126,43 @@ class UserProfile(models.Model):
             return Rating.objects.filter(donor=self.user).select_related('recipient', 'donation')[:limit]
         else:
             return Rating.objects.filter(recipient=self.user).select_related('donor', 'donation')[:limit]
+    
+    # NEW: Dietary Methods
+    def get_dietary_badges(self):
+        """Return dietary restrictions as list for display"""
+        return self.dietary_restrictions or []
+    
+    def has_dietary_restrictions(self):
+        """Check if user has any dietary restrictions"""
+        return bool(self.dietary_restrictions)
+    
+    def get_allergies_list(self):
+        """Return allergies as cleaned list"""
+        if self.allergies:
+            return [allergy.strip() for allergy in self.allergies.split(',')]
+        return []
+    
+    def get_nutrition_match_score(self, donation):
+        """Calculate how well a donation matches user's nutritional needs"""
+        score = 0
+        
+        # Basic food type preference matching
+        if donation.food_type in self.preferred_food_types:
+            score += 30
+        
+        # Dietary restriction matching
+        user_restrictions = set(self.dietary_restrictions)
+        donation_tags = set(donation.dietary_tags)
+        
+        # Penalize if donation contains restricted items
+        if user_restrictions and not donation_tags.issuperset(user_restrictions):
+            score -= 50
+        
+        # Bonus for perfect matches
+        if donation_tags.issuperset(user_restrictions):
+            score += 20
+            
+        return min(max(score, 0), 100)
 
 
 class Donation(models.Model):
@@ -95,6 +185,9 @@ class Donation(models.Model):
         ('dairy', 'Dairy'),
         ('bakery', 'Bakery'),
         ('cooked', 'Cooked Food'),
+        ('grains', 'Grains & Cereals'),
+        ('protein', 'Proteins'),
+        ('beverages', 'Beverages'),
         ('other', 'Other'),
     ]
     
@@ -123,6 +216,38 @@ class Donation(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
+    # NEW: Nutrition & Dietary Fields
+    dietary_tags = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Dietary compatibility tags"
+    )
+    estimated_calories = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Estimated total calories"
+    )
+    nutrition_score = models.IntegerField(
+        default=0,
+        help_text="Nutrition quality score (0-100)"
+    )
+    ingredients = models.TextField(
+        blank=True,
+        help_text="List of main ingredients"
+    )
+    preparation_method = models.CharField(
+        max_length=50,
+        blank=True,
+        choices=[
+            ('raw', 'Raw'),
+            ('cooked', 'Cooked'),
+            ('baked', 'Baked'),
+            ('fried', 'Fried'),
+            ('other', 'Other')
+        ],
+        default='other'
+    )
+    
     def __str__(self):
         return f"{self.food_type} from {self.donor.username}"
     
@@ -136,37 +261,20 @@ class Donation(models.Model):
         """Safe method to get donation image URL"""
         if self.image and hasattr(self.image, 'url'):
             return self.image.url
-        # Use absolute path to static file
         return '/static/images/default-donation.jpg'
     
     def save(self, *args, **kwargs):
-        # First save to get an ID for image path
-        if self.pk is None:
-            # Save once to get primary key
-            super().save(*args, **kwargs)
-            
-            # Now handle image with proper path
-            if self.image and hasattr(self.image, 'name'):
-                # Get the original filename
-                original_path = self.image.name
-                # Generate new path with correct donation ID
-                new_path = donation_image_path(self, os.path.basename(original_path))
-                if original_path != new_path:
-                    # Rename the file
-                    try:
-                        os.rename(
-                            os.path.join(settings.MEDIA_ROOT, original_path),
-                            os.path.join(settings.MEDIA_ROOT, new_path)
-                        )
-                        self.image.name = new_path
-                    except (OSError, FileNotFoundError):
-                        # If rename fails, keep original path
-                        pass
+        # SIMPLIFIED: Remove complex file renaming logic
         
-        # Then do the geocoding and status updates
+        # Geocoding
         if self.location and (not self.latitude or not self.longitude):
             self.geocode_location()
         
+        # Auto-calculate nutrition score if not set
+        if not self.nutrition_score:
+            self.nutrition_score = self.calculate_nutrition_score()
+        
+        # Update status if expired
         if self.is_expired() and self.status != self.EXPIRED:
             self.status = self.EXPIRED
         
@@ -182,15 +290,12 @@ class Donation(models.Model):
                 self.latitude = location.latitude
                 self.longitude = location.longitude
                 self.location_precision = 'exact' if 'address' in location.raw.get('type', '') else 'approximate'
-                print(f"Geocoded {self.location} to {self.latitude}, {self.longitude}")
             else:
                 self.latitude = None
                 self.longitude = None
                 self.location_precision = 'failed'
-                print(f"Geocoding failed for: {self.location}")
                 
         except (geopy.exc.GeocoderTimedOut, geopy.exc.GeocoderServiceError) as e:
-            print(f"Geocoding error for {self.location}: {e}")
             self.latitude = None
             self.longitude = None
             self.location_precision = 'error'
@@ -209,6 +314,67 @@ class Donation(models.Model):
     @property
     def has_valid_coordinates(self):
         return self.latitude is not None and self.longitude is not None
+    
+    # NEW: Nutrition Methods
+    def calculate_nutrition_score(self):
+        """Calculate a basic nutrition score based on food type and tags"""
+        base_scores = {
+            'vegetables': 90,
+            'fruits': 85,
+            'grains': 70,
+            'protein': 75,
+            'dairy': 65,
+            'bakery': 50,
+            'cooked': 60,
+            'beverages': 40,
+            'other': 50
+        }
+        
+        score = base_scores.get(self.food_type, 50)
+        
+        # Adjust based on dietary tags
+        healthy_tags = ['vegetarian', 'vegan', 'gluten_free', 'low_carb']
+        for tag in self.dietary_tags:
+            if tag in healthy_tags:
+                score += 5
+                
+        return min(max(score, 0), 100)
+    
+    def get_dietary_badges(self):
+        """Return dietary tags as list for display"""
+        return self.dietary_tags or []
+    
+    def is_dietary_compatible(self, user_profile):
+        """Check if donation is compatible with user's dietary needs"""
+        user_restrictions = set(user_profile.dietary_restrictions)
+        donation_tags = set(self.dietary_tags)
+        
+        # If user has restrictions, donation must support all of them
+        if user_restrictions:
+            return donation_tags.issuperset(user_restrictions)
+        
+        return True
+    
+    def get_calorie_estimate(self):
+        """Get calorie estimate with fallback"""
+        if self.estimated_calories:
+            return self.estimated_calories
+        
+        # Fallback estimates based on food type
+        calorie_estimates = {
+            'vegetables': 50,
+            'fruits': 80,
+            'dairy': 120,
+            'bakery': 250,
+            'cooked': 300,
+            'grains': 150,
+            'protein': 200,
+            'beverages': 100,
+            'other': 150
+        }
+        
+        return calorie_estimates.get(self.food_type, 100)
+
 
 class EmailVerification(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -218,9 +384,7 @@ class EmailVerification(models.Model):
     
     def __str__(self):
         return f"Verification for {self.user.username}"
-    
 
-# Add to core/models.py after the existing models
 
 class Rating(models.Model):
     RATING_CHOICES = [
@@ -240,14 +404,12 @@ class Rating(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
-        unique_together = ('donor', 'recipient', 'donation')  # One rating per donation pair
+        unique_together = ('donor', 'recipient', 'donation')
         ordering = ['-created_at']
     
     def __str__(self):
         return f"{self.rating} stars - {self.donor.username} to {self.recipient.username}"
-    
-    def get_rating_display(self):
-        return f"{'★' * self.rating}{'☆' * (5 - self.rating)}"
+
 
 class Notification(models.Model):
     NOTIFICATION_TYPES = [
@@ -255,7 +417,8 @@ class Notification(models.Model):
         ('donation_completed', 'Donation Completed'),
         ('new_donation', 'New Donation Available'),
         ('rating_received', 'New Rating Received'),
-        ('message_received', 'New Message'),
+        ('dietary_match', 'Dietary Match Found'),
+        ('nutrition_insight', 'Nutrition Insight'),
         ('system', 'System Notification'),
     ]
 
@@ -278,3 +441,39 @@ class Notification(models.Model):
         self.save()
 
 
+# NEW: Nutrition Impact Analytics
+class NutritionImpact(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='nutrition_impacts')
+    date = models.DateField(default=timezone.now)
+    
+    # Food metrics
+    donations_made = models.IntegerField(default=0)
+    donations_received = models.IntegerField(default=0)
+    total_calories = models.IntegerField(default=0)
+    
+    # Nutrition metrics
+    protein_grams = models.FloatField(default=0.0)
+    carbs_grams = models.FloatField(default=0.0)
+    fats_grams = models.FloatField(default=0.0)
+    fiber_grams = models.FloatField(default=0.0)
+    
+    # Environmental impact
+    co2_saved_kg = models.FloatField(default=0.0)
+    water_saved_liters = models.FloatField(default=0.0)
+    food_waste_prevented_kg = models.FloatField(default=0.0)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ('user', 'date')
+        ordering = ['-date']
+    
+    def __str__(self):
+        return f"Nutrition Impact - {self.user.username} - {self.date}"
+    
+    def calculate_environmental_impact(self):
+        """Calculate environmental impact based on food saved"""
+        # Rough estimates (can be refined)
+        self.co2_saved_kg = self.food_waste_prevented_kg * 2.5  # kg CO2 per kg food
+        self.water_saved_liters = self.food_waste_prevented_kg * 1000  # liters per kg
+        self.save()

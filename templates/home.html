@@ -86,6 +86,47 @@
         z-index: 1000;
         box-shadow: 0 10px 30px rgba(40, 167, 69, 0.3);
     }
+    /* New Nutrition Styles */
+    .nutrition-badge {
+        background: linear-gradient(135deg, #00b894, #00a085);
+        color: white;
+        border: none;
+        font-size: 0.75em;
+    }
+    .dietary-badge {
+        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+        color: white;
+        border: none;
+        font-size: 0.7em;
+    }
+    .nutrition-score-bar {
+        height: 4px;
+        background: #e9ecef;
+        border-radius: 2px;
+        overflow: hidden;
+        margin: 5px 0;
+    }
+    .nutrition-score-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #ff6b6b, #ffa726, #66bb6a);
+    }
+    .nutrition-info {
+        font-size: 0.8em;
+    }
+    .nutrition-feature {
+        background: linear-gradient(135deg, #e8f5e8, #c8e6c9);
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        height: 100%;
+    }
+    .ai-feature {
+        background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        height: 100%;
+    }
 </style>
 {% endblock %}
 
@@ -97,6 +138,19 @@
             <div class="col-lg-6">
                 <h1 class="display-3 fw-bold mb-4">Fight Food Waste, Feed Communities</h1>
                 <p class="lead mb-4 fs-5">Join FoodLoop to connect surplus food with people in need. Reduce waste, fight hunger, and build sustainable communities across Kenya.</p>
+                
+                <!-- New Nutrition-focused Tagline -->
+                <div class="mb-4">
+                    <span class="badge nutrition-badge me-2 mb-2 fs-6">
+                        <i class="fas fa-apple-alt me-1"></i>Nutrition Tracking
+                    </span>
+                    <span class="badge dietary-badge me-2 mb-2 fs-6">
+                        <i class="fas fa-utensils me-1"></i>Dietary Matching
+                    </span>
+                    <span class="badge bg-info me-2 mb-2 fs-6">
+                        <i class="fas fa-robot me-1"></i>AI Recommendations
+                    </span>
+                </div>
                 
                 {% if not user.is_authenticated %}
                     <div class="d-flex flex-wrap gap-3 mb-4">
@@ -192,6 +246,9 @@
                 </div>
             </form>
             <div class="text-center mt-3">
+                <a href="{% url 'nutrition_search' %}" class="text-decoration-none me-3">
+                    <i class="fas fa-apple-alt me-1"></i>Advanced Nutrition Search
+                </a>
                 <a href="{% url 'map_view' %}" class="text-decoration-none">
                     <i class="fas fa-map-marked-alt me-1"></i>Search on interactive map
                 </a>
@@ -200,8 +257,70 @@
     </div>
 </section>
 
-<!-- How It Works -->
+<!-- New Nutrition & AI Features Section -->
 <section class="py-5">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-12">
+                <h2 class="display-4 fw-bold text-dark mb-3">Smart Food Matching</h2>
+                <p class="lead text-muted">Advanced features to ensure the right food reaches the right people</p>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="nutrition-feature">
+                    <div class="feature-icon mx-auto" style="background: #00b894; color: white;">
+                        <i class="fas fa-apple-alt"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-3">Nutrition Tracking</h4>
+                    <p class="text-muted">
+                        Track calories and nutrition scores to make informed decisions about food donations.
+                    </p>
+                    <ul class="list-unstyled text-start">
+                        <li><i class="fas fa-check text-success me-2"></i>Calorie estimates</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Nutrition quality scores</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Health impact tracking</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="ai-feature">
+                    <div class="feature-icon mx-auto" style="background: #0984e3; color: white;">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-3">AI-Powered Matching</h4>
+                    <p class="text-muted">
+                        Our smart algorithm matches donations with recipients based on preferences and location.
+                    </p>
+                    <ul class="list-unstyled text-start">
+                        <li><i class="fas fa-check text-success me-2"></i>Personalized recommendations</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Dietary compatibility scoring</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Location-based matching</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="nutrition-feature">
+                    <div class="feature-icon mx-auto" style="background: #a29bfe; color: white;">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-3">Dietary Preferences</h4>
+                    <p class="text-muted">
+                        Set your dietary restrictions and preferences for better, safer food matching.
+                    </p>
+                    <ul class="list-unstyled text-start">
+                        <li><i class="fas fa-check text-success me-2"></i>Allergy tracking</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Dietary restrictions</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Food preferences</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works -->
+<section class="py-5 bg-light">
     <div class="container">
         <div class="row text-center mb-5">
             <div class="col-12">
@@ -218,12 +337,12 @@
                     <div class="card-body">
                         <h4 class="card-title text-dark">1. Join the Community</h4>
                         <p class="card-text text-muted">
-                            Sign up as a donor or recipient. Complete your profile and verify your email to start making an impact.
+                            Sign up as a donor or recipient. Set your dietary preferences to get personalized matches.
                         </p>
                         <ul class="list-unstyled text-start">
                             <li><i class="fas fa-check text-success me-2"></i>Quick registration</li>
-                            <li><i class="fas fa-check text-success me-2"></i>Email verification</li>
-                            <li><i class="fas fa-check text-success me-2"></i>Profile setup</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Dietary preferences</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Profile verification</li>
                         </ul>
                     </div>
                 </div>
@@ -236,12 +355,12 @@
                     <div class="card-body">
                         <h4 class="card-title text-dark">2. Share or Discover</h4>
                         <p class="card-text text-muted">
-                            Donors post available food with photos. Recipients browse, search, or use our map to find donations.
+                            Donors post food with nutrition info. Recipients get AI-powered recommendations.
                         </p>
                         <ul class="list-unstyled text-start">
-                            <li><i class="fas fa-check text-success me-2"></i>Photo uploads</li>
-                            <li><i class="fas fa-check text-success me-2"></i>Smart search</li>
-                            <li><i class="fas fa-check text-success me-2"></i>Interactive map</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Nutrition tracking</li>
+                            <li><i class="fas fa-check text-success me-2"></i>AI recommendations</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Smart search & filters</li>
                         </ul>
                     </div>
                 </div>
@@ -254,12 +373,12 @@
                     <div class="card-body">
                         <h4 class="card-title text-dark">3. Connect & Collect</h4>
                         <p class="card-text text-muted">
-                            Coordinate pickup through our platform. Complete the cycle and help reduce food waste in Kenya.
+                            Coordinate pickup through our platform. Track your nutrition impact and community contribution.
                         </p>
                         <ul class="list-unstyled text-start">
-                            <li><i class="fas fa-check text-success me-2"></i>Instant notifications</li>
-                            <li><i class="fas fa-check text-success me-2"></i>Pickup coordination</li>
-                            <li><i class="fas fa-check text-success me-2"></i>Success tracking</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Dietary compatibility</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Nutrition analytics</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Impact tracking</li>
                         </ul>
                     </div>
                 </div>
@@ -270,12 +389,12 @@
 
 <!-- Available Donations -->
 {% if available_donations %}
-<section class="py-5 bg-light">
+<section class="py-5">
     <div class="container">
         <div class="row mb-5">
             <div class="col-12 text-center">
                 <h2 class="display-5 fw-bold text-dark">Fresh Donations Available Now</h2>
-                <p class="lead text-muted">Recently posted donations waiting to be claimed</p>
+                <p class="lead text-muted">Recently posted donations with nutrition information</p>
             </div>
         </div>
         <div class="row g-4">
@@ -291,12 +410,27 @@
                     {% endif %}
                     
                     <div class="card-body">
+                        <!-- Nutrition Information Header -->
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <span class="badge bg-success">{{ donation.get_food_type_display }}</span>
-                            {% if donation.distance_km %}
-                            <span class="badge bg-primary">{{ donation.distance_km }}km away</span>
-                            {% endif %}
+                            <div class="text-end">
+                                {% if donation.nutrition_badge %}
+                                <span class="badge nutrition-badge mb-1">
+                                    {{ donation.nutrition_badge }} {{ donation.nutrition_score }}/100
+                                </span>
+                                {% endif %}
+                                {% if donation.distance_km %}
+                                <span class="badge bg-primary">{{ donation.distance_km }}km away</span>
+                                {% endif %}
+                            </div>
                         </div>
+                        
+                        <!-- Nutrition Score Bar -->
+                        {% if donation.nutrition_score %}
+                        <div class="nutrition-score-bar">
+                            <div class="nutrition-score-fill" style="width: {{ donation.nutrition_score }}%"></div>
+                        </div>
+                        {% endif %}
                         
                         <h5 class="card-title text-dark">{{ donation.food_type|title }}</h5>
                         <h6 class="card-subtitle mb-2 text-muted small">
@@ -305,6 +439,18 @@
                         
                         <p class="card-text text-muted small">{{ donation.description|truncatewords:15 }}</p>
                         
+                        <!-- Dietary Tags -->
+                        {% if donation.dietary_tags %}
+                        <div class="mb-2">
+                            {% for tag in donation.dietary_tags|slice:":3" %}
+                            <span class="badge dietary-badge me-1 mb-1">{{ tag }}</span>
+                            {% endfor %}
+                            {% if donation.dietary_tags|length > 3 %}
+                            <span class="badge bg-secondary">+{{ donation.dietary_tags|length|add:"-3" }}</span>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        
                         <div class="donation-meta small text-muted">
                             <div class="mb-1">
                                 <i class="fas fa-box me-1"></i> {{ donation.quantity }}
@@ -312,8 +458,12 @@
                             <div class="mb-1">
                                 <i class="fas fa-map-marker-alt me-1"></i> {{ donation.location }}
                             </div>
-                            <div>
-                                <i class="fas fa-clock me-1"></i> Expires {{ donation.expiry_date|date:"M d, Y" }}
+                            <div class="nutrition-info">
+                                {% if donation.calorie_info %}
+                                <i class="fas fa-fire me-1"></i> {{ donation.calorie_info }}
+                                {% else %}
+                                <i class="fas fa-clock me-1"></i> Expires {{ donation.expiry_date|date:"M d" }}
+                                {% endif %}
                             </div>
                         </div>
                     </div>
@@ -342,6 +492,9 @@
         <div class="text-center mt-5">
             <a href="{% url 'search_donations' %}" class="btn btn-primary btn-lg px-5">
                 <i class="fas fa-search me-2"></i>Explore All Donations
+            </a>
+            <a href="{% url 'nutrition_search' %}" class="btn btn-success btn-lg px-5 ms-2">
+                <i class="fas fa-apple-alt me-2"></i>Nutrition Search
             </a>
             <a href="{% url 'map_view' %}" class="btn btn-outline-primary btn-lg px-5 ms-2">
                 <i class="fas fa-map me-2"></i>View on Map
@@ -392,7 +545,7 @@
         <div class="row align-items-center">
             <div class="col-lg-8">
                 <h3 class="display-6 fw-bold mb-3">Ready to Make a Difference?</h3>
-                <p class="lead mb-0">Join FoodLoop today and start fighting food waste in your community.</p>
+                <p class="lead mb-0">Join FoodLoop today and start fighting food waste in your community with smart nutrition tracking.</p>
             </div>
             <div class="col-lg-4 text-lg-end">
                 <a href="{% url 'signup' %}" class="btn btn-light btn-lg px-5 py-3 fw-bold">
@@ -408,4 +561,22 @@
 <a href="{% url 'map_view' %}" class="btn btn-success btn-lg floating-map-btn rounded-pill shadow">
     <i class="fas fa-map-marked-alt me-2"></i>View Map
 </a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Initialize nutrition score bars
+document.addEventListener('DOMContentLoaded', function() {
+    const nutritionBars = document.querySelectorAll('.nutrition-score-fill');
+    nutritionBars.forEach(bar => {
+        // Bars are already set via inline styles, but we can add animations if needed
+        const width = bar.style.width;
+        bar.style.width = '0%';
+        setTimeout(() => {
+            bar.style.transition = 'width 1s ease';
+            bar.style.width = width;
+        }, 100);
+    });
+});
+</script>
 {% endblock %}
