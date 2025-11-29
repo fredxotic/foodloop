@@ -1,214 +1,93 @@
-{% extends 'base.html' %}
+{% extends 'base/base.html' %}
 {% load static %}
 
-{% block title %}Rate Donation - FoodLoop{% endblock %}
-
-{% block extra_css %}
-<style>
-    .rating-card {
-        border: none;
-        border-radius: 15px;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-    }
-    .star-rating {
-        font-size: 2rem;
-        color: #ffc107;
-        cursor: pointer;
-    }
-    .star-rating .fas {
-        transition: all 0.2s ease;
-    }
-    .star-rating .fas:hover {
-        transform: scale(1.2);
-    }
-    .rating-option {
-        display: none;
-    }
-    .rating-labels {
-        display: flex;
-        justify-content: space-between;
-        margin-top: 0.5rem;
-        font-size: 0.875rem;
-        color: #6c757d;
-    }
-    .donation-preview {
-        border-left: 4px solid #28a745;
-        background: #f8fff9;
-    }
-    .cursor-pointer {
-        cursor: pointer;
-    }
-</style>
-{% endblock %}
+{% block title %}Rate User - FoodLoop{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card rating-card">
-                <div class="card-header bg-warning text-white text-center py-4">
-                    <h3 class="mb-0">
-                        <i class="fas fa-star me-2"></i>
-                        {% if existing_rating %}Update Your Rating{% else %}Rate Your Experience{% endif %}
-                    </h3>
-                </div>
+<div class="max-w-2xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+    <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+        
+        <div class="bg-gradient-to-r from-yellow-400 to-orange-500 p-8 text-center text-white">
+            <div class="mx-auto w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mb-4 backdrop-blur-sm shadow-inner">
+                <i class="fas fa-star text-3xl text-white"></i>
+            </div>
+            <h1 class="text-3xl font-extrabold mb-2">
+                {% if existing_rating %}Update Your Review{% else %}Rate Your Experience{% endif %}
+            </h1>
+            <p class="text-white/90 text-lg">
+                How was your exchange with <span class="font-bold border-b border-white/40">{{ rated_user.get_full_name|default:rated_user.username }}</span>?
+            </p>
+        </div>
+
+        <div class="px-8 py-4 bg-gray-50 border-b border-gray-100 flex items-center">
+            <div class="w-12 h-12 bg-white rounded-lg border border-gray-200 p-1 flex-shrink-0 overflow-hidden">
+                {% if donation.image %}
+                    <img src="{{ donation.image.url }}" class="w-full h-full object-cover rounded">
+                {% else %}
+                    <div class="w-full h-full flex items-center justify-center text-gray-400"><i class="fas fa-utensils"></i></div>
+                {% endif %}
+            </div>
+            <div class="ml-4">
+                <p class="text-xs text-gray-500 uppercase font-bold tracking-wide">For Donation</p>
+                <p class="text-gray-900 font-bold text-lg leading-tight">{{ donation.title }}</p>
+            </div>
+        </div>
+
+        <div class="p-8">
+            <form method="post" class="space-y-8" x-data="{ rating: {{ form.rating.value|default:0 }} }">
+                {% csrf_token %}
                 
-                <div class="card-body p-4">
-                    <!-- Donation Info -->
-                    <div class="card donation-preview mb-4">
-                        <div class="card-body">
-                            <div class="row align-items-center">
-                                <div class="col-md-3 text-center">
-                                    {% if donation.get_image_url %}
-                                    <img src="{{ donation.get_image_url }}" 
-                                         class="img-fluid rounded" 
-                                         style="max-height: 80px;"
-                                         alt="{{ donation.food_type }}">
-                                    {% else %}
-                                    <i class="fas fa-utensils fa-3x text-muted"></i>
-                                    {% endif %}
-                                </div>
-                                <div class="col-md-9">
-                                    <h5 class="text-success mb-1">{{ donation.food_type|title }} Donation</h5>
-                                    <p class="text-muted mb-1">
-                                        {% if user == donation.donor %}
-                                            Recipient: <strong>{{ donation.recipient.username }}</strong>
-                                        {% else %}
-                                            Donor: <strong>{{ donation.donor.username }}</strong>
-                                        {% endif %}
-                                    </p>
-                                    <small class="text-muted">Completed on {{ donation.updated_at|date:"F j, Y" }}</small>
-                                </div>
-                            </div>
-                        </div>
+                {% if form.non_field_errors %}
+                    <div class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl text-sm">
+                        {{ form.non_field_errors }}
                     </div>
+                {% endif %}
 
-                    <form method="post">
-                        {% csrf_token %}
-                        
-                        {% if form.non_field_errors %}
-                        <div class="alert alert-danger">
-                            {% for error in form.non_field_errors %}
-                                {{ error }}
-                            {% endfor %}
-                        </div>
-                        {% endif %}
-
-                        <!-- Star Rating -->
-                        <div class="text-center mb-4">
-                            <label class="form-label fw-bold d-block mb-3">How was your experience?</label>
-                            <div class="star-rating d-flex justify-content-center mb-2" id="starRating">
-                                {% for i in "12345" %}
-                                <div class="me-2">
-                                    <input type="radio" id="rating-{{ i }}" name="rating" value="{{ i }}" 
-                                           class="rating-option" 
-                                           {% if form.rating.value == forloop.counter or existing_rating and existing_rating.rating == forloop.counter %}checked{% endif %}>
-                                    <label for="rating-{{ i }}" class="mb-0 cursor-pointer">
-                                        <i class="far fa-star"></i>
-                                    </label>
-                                </div>
-                                {% endfor %}
-                            </div>
-                            <div class="rating-labels">
-                                <span>Poor</span>
-                                <span>Fair</span>
-                                <span>Good</span>
-                                <span>Very Good</span>
-                                <span>Excellent</span>
-                            </div>
-                            {% if form.rating.errors %}
-                            <div class="text-danger small mt-2">{{ form.rating.errors.0 }}</div>
-                            {% endif %}
-                        </div>
-
-                        <!-- Comment -->
-                        <div class="mb-4">
-                            <label for="id_comment" class="form-label fw-bold">Additional Comments (Optional)</label>
-                            <textarea name="comment" id="id_comment" class="form-control" rows="4" 
-                                      placeholder="Share details about your experience...">
-                                {% if form.comment.value %}
-                                    {{ form.comment.value }}
-                                {% elif existing_rating and existing_rating.comment %}
-                                    {{ existing_rating.comment }}
-                                {% endif %}
-                            </textarea>
-                            <div class="form-text">Your feedback helps improve the FoodLoop community</div>
-                            {% if form.comment.errors %}
-                            <div class="text-danger small mt-1">{{ form.comment.errors.0 }}</div>
-                            {% endif %}
-                        </div>
-
-                        <!-- Form Actions -->
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-warning btn-lg">
-                                <i class="fas fa-paper-plane me-2"></i>
-                                {% if existing_rating %}Update Rating{% else %}Submit Rating{% endif %}
-                            </button>
-                            <a href="{% if user.userprofile.user_type == 'donor' %}{% url 'donor_dashboard' %}{% else %}{% url 'recipient_dashboard' %}{% endif %}" 
-                               class="btn btn-outline-secondary">
-                                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
-                            </a>
-                        </div>
-                    </form>
+                <div class="text-center">
+                    <label class="block text-sm font-bold text-gray-700 mb-4 uppercase tracking-wide">Tap stars to rate</label>
+                    
+                    <div class="flex justify-center gap-3 mb-2">
+                        {% for i in "12345" %}
+                        <label class="cursor-pointer group relative">
+                            <input type="radio" name="rating" value="{{ i }}" class="sr-only" x-model="rating">
+                            <i class="fas fa-star text-5xl transition-all duration-200 transform group-hover:scale-110" 
+                               :class="rating >= {{ i }} ? 'text-yellow-400 drop-shadow-sm' : 'text-gray-200 group-hover:text-yellow-200'"></i>
+                        </label>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="h-6 text-sm font-medium text-yellow-600 transition-opacity duration-300" x-show="rating > 0" x-transition>
+                        <span x-text="['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'][rating]"></span>
+                    </div>
+                    
+                    {% if form.rating.errors %}
+                        <p class="mt-2 text-sm text-red-600 font-medium">{{ form.rating.errors.0 }}</p>
+                    {% endif %}
                 </div>
-            </div>
 
-            <!-- Rating Guidelines -->
-            <div class="card mt-4">
-                <div class="card-body">
-                    <h6 class="card-title"><i class="fas fa-lightbulb me-2 text-info"></i>Rating Guidelines</h6>
-                    <ul class="small text-muted mb-0">
-                        <li>Rate based on the overall experience, not just the food quality</li>
-                        <li>Consider communication, punctuality, and condition of items</li>
-                        <li>Your rating helps build trust in the FoodLoop community</li>
-                        <li>Ratings are anonymous to other users</li>
-                    </ul>
+                <div>
+                    <label for="{{ form.comment.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-2">
+                        Additional Comments <span class="text-gray-400 font-normal">(Optional)</span>
+                    </label>
+                    <textarea name="comment" id="{{ form.comment.id_for_label }}" rows="4" 
+                              class="w-full rounded-xl border-gray-300 focus:border-yellow-500 focus:ring focus:ring-yellow-200 focus:ring-opacity-50 transition-shadow resize-none"
+                              placeholder="Share details about punctuality, communication, or food quality...">{{ form.comment.value|default:'' }}</textarea>
+                    <p class="mt-2 text-xs text-gray-500">Your feedback helps build trust in the community.</p>
+                    {% if form.comment.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.comment.errors.0 }}</p>
+                    {% endif %}
                 </div>
-            </div>
+
+                <div class="flex gap-4 pt-2">
+                    <a href="{% url 'core:donation_detail' donation.id %}" class="flex-1 py-3.5 px-6 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 transition-colors text-center">
+                        Skip
+                    </a>
+                    <button type="submit" class="flex-1 py-3.5 px-6 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold rounded-xl shadow-lg shadow-orange-500/30 transition-all transform hover:-translate-y-0.5">
+                        Submit Review
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Star rating interaction
-    const stars = document.querySelectorAll('.rating-option');
-    const starLabels = document.querySelectorAll('.star-rating label');
-    
-    function updateStars(selectedIndex) {
-        starLabels.forEach((label, labelIndex) => {
-            const icon = label.querySelector('i');
-            if (labelIndex <= selectedIndex) {
-                icon.classList.remove('far');
-                icon.classList.add('fas');
-            } else {
-                icon.classList.remove('fas');
-                icon.classList.add('far');
-            }
-        });
-    }
-    
-    stars.forEach((star, index) => {
-        star.addEventListener('change', function() {
-            updateStars(index);
-        });
-        
-        // Initialize stars based on current selection
-        if (star.checked) {
-            updateStars(index);
-        }
-    });
-    
-    // Initialize all stars as empty if none are selected
-    if (!document.querySelector('.rating-option:checked')) {
-        starLabels.forEach(label => {
-            const icon = label.querySelector('i');
-            icon.classList.remove('fas');
-            icon.classList.add('far');
-        });
-    }
-});
-</script>
 {% endblock %}

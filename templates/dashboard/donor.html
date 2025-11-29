@@ -1,0 +1,175 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Donor Dashboard - FoodLoop{% endblock %}
+
+{% block content %}
+<div class="p-6 lg:p-10 max-w-7xl mx-auto w-full">
+    
+    <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Welcome back, {{ user.first_name }}! 👋</h1>
+            <p class="text-gray-500 mt-1">Here's the impact you're making today.</p>
+        </div>
+        <a href="{% url 'core:create_donation' %}" class="inline-flex items-center justify-center px-5 py-3 border border-transparent text-sm font-medium rounded-xl text-white bg-primary-600 hover:bg-primary-700 shadow-lg shadow-primary-500/30 transition-all hover:-translate-y-0.5">
+            <i class="fas fa-plus mr-2"></i> New Donation
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover-lift">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
+                    <i class="fas fa-hand-holding-heart text-xl"></i>
+                </div>
+                <span class="text-xs font-semibold px-2 py-1 rounded-full bg-green-50 text-green-600">+{{ stats.donation_stats.total|default:0 }}%</span>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900">{{ stats.donation_stats.total|default:0 }}</h3>
+            <p class="text-sm text-gray-500">Total Donations</p>
+        </div>
+
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover-lift">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600">
+                    <i class="fas fa-clock text-xl"></i>
+                </div>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900">{{ stats.donation_stats.available|default:0 }}</h3>
+            <p class="text-sm text-gray-500">Active Listings</p>
+        </div>
+
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover-lift">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 rounded-xl bg-green-50 flex items-center justify-center text-green-600">
+                    <i class="fas fa-check-circle text-xl"></i>
+                </div>
+                <span class="text-xs font-semibold px-2 py-1 rounded-full bg-green-50 text-green-600">{{ stats.donation_stats.completion_rate }}% rate</span>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900">{{ stats.donation_stats.completed|default:0 }}</h3>
+            <p class="text-sm text-gray-500">Completed Pickups</p>
+        </div>
+
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover-lift">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600">
+                    <i class="fas fa-fire text-xl"></i>
+                </div>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900">{{ stats.nutrition_impact.total_calories|intcomma }}</h3>
+            <p class="text-sm text-gray-500">Calories Donated</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-2 space-y-6">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center">
+                    <h2 class="text-lg font-bold text-gray-900">Recent Activity</h2>
+                    <a href="{% url 'core:my_donations' %}" class="text-sm font-medium text-primary-600 hover:text-primary-700">View All</a>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Item</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
+                                <th class="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            {% for donation in recent_donations %}
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="h-10 w-10 flex-shrink-0">
+                                            {% if donation.image %}
+                                                <img class="h-10 w-10 rounded-lg object-cover" src="{{ donation.image.url }}" alt="">
+                                            {% else %}
+                                                <div class="h-10 w-10 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400">
+                                                    <i class="fas fa-utensils"></i>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-gray-900">{{ donation.title }}</div>
+                                            <div class="text-xs text-gray-500">{{ donation.quantity }} items</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                        {% if donation.status == 'available' %}bg-green-100 text-green-800
+                                        {% elif donation.status == 'claimed' %}bg-yellow-100 text-yellow-800
+                                        {% elif donation.status == 'completed' %}bg-blue-100 text-blue-800
+                                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {{ donation.get_status_display }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ donation.created_at|date:"M d, Y" }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <a href="{% url 'core:donation_detail' donation.id %}" class="text-primary-600 hover:text-primary-900">View</a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="px-6 py-8 text-center text-gray-500">
+                                    No donations yet. Start by creating one!
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-6">
+            <div class="bg-gradient-to-br from-primary-600 to-primary-800 rounded-2xl shadow-lg p-6 text-white relative overflow-hidden">
+                <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white opacity-10 rounded-full blur-xl"></div>
+                
+                <h3 class="text-lg font-bold mb-4 flex items-center">
+                    <i class="fas fa-robot mr-2"></i> Smart Suggestions
+                </h3>
+                <p class="text-primary-100 text-sm mb-4">Based on current demand in your area:</p>
+                
+                <ul class="space-y-3">
+                    {% for rec in recommendations %}
+                    <li class="flex items-start bg-white/10 p-3 rounded-lg backdrop-blur-sm">
+                        <i class="fas fa-check-circle mt-1 mr-2 text-primary-200"></i>
+                        <span class="text-sm font-medium">{{ rec }}</span>
+                    </li>
+                    {% empty %}
+                        <li class="text-sm opacity-80">Check back later for personalized tips!</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <h3 class="text-lg font-bold text-gray-900 mb-4">Reputation Score</h3>
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="text-4xl font-bold text-gray-900">{{ stats.reputation.avg_rating|default:"0.0" }}</div>
+                    <div class="flex flex-col">
+                        <div class="flex text-yellow-400 text-sm">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                        </div>
+                        <span class="text-xs text-gray-500">{{ stats.reputation.total_ratings }} ratings</span>
+                    </div>
+                </div>
+                <div class="w-full bg-gray-100 rounded-full h-2 mb-2">
+                    <div class="bg-yellow-400 h-2 rounded-full" style="width: {% widthratio stats.reputation.avg_rating 5 100 %}%"></div>
+                </div>
+                <p class="text-xs text-gray-500">Keep rating high to build trust with recipients.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

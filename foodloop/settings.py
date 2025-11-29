@@ -1,56 +1,45 @@
 """
 Django settings for FoodLoop project.
+Clean, production-ready configuration with proper environment separation.
 """
 
 import os
-import sys
 from pathlib import Path
-from decouple import config
+from decouple import config, Csv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # =============================================================================
-# ENVIRONMENT DETECTION
+# ENVIRONMENT & SECURITY
 # =============================================================================
 
-# Detect environment (development vs production)
-DEBUG = config('DEBUG', default=True, cast=bool)
-DEVELOPMENT = config('DEVELOPMENT', default=True, cast=bool)
+DEBUG = config('DEBUG', default=False, cast=bool)
+SECRET_KEY = config('SECRET_KEY', default='CHANGE-ME-IN-PRODUCTION')
 
-# Get secret key from environment or use development default
-SECRET_KEY = config('SECRET_KEY', default='django-insecure-development-key-change-in-production-2024')
-
-# =============================================================================
-# SECURITY SETTINGS - DIFFERENT FOR DEVELOPMENT vs PRODUCTION
-# =============================================================================
-
+# Hosts configuration
 if DEBUG:
-    # DEVELOPMENT SETTINGS (Less secure)
-    print("🚀 DEVELOPMENT MODE ACTIVATED")
-    ALLOWED_HOSTS = ['*']  # Allow all hosts for development
-    SECURE_SSL_REDIRECT = False
-    SESSION_COOKIE_SECURE = False
-    CSRF_COOKIE_SECURE = False
-    SECURE_HSTS_SECONDS = 0
+    ALLOWED_HOSTS = ['*']  # Development only
 else:
-    # PRODUCTION SETTINGS (Secure)
-    print("🔒 PRODUCTION MODE ACTIVATED")
-    ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
+    ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv(), default='localhost,127.0.0.1')
+
+# Security settings (production-ready)
+if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     SECURE_BROWSER_XSS_FILTER = True
+    X_FRAME_OPTIONS = 'DENY'
 
 # =============================================================================
 # APPLICATION DEFINITION
 # =============================================================================
 
-BASE_APPS = [
+DJANGO_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -61,14 +50,20 @@ BASE_APPS = [
 ]
 
 THIRD_PARTY_APPS = [
-    # 'compressor',  # Optional for production
+    'channels',  # For real-time features
+    'rest_framework',  # Django REST Framework
+    'rest_framework.authtoken',  # Token authentication
+    'corsheaders',  # CORS headers for mobile/web apps
+    'django_filters',  # Advanced filtering
+    'drf_spectacular',  # API documentation
 ]
 
-PROJECT_APPS = [
+LOCAL_APPS = [
     'core',
+    'api',
 ]
 
-INSTALLED_APPS = BASE_APPS + THIRD_PARTY_APPS + PROJECT_APPS
+INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 # =============================================================================
 # MIDDLEWARE
@@ -77,12 +72,108 @@ INSTALLED_APPS = BASE_APPS + THIRD_PARTY_APPS + PROJECT_APPS
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # CORS support
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+ROOT_URLCONF = 'foodloop.urls'
+
+# =============================================================================
+# INTERNATIONALIZATION
+# =============================================================================
+
+LANGUAGE_CODE = 'en-us'
+TIME_ZONE = 'Africa/Nairobi'  # Kenya timezone
+USE_I18N = True
+USE_TZ = True
+
+# =============================================================================
+# REST FRAMEWORK CONFIGURATION
+# =============================================================================
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ],
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+        'rest_framework.parsers.MultiPartParser',
+        'rest_framework.parsers.FormParser',
+    ],
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle'
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/hour',
+        'user': '1000/hour',
+        'login': '5/min',
+        'donation_create': '10/hour',
+    },
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+# API Documentation
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'FoodLoop API',
+    'DESCRIPTION': 'RESTful API for the FoodLoop food sharing platform',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'CONTACT': {
+        'name': 'FoodLoop Support',
+        'email': 'support@foodloop.com',
+    },
+    'LICENSE': {
+        'name': 'MIT',
+    },
+}
+
+# =============================================================================
+# CORS CONFIGURATION
+# =============================================================================
+
+# CORS settings for mobile apps and frontend frameworks
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',  # React development
+    'http://127.0.0.1:3000',
+    'http://localhost:8080',  # Vue development
+    'http://127.0.0.1:8080',
+] + [f'https://{host}' for host in ALLOWED_HOSTS if host not in ['*', 'localhost', '127.0.0.1']]
+
+CORS_ALLOW_CREDENTIALS = True
+
+if DEBUG:
+    CORS_ALLOW_ALL_ORIGINS = True  # Only in development
+
+CORS_ALLOWED_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
 ]
 
 # =============================================================================
@@ -92,7 +183,7 @@ MIDDLEWARE = [
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -106,8 +197,11 @@ TEMPLATES = [
     },
 ]
 
+WSGI_APPLICATION = 'foodloop.wsgi.application'
+ASGI_APPLICATION = 'foodloop.asgi.application'
+
 # =============================================================================
-# DATABASE - DIFFERENT FOR DEVELOPMENT vs PRODUCTION
+# DATABASE
 # =============================================================================
 
 if DEBUG:
@@ -119,44 +213,79 @@ if DEBUG:
         }
     }
 else:
-    # MySQL/PostgreSQL for production (PythonAnywhere uses MySQL)
+    # Production database
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': config('DB_NAME', default='foodloop_db'),
-            'USER': config('DB_USER', default='foodloop_user'),
-            'PASSWORD': config('DB_PASSWORD', default=''),
+            'ENGINE': config('DB_ENGINE', default='django.db.backends.postgresql'),
+            'NAME': config('DB_NAME'),
+            'USER': config('DB_USER'),
+            'PASSWORD': config('DB_PASSWORD'),
             'HOST': config('DB_HOST', default='localhost'),
-            'PORT': config('DB_PORT', default='3306'),
+            'PORT': config('DB_PORT', default='5432'),
             'OPTIONS': {
                 'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-            }
+            } if 'mysql' in config('DB_ENGINE', default='') else {}
         }
     }
 
 # =============================================================================
-# EMAIL CONFIGURATION - DIFFERENT FOR DEVELOPMENT vs PRODUCTION
+# CACHING & REDIS (for real-time features)
+# =============================================================================
+
+if not DEBUG:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': config('REDIS_URL', default='redis://127.0.0.1:6379/1'),
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            }
+        }
+    }
+    
+    # Channel layers for WebSocket
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels_redis.core.RedisChannelLayer',
+            'CONFIG': {
+                "hosts": [config('REDIS_URL', default='redis://127.0.0.1:6379/1')],
+            },
+        },
+    }
+
+# =============================================================================
+# CELERY CONFIGURATION
+# =============================================================================
+
+CELERY_BROKER_URL = config('REDIS_URL', default='redis://127.0.0.1:6379/1')
+CELERY_RESULT_BACKEND = config('REDIS_URL', default='redis://127.0.0.1:6379/1')
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE
+
+# If developing on Windows without a Redis service, you might use this temporarily:
+# CELERY_TASK_ALWAYS_EAGER = DEBUG
+
+# =============================================================================
+# EMAIL CONFIGURATION
 # =============================================================================
 
 if DEBUG:
-    # Development: Print emails to console
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-    EMAIL_VERIFICATION_URL = 'http://127.0.0.1:8000'
-    print("📧 Emails will be printed to console")
 else:
-    # Production: Real email sending
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
     EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
     EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
     EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
-    EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
-    EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-    DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='FoodLoop <noreply@foodloop.com>')
-    EMAIL_VERIFICATION_URL = config('SITE_URL', default='https://yourusername.pythonanywhere.com')
-    print("📧 Real email sending enabled")
+    EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+    EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='FoodLoop <noreply@foodloop.com>')
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 # =============================================================================
-# STATIC AND MEDIA FILES
+# STATIC & MEDIA FILES
 # =============================================================================
 
 STATIC_URL = '/static/'
@@ -166,95 +295,183 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# WhiteNoise for static files (works in both environments)
+# Static files storage
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-if not DEBUG:
-    # PythonAnywhere specific static files setup
-    STATIC_ROOT = '/home/fredxotic/FoodLoop/staticfiles'
-    MEDIA_ROOT = '/home/fredxotic/FoodLoop/media'
-
 # =============================================================================
-# OTHER SETTINGS (Common to both environments)
+# PASSWORD VALIDATION
 # =============================================================================
-
-ROOT_URLCONF = 'foodloop.urls'
-WSGI_APPLICATION = 'foodloop.wsgi.application'
 
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Africa/Nairobi'  # Kenya timezone
 USE_I18N = True
 USE_TZ = True
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+# =============================================================================
+# PASSWORD VALIDATION
+# =============================================================================
 
-# Authentication
-LOGIN_URL = '/login/'
-LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/'
-
-# Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-        'OPTIONS': {'max_similarity': 0.7},
     },
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-        'OPTIONS': {'min_length': 8},
+        'OPTIONS': {
+            'min_length': 8,
+        }
     },
     {
         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
     },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
 ]
 
-# CSRF trusted origins
+# =============================================================================
+# AUTHENTICATION
+# =============================================================================
+
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
+
+# =============================================================================
+# CSRF PROTECTION
+# =============================================================================
+
 CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:8000',
     'http://localhost:8000',
-    'https://yourusername.pythonanywhere.com',  # Add your PythonAnywhere domain
-]
+] + [f'https://{host}' for host in ALLOWED_HOSTS if host not in ['*', 'localhost', '127.0.0.1']]
+
+# =============================================================================
+# FILE UPLOADS
+# =============================================================================
+
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024  # 5MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
 
 # =============================================================================
 # FOODLOOP SPECIFIC SETTINGS
 # =============================================================================
 
-FOODLOOP_SETTINGS = {
-    'MAX_DONATION_QUANTITY': 1000,
-    'DONATION_EXPIRY_DAYS': 7,
-    'MAX_IMAGE_SIZE': 5 * 1024 * 1024,
-    'ALLOWED_IMAGE_TYPES': ['image/jpeg', 'image/png', 'image/gif'],
-    'SITE_URL': EMAIL_VERIFICATION_URL,  # Use the email verification URL
-    'NUTRITION_ESTIMATES': True,
-    'DIETARY_MATCHING': True,
-    'AI_RECOMMENDATIONS': True,
-    'MAX_ALLERGIES_LENGTH': 500,
+FOODLOOP_CONFIG = {
+    # Application settings
+    'SITE_NAME': 'FoodLoop',
+    'SITE_URL': config('SITE_URL', default='http://127.0.0.1:8000'),
+    
+    # File limits
+    'MAX_IMAGE_SIZE': 5 * 1024 * 1024,  # 5MB
+    'ALLOWED_IMAGE_FORMATS': ['JPEG', 'PNG', 'GIF'],
+    
+    # Donation settings
+    'MAX_DONATIONS_PER_USER_PER_DAY': 10,
+    'MAX_ACTIVE_CLAIMS_PER_USER': 5,
+    'DONATION_EXPIRY_REMINDER_HOURS': [24, 6, 1],
+    
+    # AI & Recommendations
+    'MAX_RECOMMENDATIONS': 12,
+    'RECOMMENDATION_REFRESH_MINUTES': 30,
+    'MIN_MATCH_SCORE_FOR_NOTIFICATION': 60,
+    
+    # Notifications
+    'MAX_NOTIFICATIONS_PER_USER': 50,
+    'NOTIFICATION_CLEANUP_DAYS': 30,
+    
+    # Analytics
+    'ANALYTICS_RETENTION_DAYS': 365,
+    'NUTRITION_SCORE_WEIGHTS': {
+        'food_category': 0.4,
+        'dietary_tags': 0.3,
+        'calories': 0.2,
+        'freshness': 0.1
+    },
+    
+    # API Settings
+    'API_VERSION': 'v1',
+    'MAX_API_REQUESTS_PER_HOUR': 1000,
+    'MOBILE_APP_VERSIONS': ['1.0.0', '1.1.0'],
 }
 
 # =============================================================================
-# ENVIRONMENT-SPECIFIC MESSAGES
+# LOGGING
+# =============================================================================
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple'
+        },
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'logs' / 'foodloop.log',
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO' if DEBUG else 'WARNING',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'] if not DEBUG else ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'core': {
+            'handlers': ['console', 'file'] if not DEBUG else ['console'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': False,
+        },
+        'api': {
+            'handlers': ['console', 'file'] if not DEBUG else ['console'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': False,
+        },
+    },
+}
+
+# Create logs directory
+(BASE_DIR / 'logs').mkdir(exist_ok=True)
+
+# =============================================================================
+# DEFAULT PRIMARY KEY
+# =============================================================================
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# =============================================================================
+# ENVIRONMENT FEEDBACK
 # =============================================================================
 
 if DEBUG:
-    print("✅ Debug: True")
-    print("✅ Allowed Hosts: * (all hosts)")
-    print("✅ Security: Relaxed for development")
-    print("✅ Database: SQLite")
-    print("✅ Static Files: Local serving")
-    print("")
-    print("⚠️  WARNING: This configuration is INSECURE for production!")
-    print("⚠️  Change DEBUG to False and update security settings before deployment!")
-    print("")
-    print(f"🌐 Development server: http://127.0.0.1:8000")
-    print("🐛 Debug information enabled")
+    print("🔧 DEVELOPMENT MODE")
+    print(f"   Database: SQLite")
+    print(f"   Email: Console backend")
+    print(f"   Static: Local serving")
+    print(f"   Security: Relaxed")
+    print(f"   API: Full access + documentation")
 else:
-    print("✅ Debug: False")
-    print("✅ Security: Production hardened")
-    print("✅ Database: MySQL")
-    print("✅ Static Files: WhiteNoise serving")
-    print("✅ Email: Real SMTP server")
-    print("")
-    print(f"🌐 Production site: {EMAIL_VERIFICATION_URL}")
+    print("🚀 PRODUCTION MODE")
+    print(f"   Database: {config('DB_ENGINE', 'Not configured')}")
+    print(f"   Email: SMTP")
+    print(f"   Static: WhiteNoise + CDN")
+    print(f"   Security: Hardened")
+    print(f"   API: Throttled + secure")
 
-print("✅ Settings loaded successfully!")
-print("🎯 FoodLoop ready!")
+print(f"✅ FoodLoop settings loaded successfully!")

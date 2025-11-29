@@ -1,574 +1,175 @@
-{% extends 'base.html' %}
+{% extends 'base/base.html' %}
 {% load static %}
-{% load custom_filters %}
-{% block title %}Nutrition Search - FoodLoop{% endblock %}
+{% load humanize %}
 
-{% block extra_css %}
-<style>
-    .search-header {
-        background: linear-gradient(135deg, #00b894, #00a085);
-        border-radius: 15px 15px 0 0;
-        color: white;
-    }
-    .nutrition-card {
-        background: linear-gradient(135deg, #e8f5e8, #c8e6c9);
-        border: none;
-        border-radius: 12px;
-    }
-    .filter-card {
-        background: #f8f9fa;
-        border: none;
-        border-radius: 12px;
-    }
-    .nutrition-badge {
-        background: linear-gradient(135deg, #00b894, #00a085);
-        color: white;
-        border: none;
-    }
-    .dietary-badge {
-        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
-        color: white;
-        border: none;
-    }
-    .calorie-badge {
-        background: linear-gradient(135deg, #ffa726, #ff9800);
-        color: white;
-        border: none;
-    }
-    .food-card {
-        border-radius: 12px;
-        overflow: hidden;
-        transition: all 0.3s ease;
-        height: 100%;
-        border: 1px solid #e9ecef;
-    }
-    .food-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-        border-color: #00b894;
-    }
-    .food-image {
-        height: 200px;
-        object-fit: cover;
-        width: 100%;
-    }
-    .nutrition-score-bar {
-        height: 6px;
-        background: #e9ecef;
-        border-radius: 3px;
-        overflow: hidden;
-        margin: 5px 0;
-    }
-    .nutrition-score-fill {
-        height: 100%;
-        background: linear-gradient(90deg, #ff6b6b, #ffa726, #66bb6a);
-        transition: width 0.5s ease;
-    }
-    .filter-section {
-        margin-bottom: 1.5rem;
-        padding-bottom: 1rem;
-        border-bottom: 1px solid #e9ecef;
-    }
-    .filter-section:last-child {
-        border-bottom: none;
-        margin-bottom: 0;
-    }
-    .dietary-tag {
-        background: #e3f2fd;
-        color: #1976d2;
-        border: 1px solid #bbdefb;
-        border-radius: 15px;
-        padding: 4px 12px;
-        font-size: 0.8em;
-        margin: 2px;
-        display: inline-block;
-    }
-    .search-btn {
-        border-radius: 25px;
-        padding: 12px 30px;
-        font-weight: 600;
-    }
-    .sort-dropdown {
-        border-radius: 25px;
-    }
-    .calorie-range {
-        background: #fff3e0;
-        border-left: 4px solid #ffa726;
-        padding: 10px 15px;
-        border-radius: 5px;
-        margin-top: 10px;
-    }
-    .result-count {
-        font-size: 1.1em;
-        font-weight: 600;
-        color: #00b894;
-    }
-    .advanced-toggle {
-        color: #00b894;
-        text-decoration: none;
-        font-weight: 600;
-    }
-    .advanced-toggle:hover {
-        color: #00a085;
-    }
-</style>
-{% endblock %}
+{% block title %}Search Food - FoodLoop{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <!-- Search Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow-sm border-0">
-                <div class="search-header text-white py-4">
-                    <div class="card-body">
-                        <div class="row align-items-center">
-                            <div class="col-md-8">
-                                <h1 class="card-title mb-2">
-                                    <i class="fas fa-apple-alt me-2"></i>Nutrition Search
-                                </h1>
-                                <p class="lead mb-0">Find donations that match your nutritional needs and dietary preferences</p>
-                            </div>
-                            <div class="col-md-4 text-md-end">
-                                <a href="{% url 'search_donations' %}" class="btn btn-light btn-lg">
-                                    <i class="fas fa-search me-2"></i>Basic Search
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8" x-data="{ filtersOpen: false }">
+    
+    <div class="lg:hidden mb-4">
+        <button @click="filtersOpen = !filtersOpen" class="w-full bg-white border border-gray-300 p-3 rounded-xl flex items-center justify-between shadow-sm">
+            <span class="font-medium text-gray-700"><i class="fas fa-filter mr-2 text-primary-500"></i>Filters</span>
+            <i class="fas" :class="filtersOpen ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+        </button>
     </div>
 
-    <div class="row">
-        <!-- Filters Sidebar -->
-        <div class="col-lg-4">
-            <div class="card filter-card shadow-sm border-0 mb-4">
-                <div class="card-header bg-transparent border-0 py-3">
-                    <h4 class="card-title mb-0">
-                        <i class="fas fa-filter me-2 text-primary"></i>Nutrition Filters
-                    </h4>
-                </div>
-                <div class="card-body">
-                    <form method="get" id="nutritionSearchForm">
-                        <!-- Basic Search -->
-                        <div class="filter-section">
-                            <h6 class="fw-bold mb-3">
-                                <i class="fas fa-search me-2 text-muted"></i>Basic Search
-                            </h6>
-                            <div class="mb-3">
-                                <label for="food_type" class="form-label fw-bold">Food Type</label>
-                                <select class="form-control" id="food_type" name="food_type">
-                                    <option value="">All Food Types</option>
-                                    {% for value, text in food_categories %}
-                                    <option value="{{ value }}" {% if form.food_type.value == value %}selected{% endif %}>
-                                        {{ text }}
-                                    </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Dietary Requirements -->
-                        <div class="filter-section">
-                            <h6 class="fw-bold mb-3">
-                                <i class="fas fa-utensils me-2 text-muted"></i>Dietary Requirements
-                            </h6>
-                            <div class="dietary-checkboxes">
-                                {% for choice in form.dietary_tags %}
-                                <div class="form-check mb-2">
-                                    {{ choice.tag }}
-                                    <label class="form-check-label" for="{{ choice.id_for_label }}">
-                                        {{ choice.choice_label }}
-                                    </label>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-
-                        <!-- Nutrition Filters -->
-                        <div class="filter-section">
-                            <h6 class="fw-bold mb-3">
-                                <i class="fas fa-chart-line me-2 text-muted"></i>Nutrition Filters
-                            </h6>
-                            
-                            <!-- Nutrition Score -->
-                            <div class="mb-3">
-                                <label for="nutrition_score_min" class="form-label fw-bold">Minimum Nutrition Score</label>
-                                <input type="range" class="form-range" id="nutrition_score_min" name="nutrition_score_min" 
-                                       min="0" max="100" value="{{ form.nutrition_score_min.value|default:'0' }}"
-                                       oninput="updateNutritionScoreValue(this.value)">
-                                <div class="d-flex justify-content-between">
-                                    <small class="text-muted">0</small>
-                                    <small class="text-muted">50</small>
-                                    <small class="text-muted">100</small>
-                                </div>
-                                <div class="text-center mt-1">
-                                    <span class="badge nutrition-badge" id="nutritionScoreValue">
-                                        {{ form.nutrition_score_min.value|default:'0' }}+
-                                    </span>
-                                </div>
-                            </div>
-
-                            <!-- Calorie Range -->
-                            <div class="mb-3">
-                                <label for="max_calories" class="form-label fw-bold">Maximum Calories</label>
-                                <input type="number" class="form-control" id="max_calories" name="max_calories"
-                                       value="{{ form.max_calories.value|default:'' }}"
-                                       placeholder="e.g., 500" min="0">
-                                <div class="calorie-range">
-                                    <small class="text-muted">
-                                        <i class="fas fa-info-circle me-1"></i>
-                                        Typical ranges: Fruits (80-150), Vegetables (50-100), Cooked meals (200-500)
-                                    </small>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Sorting -->
-                        <div class="filter-section">
-                            <h6 class="fw-bold mb-3">
-                                <i class="fas fa-sort me-2 text-muted"></i>Sort Results
-                            </h6>
-                            <select class="form-control" id="sort_by" name="sort_by">
-                                {% for value, text in form.fields.sort_by.choices %}
-                                <option value="{{ value }}" {% if form.sort_by.value == value %}selected{% endif %}>
-                                    {{ text }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <!-- Form Actions -->
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-success search-btn">
-                                <i class="fas fa-search me-2"></i>Apply Filters
-                            </button>
-                            <a href="{% url 'nutrition_search' %}" class="btn btn-outline-secondary">
-                                <i class="fas fa-redo me-2"></i>Reset Filters
-                            </a>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Search Tips -->
-            <div class="card nutrition-card shadow-sm border-0">
-                <div class="card-header bg-transparent border-0 py-3">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-lightbulb me-2 text-success"></i>Search Tips
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <h6 class="fw-bold">
-                            <i class="fas fa-apple-alt me-2 text-success"></i>Nutrition Scores
-                        </h6>
-                        <small class="text-muted">
-                            <strong>80-100:</strong> Excellent nutritional quality<br>
-                            <strong>60-79:</strong> Good nutritional quality<br>
-                            <strong>Below 60:</strong> Basic nutritional quality
-                        </small>
-                    </div>
-                    <div class="mb-3">
-                        <h6 class="fw-bold">
-                            <i class="fas fa-utensils me-2 text-primary"></i>Dietary Tags
-                        </h6>
-                        <small class="text-muted">
-                            Select multiple tags to find donations that meet all your dietary requirements
-                        </small>
-                    </div>
+    <div class="flex flex-col lg:flex-row gap-8">
+        
+        <div class="w-full lg:w-1/4 lg:block" :class="filtersOpen ? 'block' : 'hidden'">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-24">
+                <form method="get" class="space-y-6">
                     <div>
-                        <h6 class="fw-bold">
-                            <i class="fas fa-fire me-2 text-warning"></i>Calorie Tracking
-                        </h6>
-                        <small class="text-muted">
-                            Set maximum calories to find donations that fit your nutritional goals
-                        </small>
+                        <h3 class="text-lg font-bold text-gray-900 mb-4">Filter Results</h3>
+                        
+                        <div class="mb-4">
+                            <label class="text-xs font-semibold text-gray-500 uppercase mb-1 block">Keywords</label>
+                            {{ form.q }}
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="text-xs font-semibold text-gray-500 uppercase mb-1 block">Category</label>
+                            {{ form.food_category }}
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="text-xs font-semibold text-gray-500 uppercase mb-1 block">
+                                Min Nutrition Score: <span x-text="score"></span>
+                            </label>
+                            <div x-data="{ score: '{{ form.min_nutrition_score.value|default:0 }}' }">
+                                <input type="range" name="min_nutrition_score" min="0" max="100" x-model="score" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-600">
+                                <div class="flex justify-between text-xs text-gray-400 mt-1">
+                                    <span>0</span>
+                                    <span>50</span>
+                                    <span>100</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="text-xs font-semibold text-gray-500 uppercase mb-1 block">Max Calories</label>
+                            {{ form.max_calories }}
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="text-xs font-semibold text-gray-500 uppercase mb-2 block">Dietary Preferences</label>
+                            <div class="space-y-2">
+                                {% for value, label in form.fields.dietary_tags.choices %}
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="dietary_tags" value="{{ value }}" 
+                                           class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                                           {% if value in query_params.dietary_tags %}checked{% endif %}>
+                                    <span class="text-sm text-gray-600">{{ label }}</span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <button type="submit" class="w-full py-2 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-lg shadow-md transition-all">
+                            Apply Filters
+                        </button>
+                        <a href="{% url 'core:search_donations' %}" class="block text-center mt-3 text-sm text-gray-500 hover:text-gray-900">
+                            Clear All
+                        </a>
                     </div>
-                </div>
+                </form>
             </div>
         </div>
 
-        <!-- Results Section -->
-        <div class="col-lg-8">
-            <!-- Results Header -->
-            <div class="card shadow-sm border-0 mb-4">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-6">
-                            <h4 class="card-title mb-0">
-                                Search Results
-                                {% if donations %}
-                                <span class="result-count">({{ donations|length }} found)</span>
-                                {% endif %}
-                            </h4>
-                        </div>
-                        <div class="col-md-6 text-md-end">
-                            <div class="btn-group">
-                                <button class="btn btn-outline-primary sort-dropdown" type="button" data-bs-toggle="dropdown">
-                                    <i class="fas fa-sort me-2"></i>
-                                    Sort: {{ form.sort_by.field.choices|dictsort:form.sort_by.value }}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Active Filters -->
-                    {% if form.has_changed %}
-                    <div class="mt-3">
-                        <small class="text-muted fw-bold me-2">Active filters:</small>
-                        {% if form.food_type.value %}
-                        <span class="badge bg-primary me-1">
-                            Food: {{ form.food_type.value|title }}
-                            <a href="?{{ request.GET.urlencode|remove_param:'food_type' }}" class="text-white ms-1">×</a>
-                        </span>
-                        {% endif %}
-                        {% for tag in form.dietary_tags.value %}
-                        <span class="badge dietary-badge me-1">
-                            {{ tag|title }}
-                            <a href="?{{ request.GET.urlencode|remove_param:'dietary_tags' }}" class="text-white ms-1">×</a>
-                        </span>
-                        {% endfor %}
-                        {% if form.nutrition_score_min.value %}
-                        <span class="badge nutrition-badge me-1">
-                            Score: {{ form.nutrition_score_min.value }}+
-                            <a href="?{{ request.GET.urlencode|remove_param:'nutrition_score_min' }}" class="text-white ms-1">×</a>
-                        </span>
-                        {% endif %}
-                        {% if form.max_calories.value %}
-                        <span class="badge calorie-badge me-1">
-                            Max: {{ form.max_calories.value }} cal
-                            <a href="?{{ request.GET.urlencode|remove_param:'max_calories' }}" class="text-white ms-1">×</a>
-                        </span>
-                        {% endif %}
-                    </div>
+        <div class="w-full lg:w-3/4">
+            <div class="mb-6 flex justify-between items-center">
+                <h2 class="text-xl font-bold text-gray-900">
+                    {% if total_results > 0 %}
+                        Found {{ total_results }} Donation{{ total_results|pluralize }}
+                    {% else %}
+                        No donations found
                     {% endif %}
-                </div>
+                </h2>
             </div>
 
-            <!-- Donations Grid -->
             {% if donations %}
-            <div class="row">
-                {% for donation in donations %}
-                <div class="col-md-6 mb-4">
-                    <div class="card food-card h-100">
-                        {% if donation.image %}
-                        <img src="{{ donation.image.url }}" class="food-image" alt="{{ donation.food_type }}">
-                        {% else %}
-                        <div class="food-image bg-light d-flex align-items-center justify-content-center">
-                            <i class="fas fa-utensils fa-3x text-muted"></i>
-                        </div>
-                        {% endif %}
-                        
-                        <div class="card-body">
-                            <!-- Nutrition Score -->
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="badge nutrition-badge">
-                                    {{ donation.nutrition_score }}/100
-                                </span>
-                                {% if donation.estimated_calories %}
-                                <span class="badge calorie-badge">
-                                    ~{{ donation.estimated_calories }} cal
-                                </span>
-                                {% endif %}
-                            </div>
-
-                            <!-- Nutrition Score Bar -->
-                            <div class="nutrition-score-bar">
-                                <div class="nutrition-score-fill" style="width: {{ donation.nutrition_score }}%"></div>
-                            </div>
-
-                            <h6 class="card-title">{{ donation.food_type|title }}</h6>
-                            <p class="card-text text-muted small">{{ donation.description|truncatewords:15 }}</p>
-                            
-                            <!-- Dietary Tags -->
-                            {% if donation.dietary_tags %}
-                            <div class="mb-3">
-                                {% for tag in donation.dietary_tags %}
-                                    <span class="dietary-tag">{{ tag }}</span>
-                                {% endfor %}
-                            </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {% for donation in donations %}
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 hover-lift overflow-hidden flex flex-col h-full group">
+                        <div class="relative h-48 bg-gray-200 overflow-hidden">
+                            {% if donation.image %}
+                                <img src="{{ donation.image.url }}" class="w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-110">
+                            {% else %}
+                                <div class="w-full h-full flex items-center justify-center text-gray-400">
+                                    <i class="fas fa-utensils text-4xl"></i>
+                                </div>
                             {% endif %}
-
-                            <!-- Additional Info -->
-                            <div class="d-flex justify-content-between text-muted small mb-3">
-                                <span>
-                                    <i class="fas fa-map-marker-alt me-1"></i>
-                                    {{ donation.location|truncatewords:2 }}
-                                </span>
-                                <span>
-                                    <i class="fas fa-clock me-1"></i>
-                                    {{ donation.created_at|timesince }} ago
+                            
+                            <div class="absolute top-3 left-3 flex gap-1">
+                                <span class="px-2 py-1 bg-white/90 backdrop-blur-sm rounded-md text-xs font-bold text-gray-800 shadow-sm">
+                                    {{ donation.get_food_category_display }}
                                 </span>
                             </div>
+                            <div class="absolute bottom-3 right-3">
+                                <span class="px-2 py-1 bg-green-500/90 text-white rounded-md text-xs font-bold shadow-sm flex items-center">
+                                    <i class="fas fa-leaf mr-1"></i>{{ donation.nutrition_score }}
+                                </span>
+                            </div>
+                        </div>
 
-                            <div class="d-flex justify-content-between align-items-center">
-                                <small class="text-muted">
-                                    By {{ donation.donor.username }}
-                                </small>
-                                <div>
-                                    <a href="{% url 'donation_detail' donation.id %}" class="btn btn-outline-primary btn-sm me-1">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    {% if user.is_authenticated and user.userprofile.user_type == 'recipient' and donation.status == 'available' %}
-                                    <form method="post" action="{% url 'claim_donation' donation.id %}" class="d-inline">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn btn-success btn-sm">
-                                            <i class="fas fa-hand-holding-heart"></i>
-                                        </button>
-                                    </form>
-                                    {% endif %}
+                        <div class="p-5 flex-1 flex flex-col">
+                            <h3 class="text-lg font-bold text-gray-900 mb-1 line-clamp-1">
+                                <a href="{% url 'core:donation_detail' donation.id %}" class="hover:text-primary-600 transition-colors">
+                                    {{ donation.title }}
+                                </a>
+                            </h3>
+                            <p class="text-sm text-gray-500 mb-4 line-clamp-2 flex-1">{{ donation.description }}</p>
+                            
+                            <div class="flex items-center justify-between text-xs text-gray-500 border-t border-gray-100 pt-4">
+                                <div class="flex items-center">
+                                    <i class="fas fa-map-marker-alt mr-1 text-primary-400"></i>
+                                    {{ donation.pickup_location|truncatechars:15 }}
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="fas fa-clock mr-1 text-orange-400"></i>
+                                    {{ donation.expiry_datetime|timeuntil }} left
                                 </div>
                             </div>
                         </div>
                     </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
-            </div>
+
+                {% if donations.has_other_pages %}
+                <div class="mt-10 flex justify-center">
+                    <nav class="inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                        {% if donations.has_previous %}
+                            <a href="?page={{ donations.previous_page_number }}&{{ request.GET.urlencode }}" class="relative inline-flex items-center px-4 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        {% endif %}
+                        
+                        <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                            Page {{ donations.number }} of {{ donations.paginator.num_pages }}
+                        </span>
+
+                        {% if donations.has_next %}
+                            <a href="?page={{ donations.next_page_number }}&{{ request.GET.urlencode }}" class="relative inline-flex items-center px-4 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        {% endif %}
+                    </nav>
+                </div>
+                {% endif %}
+
             {% else %}
-            <!-- No Results -->
-            <div class="text-center py-5">
-                <i class="fas fa-search fa-3x text-muted mb-3"></i>
-                <h4 class="text-muted">No donations found</h4>
-                <p class="text-muted mb-4">Try adjusting your filters to see more results</p>
-                <div class="row justify-content-center">
-                    <div class="col-md-6">
-                        <div class="card nutrition-card">
-                            <div class="card-body">
-                                <h6 class="fw-bold mb-3">Suggestions:</h6>
-                                <ul class="list-unstyled text-start">
-                                    <li class="mb-2">
-                                        <i class="fas fa-check text-success me-2"></i>
-                                        Broaden your dietary requirements
-                                    </li>
-                                    <li class="mb-2">
-                                        <i class="fas fa-check text-success me-2"></i>
-                                        Lower the minimum nutrition score
-                                    </li>
-                                    <li class="mb-2">
-                                        <i class="fas fa-check text-success me-2"></i>
-                                        Increase maximum calorie limit
-                                    </li>
-                                    <li>
-                                        <i class="fas fa-check text-success me-2"></i>
-                                        Try different food types
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">
+                    <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-search text-3xl text-gray-300"></i>
                     </div>
-                </div>
-                <div class="mt-4">
-                    <a href="{% url 'nutrition_search' %}" class="btn btn-success">
-                        <i class="fas fa-redo me-2"></i>Reset All Filters
+                    <h3 class="text-lg font-medium text-gray-900">No donations found</h3>
+                    <p class="text-gray-500 mt-2">Try adjusting your filters or search terms.</p>
+                    <a href="{% url 'core:search_donations' %}" class="mt-4 inline-flex items-center text-primary-600 font-medium hover:text-primary-700">
+                        Clear all filters <i class="fas fa-arrow-right ml-2"></i>
                     </a>
                 </div>
-            </div>
             {% endif %}
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Nutrition score slider update
-    function updateNutritionScoreValue(value) {
-        document.getElementById('nutritionScoreValue').textContent = value + '+';
-    }
-
-    // Initialize nutrition score display
-    const nutritionSlider = document.getElementById('nutrition_score_min');
-    if (nutritionSlider) {
-        updateNutritionScoreValue(nutritionSlider.value);
-        nutritionSlider.addEventListener('input', function() {
-            updateNutritionScoreValue(this.value);
-        });
-    }
-
-    // Real-time filter updates
-    const form = document.getElementById('nutritionSearchForm');
-    const inputs = form.querySelectorAll('input, select');
-    
-    // Debounce function for performance
-    function debounce(func, wait) {
-        let timeout;
-        return function executedFunction(...args) {
-            const later = () => {
-                clearTimeout(timeout);
-                func(...args);
-            };
-            clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
-        };
-    }
-
-    // Auto-submit form on filter change (with debounce)
-    const autoSubmit = debounce(function() {
-        form.submit();
-    }, 500);
-
-    // Add event listeners for auto-submit (optional - uncomment if desired)
-    // inputs.forEach(input => {
-    //     input.addEventListener('change', autoSubmit);
-    // });
-
-    // Nutrition score color coding
-    function getNutritionScoreColor(score) {
-        if (score >= 80) return 'text-success';
-        if (score >= 60) return 'text-warning';
-        return 'text-danger';
-    }
-
-    // Update nutrition score colors on page load
-    document.querySelectorAll('.nutrition-badge').forEach(badge => {
-        const score = parseInt(badge.textContent.split('/')[0]);
-        badge.classList.add(getNutritionScoreColor(score));
-    });
-
-    // Filter chip removal
-    document.querySelectorAll('.badge a').forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            window.location.href = this.href;
-        });
-    });
-
-    // Advanced filters toggle
-    const advancedToggle = document.querySelector('.advanced-toggle');
-    if (advancedToggle) {
-        advancedToggle.addEventListener('click', function(e) {
-            e.preventDefault();
-            const advancedSection = document.getElementById('advancedFilters');
-            if (advancedSection) {
-                advancedSection.classList.toggle('d-none');
-                this.querySelector('i').classList.toggle('fa-chevron-down');
-                this.querySelector('i').classList.toggle('fa-chevron-up');
-            }
-        });
-    }
-});
-
-// URL parameter manipulation (for filter removal)
-function removeParam(key, sourceURL) {
-    var rtn = sourceURL.split("?")[0],
-        param,
-        params_arr = [],
-        queryString = (sourceURL.indexOf("?") !== -1) ? sourceURL.split("?")[1] : "";
-    if (queryString !== "") {
-        params_arr = queryString.split("&");
-        for (var i = params_arr.length - 1; i >= 0; i -= 1) {
-            param = params_arr[i].split("=")[0];
-            if (param === key) {
-                params_arr.splice(i, 1);
-            }
-        }
-        rtn = rtn + "?" + params_arr.join("&");
-    }
-    return rtn;
-}
-</script>
 {% endblock %}

@@ -1,0 +1,203 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Recipient Dashboard - FoodLoop{% endblock %}
+
+{% block content %}
+<div class="p-6 lg:p-10 max-w-7xl mx-auto w-full">
+    
+    <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Hello, {{ user.first_name }}! 🥗</h1>
+            <p class="text-gray-500 mt-1">Find healthy food options near you.</p>
+        </div>
+        <div class="flex gap-2">
+            <a href="{% url 'core:map_view' %}" class="inline-flex items-center justify-center px-4 py-2 border border-gray-200 text-sm font-medium rounded-xl text-gray-700 bg-white hover:bg-gray-50 transition-all">
+                <i class="fas fa-map-marked-alt mr-2"></i> Map View
+            </a>
+            <a href="{% url 'core:search_donations' %}" class="inline-flex items-center justify-center px-5 py-3 border border-transparent text-sm font-medium rounded-xl text-white bg-primary-600 hover:bg-primary-700 shadow-lg shadow-primary-500/30 transition-all hover:-translate-y-0.5">
+                <i class="fas fa-search mr-2"></i> Find Food
+            </a>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover-lift relative overflow-hidden">
+            <div class="absolute right-0 top-0 h-full w-2 bg-blue-500"></div>
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Active Claims</p>
+                    <h3 class="text-3xl font-bold text-gray-900 mt-1">{{ stats.donation_stats.claimed|default:0 }}</h3>
+                </div>
+                <div class="p-2 bg-blue-50 rounded-lg text-blue-600">
+                    <i class="fas fa-shopping-basket text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover-lift relative overflow-hidden">
+            <div class="absolute right-0 top-0 h-full w-2 bg-green-500"></div>
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Nutrition Score</p>
+                    <h3 class="text-3xl font-bold text-gray-900 mt-1">{{ stats.nutrition_impact.avg_nutrition_score|default:0 }}</h3>
+                </div>
+                <div class="p-2 bg-green-50 rounded-lg text-green-600">
+                    <i class="fas fa-leaf text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover-lift relative overflow-hidden">
+            <div class="absolute right-0 top-0 h-full w-2 bg-orange-500"></div>
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Calories Received</p>
+                    <h3 class="text-3xl font-bold text-gray-900 mt-1">{{ stats.nutrition_impact.total_calories|intcomma }}</h3>
+                </div>
+                <div class="p-2 bg-orange-50 rounded-lg text-orange-600">
+                    <i class="fas fa-fire-alt text-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-2 space-y-6">
+            
+            {% if recommendations %}
+            <div class="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl shadow-lg p-6 text-white">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-bold flex items-center">
+                        <i class="fas fa-magic mr-2"></i> Recommended For You
+                    </h2>
+                    <a href="{% url 'core:ai_recommendations' %}" class="text-xs bg-white/20 hover:bg-white/30 px-3 py-1 rounded-full transition-colors">View All</a>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {% for donation in recommendations|slice:":2" %}
+                    <div class="bg-white/10 backdrop-blur-sm rounded-xl p-3 flex gap-3 hover:bg-white/20 transition-all cursor-pointer group" onclick="window.location.href='{% url 'core:donation_detail' donation.id %}'">
+                        <div class="w-16 h-16 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
+                            {% if donation.image %}
+                                <img src="{{ donation.image.url }}" class="w-full h-full object-cover">
+                            {% else %}
+                                <div class="w-full h-full flex items-center justify-center text-gray-400">
+                                    <i class="fas fa-utensils"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h4 class="font-bold truncate group-hover:text-purple-100 transition-colors">{{ donation.title }}</h4>
+                            <p class="text-xs text-purple-100 truncate">{{ donation.distance|floatformat:1 }}km away • {{ donation.pickup_end|time_since }} left</p>
+                            <div class="mt-1 flex gap-1">
+                                <span class="text-[10px] bg-green-500/20 px-1.5 rounded text-green-100">{{ donation.nutrition_score }} Score</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100">
+                <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center">
+                    <h2 class="text-lg font-bold text-gray-900">Your Claims</h2>
+                    <a href="{% url 'core:my_donations' %}" class="text-sm font-medium text-primary-600 hover:text-primary-700">View All</a>
+                </div>
+                
+                <div class="p-6">
+                    {% if claimed_donations %}
+                        <div class="space-y-4">
+                            {% for donation in claimed_donations %}
+                            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 border border-gray-100 rounded-xl hover:border-primary-100 hover:bg-primary-50/30 transition-all">
+                                <div class="w-full sm:w-20 h-20 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
+                                    {% if donation.image %}
+                                        <img src="{{ donation.image.url }}" class="w-full h-full object-cover">
+                                    {% else %}
+                                        <div class="w-full h-full flex items-center justify-center text-gray-400">
+                                            <i class="fas fa-utensils text-2xl"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <h4 class="font-bold text-gray-900 text-lg">{{ donation.title }}</h4>
+                                    <p class="text-sm text-gray-500 mb-1"><i class="fas fa-store mr-1"></i> {{ donation.pickup_location }}</p>
+                                    <div class="flex items-center gap-2 text-xs">
+                                        <span class="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full font-medium">Pickup Required</span>
+                                        <span class="text-red-500 font-medium"><i class="far fa-clock mr-1"></i>Expires {{ donation.pickup_end|time_since }}</span>
+                                    </div>
+                                </div>
+                                <div class="flex flex-row sm:flex-col gap-2 w-full sm:w-auto mt-2 sm:mt-0">
+                                    <a href="{% url 'core:donation_detail' donation.id %}" class="flex-1 sm:flex-none btn px-4 py-2 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 text-sm rounded-lg text-center">
+                                        Details
+                                    </a>
+                                    <a href="https://www.google.com/maps/dir/?api=1&destination={{ donation.latitude }},{{ donation.longitude }}" target="_blank" class="flex-1 sm:flex-none btn px-4 py-2 bg-primary-600 text-white hover:bg-primary-700 text-sm rounded-lg text-center">
+                                        <i class="fas fa-directions mr-1"></i> Navigate
+                                    </a>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-10">
+                            <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
+                                <i class="fas fa-shopping-basket text-2xl"></i>
+                            </div>
+                            <h3 class="text-gray-900 font-medium mb-1">No active claims</h3>
+                            <p class="text-gray-500 text-sm mb-4">You haven't claimed any donations yet.</p>
+                            <a href="{% url 'core:search_donations' %}" class="text-primary-600 font-medium hover:underline">Start Browsing</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-6">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <h3 class="text-lg font-bold text-gray-900 mb-4">Nutrition Insights</h3>
+                <ul class="space-y-3">
+                    {% for insight in nutrition_insights %}
+                    <li class="flex items-start text-sm text-gray-600">
+                        <i class="fas fa-info-circle text-primary-500 mt-0.5 mr-2 flex-shrink-0"></i>
+                        <span>{{ insight }}</span>
+                    </li>
+                    {% empty %}
+                    <li class="text-sm text-gray-500 italic">No insights available yet.</li>
+                    {% endfor %}
+                </ul>
+                <div class="mt-4 pt-4 border-t border-gray-100">
+                    <a href="{% url 'core:dietary_preferences' %}" class="text-sm text-primary-600 font-medium hover:text-primary-700">
+                        Update Dietary Prefs <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="bg-gray-900 rounded-2xl shadow-lg p-6 text-white">
+                <div class="flex items-center gap-4 mb-6">
+                    {% if user.profile.profile_picture %}
+                        <img src="{{ user.profile.profile_picture.url }}" class="w-12 h-12 rounded-full border-2 border-white/20">
+                    {% else %}
+                        <div class="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center font-bold text-lg">
+                            {{ user.first_name|first }}
+                        </div>
+                    {% endif %}
+                    <div>
+                        <h4 class="font-bold">{{ user.get_full_name }}</h4>
+                        <p class="text-xs text-gray-400">Verified Recipient</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 text-center">
+                    <div class="bg-white/10 rounded-xl p-3">
+                        <div class="text-xl font-bold">{{ stats.reputation.total_ratings }}</div>
+                        <div class="text-xs text-gray-400">Ratings</div>
+                    </div>
+                    <div class="bg-white/10 rounded-xl p-3">
+                        <div class="text-xl font-bold">{{ stats.reputation.avg_rating|default:"0.0" }}</div>
+                        <div class="text-xs text-gray-400">Avg Score</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

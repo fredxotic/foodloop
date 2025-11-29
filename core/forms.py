@@ -1,107 +1,148 @@
+"""
+Optimized Forms for FoodLoop - FIXED VERSION
+"""
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from django.core.validators import validate_email
-from django.utils import timezone
+from django.core.exceptions import ValidationError
 from .models import UserProfile, Donation, Rating
-from .validators import validate_phone_number
+from .validators import validate_phone_number, validate_coordinates
+
 
 class SignUpForm(UserCreationForm):
-    USER_TYPE_CHOICES = [
-        ('donor', 'Food Donor'),
-        ('recipient', 'Food Recipient'),
-    ]
-    
-    # Dietary choices for the form
-    DIETARY_CHOICES = [
+    """
+    Enhanced user registration form with profile fields
+    """
+    # Define dietary restriction choices here
+    DIETARY_RESTRICTION_CHOICES = [
         ('vegetarian', 'Vegetarian'),
         ('vegan', 'Vegan'),
-        ('gluten_free', 'Gluten-Free'),
-        ('dairy_free', 'Dairy-Free'),
-        ('nut_free', 'Nut-Free'),
+        ('gluten-free', 'Gluten-Free'),
+        ('dairy-free', 'Dairy-Free'),
+        ('nut-free', 'Nut-Free'),
         ('halal', 'Halal'),
         ('kosher', 'Kosher'),
-        ('low_carb', 'Low-Carb'),
-        ('diabetic', 'Diabetic-Friendly'),
+        ('organic', 'Organic'),
     ]
     
-    # Nutrition goal choices
-    NUTRITION_GOAL_CHOICES = [
-        ('', 'Select your primary nutrition goal...'),
-        ('weight_loss', 'Weight Loss'),
-        ('weight_gain', 'Weight Gain'),
-        ('maintenance', 'Weight Maintenance'),
-        ('muscle_building', 'Muscle Building'),
-        ('healthy_eating', 'Healthy Eating'),
-        ('medical_condition', 'Medical Condition'),
-        ('other', 'Other'),
-    ]
+    # Basic fields
+    email = forms.EmailField(
+        required=True,
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Email address'
+        })
+    )
+    first_name = forms.CharField(
+        max_length=30,
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'First name'
+        })
+    )
+    last_name = forms.CharField(
+        max_length=30,
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Last name'
+        })
+    )
     
+    # Profile fields
     user_type = forms.ChoiceField(
-        choices=USER_TYPE_CHOICES,
+        choices=UserProfile.USER_TYPE_CHOICES,
         required=True,
         widget=forms.RadioSelect(attrs={'class': 'form-check-input'})
     )
-    
-    email = forms.EmailField(
-        required=True,
-        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'your@email.com'})
-    )
-    
-    first_name = forms.CharField(
-        required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Your first name'})
-    )
-    
-    last_name = forms.CharField(
-        required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Your last name'})
-    )
-    
     phone_number = forms.CharField(
+        max_length=20,
         required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '+254 712 345 678'})
+        validators=[validate_phone_number],
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': '+254712345678'
+        })
     )
     
+    # Location fields
     address = forms.CharField(
+        max_length=255,
         required=False,
-        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Your general location'})
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Your address',
+            'id': 'id_address'
+        })
+    )
+    latitude = forms.DecimalField(
+        required=False,
+        widget=forms.HiddenInput()
+    )
+    longitude = forms.DecimalField(
+        required=False,
+        widget=forms.HiddenInput()
     )
     
+    # Dietary preferences (for recipients)
     dietary_restrictions = forms.MultipleChoiceField(
+        choices=DIETARY_RESTRICTION_CHOICES,
         required=False,
-        choices=DIETARY_CHOICES,
         widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'})
     )
     
-    allergies = forms.CharField(
-        required=False,
-        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'List any food allergies...'})
-    )
-    
-    nutrition_goals = forms.ChoiceField(
-        required=False,
-        choices=NUTRITION_GOAL_CHOICES,
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
-    
-    terms = forms.BooleanField(
-        required=True,
-        error_messages={'required': 'You must agree to the terms and conditions'}
-    )
-
     class Meta:
         model = User
-        fields = ('username', 'email', 'first_name', 'last_name', 'password1', 'password2')
+        fields = [
+            'username', 'email', 'first_name', 'last_name',
+            'password1', 'password2'
+        ]
+        widgets = {
+            'username': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Username'
+            }),
+        }
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Add CSS classes to username and password fields
-        self.fields['username'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Choose a username'})
-        self.fields['password1'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Create a strong password'})
-        self.fields['password2'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Repeat your password'})
+        # Add Bootstrap classes to password fields
+        self.fields['password1'].widget.attrs.update({
+            'class': 'form-control',
+            'placeholder': 'Password'
+        })
+        self.fields['password2'].widget.attrs.update({
+            'class': 'form-control',
+            'placeholder': 'Confirm password'
+        })
+    
+    def clean_email(self):
+        """Validate email uniqueness"""
+        email = self.cleaned_data.get('email')
+        if User.objects.filter(email=email).exists():
+            raise ValidationError('A user with this email already exists.')
+        return email
+    
+    def clean(self):
+        """Validate coordinates if address is provided"""
+        cleaned_data = super().clean()
+        address = cleaned_data.get('address')
+        latitude = cleaned_data.get('latitude')
+        longitude = cleaned_data.get('longitude')
+        
+        if address and (not latitude or not longitude):
+            raise ValidationError(
+                'Please select your location from the map or address suggestions.'
+            )
+        
+        if latitude or longitude:
+            validate_coordinates(latitude, longitude)
+        
+        return cleaned_data
     
     def save(self, commit=True):
+        """Save user with email"""
         user = super().save(commit=False)
         user.email = self.cleaned_data['email']
         user.first_name = self.cleaned_data['first_name']
@@ -109,346 +150,339 @@ class SignUpForm(UserCreationForm):
         
         if commit:
             user.save()
-            
-            # Check if profile already exists before creating
-            try:
-                user_profile = UserProfile.objects.get(user=user)
-                # Update existing profile
-                user_profile.user_type = self.cleaned_data['user_type']
-                user_profile.phone_number = self.cleaned_data.get('phone_number', '')
-                user_profile.address = self.cleaned_data.get('address', '')
-                user_profile.allergies = self.cleaned_data.get('allergies', '')
-                user_profile.nutrition_goals = self.cleaned_data.get('nutrition_goals', '')
-            except UserProfile.DoesNotExist:
-                # Create new profile only if it doesn't exist
-                user_profile = UserProfile.objects.create(
-                    user=user,
-                    user_type=self.cleaned_data['user_type'],
-                    phone_number=self.cleaned_data.get('phone_number', ''),
-                    address=self.cleaned_data.get('address', ''),
-                    allergies=self.cleaned_data.get('allergies', ''),
-                    nutrition_goals=self.cleaned_data.get('nutrition_goals', '')
-                )
-            
-            # Handle dietary restrictions
-            dietary_restrictions = self.cleaned_data.get('dietary_restrictions', [])
-            if dietary_restrictions:
-                user_profile.dietary_restrictions = dietary_restrictions
-                user_profile.save()
         
         return user
 
-class DonationForm(forms.ModelForm):
-    # Dietary tags for the donation
-    DIETARY_TAG_CHOICES = [
-        ('vegetarian', 'Vegetarian'),
-        ('vegan', 'Vegan'),
-        ('gluten_free', 'Gluten-Free'),
-        ('dairy_free', 'Dairy-Free'),
-        ('nut_free', 'Nut-Free'),
-        ('halal', 'Halal'),
-        ('kosher', 'Kosher'),
-        ('low_carb', 'Low-Carb'),
-        ('diabetic', 'Diabetic-Friendly'),
-    ]
-    
-    image = forms.ImageField(
-        required=False, 
-        widget=forms.FileInput,
-        help_text="Upload a photo of your donation (max 5MB)"
-    )
-    
-    # NEW: Nutrition & Dietary Fields
-    dietary_tags = forms.MultipleChoiceField(
-        choices=DIETARY_TAG_CHOICES,
-        widget=forms.CheckboxSelectMultiple,
-        required=False,
-        help_text="Select applicable dietary tags for this donation"
-    )
-    
-    estimated_calories = forms.IntegerField(
-        required=False,
-        min_value=0,
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'e.g., 500'}),
-        help_text="Estimated total calories (optional)"
-    )
-    
-    ingredients = forms.CharField(
-        required=False,
-        widget=forms.Textarea(attrs={'rows': 2, 'class': 'form-control', 'placeholder': 'List main ingredients...'}),
-        help_text="Main ingredients (optional)"
-    )
-    
-    preparation_method = forms.ChoiceField(
-        choices=[
-            ('', 'Select preparation method'),
-            ('raw', 'Raw'),
-            ('cooked', 'Cooked'),
-            ('baked', 'Baked'),
-            ('fried', 'Fried'),
-            ('other', 'Other')
-        ],
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
-    
-    class Meta:
-        model = Donation
-        fields = [
-            'food_type', 'quantity', 'description', 'image',
-            'expiry_date', 'pickup_time', 'pickup_deadline', 'location',
-            'dietary_tags', 'estimated_calories', 'ingredients', 'preparation_method'
-        ]
-        widgets = {
-            'pickup_time': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
-            'expiry_date': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
-            'pickup_deadline': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
-            'description': forms.Textarea(attrs={'rows': 3, 'class': 'form-control', 'placeholder': 'Describe the food donation...'}),
-            'food_type': forms.Select(attrs={'class': 'form-control'}),
-            'quantity': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., 2 kg, 5 pieces, 1 container'}),
-            'location': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter pickup location...'}),
-        }
-    
-    def clean_expiry_date(self):
-        expiry_date = self.cleaned_data.get('expiry_date')
-        if expiry_date and expiry_date <= timezone.now():
-            raise forms.ValidationError("Expiry date must be in the future.")
-        return expiry_date
-    
-    def clean_pickup_deadline(self):
-        pickup_deadline = self.cleaned_data.get('pickup_deadline')
-        if pickup_deadline and pickup_deadline <= timezone.now():
-            raise forms.ValidationError("Pickup deadline must be in the future.")
-        return pickup_deadline
-    
-    def clean_estimated_calories(self):
-        calories = self.cleaned_data.get('estimated_calories')
-        if calories and calories > 100000:  # Reasonable upper limit
-            raise forms.ValidationError("Calorie estimate seems too high. Please verify.")
-        return calories
-
 
 class ProfileUpdateForm(forms.ModelForm):
-    # Dietary preferences
+    """
+    Form for updating user profile
+    """
     DIETARY_RESTRICTION_CHOICES = [
         ('vegetarian', 'Vegetarian'),
         ('vegan', 'Vegan'),
-        ('gluten_free', 'Gluten-Free'),
-        ('dairy_free', 'Dairy-Free'),
-        ('nut_free', 'Nut-Free'),
+        ('gluten-free', 'Gluten-Free'),
+        ('dairy-free', 'Dairy-Free'),
+        ('nut-free', 'Nut-Free'),
         ('halal', 'Halal'),
         ('kosher', 'Kosher'),
-        ('low_carb', 'Low-Carb'),
-        ('diabetic', 'Diabetic-Friendly'),
+        ('organic', 'Organic'),
     ]
     
-    PREFERRED_FOOD_CHOICES = [
-        ('vegetables', 'Vegetables'),
-        ('fruits', 'Fruits'),
-        ('dairy', 'Dairy'),
-        ('bakery', 'Bakery'),
-        ('cooked', 'Cooked Food'),
-        ('grains', 'Grains & Cereals'),
-        ('protein', 'Proteins'),
-        ('beverages', 'Beverages'),
-    ]
+    # User fields
+    first_name = forms.CharField(
+        max_length=30,
+        required=True,
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+    last_name = forms.CharField(
+        max_length=30,
+        required=True,
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+    email = forms.EmailField(
+        required=True,
+        widget=forms.EmailInput(attrs={'class': 'form-control'})
+    )
     
-    email = forms.EmailField(required=True)
-    first_name = forms.CharField(max_length=30, required=False)
-    last_name = forms.CharField(max_length=30, required=False)
-    phone_number = forms.CharField(max_length=15, required=False, validators=[validate_phone_number])
-    profile_picture = forms.ImageField(required=False, widget=forms.FileInput)
-    
-    # NEW: Dietary Preference Fields
+    # Profile fields
     dietary_restrictions = forms.MultipleChoiceField(
         choices=DIETARY_RESTRICTION_CHOICES,
-        widget=forms.CheckboxSelectMultiple,
         required=False,
-        help_text="Select your dietary restrictions"
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'})
     )
-    
-    allergies = forms.CharField(
-        required=False,
-        widget=forms.Textarea(attrs={'rows': 2, 'class': 'form-control', 'placeholder': 'e.g., peanuts, shellfish, eggs...'}),
-        help_text="List any food allergies (comma separated)"
-    )
-    
-    preferred_food_types = forms.MultipleChoiceField(
-        choices=PREFERRED_FOOD_CHOICES,
-        widget=forms.CheckboxSelectMultiple,
-        required=False,
-        help_text="Select your preferred food types"
-    )
-    
-    nutrition_goals = forms.ChoiceField(
-        choices=UserProfile.NUTRITION_GOAL_CHOICES,
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-control'}),
-        help_text="Select your primary nutrition goal"
-    )
-    
-    health_notes = forms.CharField(
-        required=False,
-        widget=forms.Textarea(attrs={'rows': 2, 'class': 'form-control', 'placeholder': 'Any additional health notes...'}),
-        help_text="Additional health or nutrition information"
-    )
-    
-    latitude = forms.FloatField(required=False, widget=forms.HiddenInput())
-    longitude = forms.FloatField(required=False, widget=forms.HiddenInput())
     
     class Meta:
         model = UserProfile
         fields = [
-            'profile_picture', 'phone_number', 'address', 
-            'dietary_restrictions', 'allergies', 'preferred_food_types',
-            'nutrition_goals', 'health_notes', 'latitude', 'longitude'
+            'phone_number', 'location', 'latitude', 'longitude',
+            'profile_picture', 'bio', 'dietary_restrictions'
         ]
+        widgets = {
+            'phone_number': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': '+254712345678'
+            }),
+            'location': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Your location',
+                'id': 'id_location'
+            }),
+            'latitude': forms.HiddenInput(),
+            'longitude': forms.HiddenInput(),
+            'profile_picture': forms.FileInput(attrs={'class': 'form-control'}),
+            'bio': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'Tell us about yourself...'
+            }),
+        }
     
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         
         if self.user:
-            self.fields['email'].initial = self.user.email
             self.fields['first_name'].initial = self.user.first_name
             self.fields['last_name'].initial = self.user.last_name
-        
-        # Add CSS classes for styling
-        self.fields['address'].widget.attrs.update({
-            'class': 'form-control',
-            'placeholder': 'Start typing your address...',
-            'id': 'address-input'
-        })
+            self.fields['email'].initial = self.user.email
     
     def clean_email(self):
+        """Validate email uniqueness (excluding current user)"""
         email = self.cleaned_data.get('email')
-        if self.user and User.objects.filter(email=email).exclude(pk=self.user.pk).exists():
-            raise forms.ValidationError("This email address is already registered.")
+        if self.user and User.objects.filter(email=email).exclude(id=self.user.id).exists():
+            raise ValidationError('A user with this email already exists.')
         return email
     
     def save(self, commit=True):
-        # Save user profile first
+        """Save profile and update user fields"""
         profile = super().save(commit=False)
         
-        # Update user info
         if self.user:
+            self.user.first_name = self.cleaned_data['first_name']
+            self.user.last_name = self.cleaned_data['last_name']
             self.user.email = self.cleaned_data['email']
-            self.user.first_name = self.cleaned_data.get('first_name', '')
-            self.user.last_name = self.cleaned_data.get('last_name', '')
+            
             if commit:
                 self.user.save()
-        
-        if commit:
-            profile.save()
+                profile.save()
         
         return profile
 
 
 class DietaryPreferencesForm(forms.ModelForm):
-    """Simplified form for just dietary preferences"""
-    DIETARY_CHOICES = [
+    """
+    Simplified form for managing dietary preferences
+    """
+    DIETARY_RESTRICTION_CHOICES = [
         ('vegetarian', 'Vegetarian'),
         ('vegan', 'Vegan'),
-        ('gluten_free', 'Gluten-Free'),
-        ('dairy_free', 'Dairy-Free'),
-        ('nut_free', 'Nut-Free'),
+        ('gluten-free', 'Gluten-Free'),
+        ('dairy-free', 'Dairy-Free'),
+        ('nut-free', 'Nut-Free'),
         ('halal', 'Halal'),
         ('kosher', 'Kosher'),
+        ('organic', 'Organic'),
     ]
     
     dietary_restrictions = forms.MultipleChoiceField(
-        choices=DIETARY_CHOICES,
-        widget=forms.CheckboxSelectMultiple(attrs={'class': 'dietary-checkboxes'}),
+        choices=DIETARY_RESTRICTION_CHOICES,
         required=False,
-        label="Dietary Restrictions"
-    )
-    
-    allergies = forms.CharField(
-        widget=forms.Textarea(attrs={
-            'rows': 2,
-            'class': 'form-control',
-            'placeholder': 'List any food allergies separated by commas...'
-        }),
-        required=False,
-        label="Food Allergies"
-    )
-    
-    nutrition_goals = forms.ChoiceField(
-        choices=UserProfile.NUTRITION_GOAL_CHOICES,
-        widget=forms.Select(attrs={'class': 'form-control'}),
-        required=False,
-        label="Nutrition Goals"
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'})
     )
     
     class Meta:
         model = UserProfile
-        fields = ['dietary_restrictions', 'allergies', 'nutrition_goals']
+        fields = ['dietary_restrictions']
 
 
-class RatingForm(forms.ModelForm):
-    rating = forms.ChoiceField(
-        choices=[(i, f'{i} Star{"s" if i > 1 else ""}') for i in range(1, 6)],
-        widget=forms.RadioSelect(attrs={'class': 'rating-stars'}),
-        label='Your Rating'
-    )
-    comment = forms.CharField(
-        widget=forms.Textarea(attrs={
-            'rows': 3,
-            'class': 'form-control',
-            'placeholder': 'Share your experience (optional)'
-        }),
+class DonationForm(forms.ModelForm):
+    """
+    Form for creating and editing food donations
+    """
+    DIETARY_TAG_CHOICES = [
+        ('vegetarian', 'Vegetarian'),
+        ('vegan', 'Vegan'),
+        ('gluten-free', 'Gluten-Free'),
+        ('dairy-free', 'Dairy-Free'),
+        ('nut-free', 'Nut-Free'),
+        ('halal', 'Halal'),
+        ('kosher', 'Kosher'),
+        ('organic', 'Organic'),
+    ]
+    
+    dietary_tags = forms.MultipleChoiceField(
+        choices=DIETARY_TAG_CHOICES,
         required=False,
-        max_length=500,
-        label='Comments'
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
+        help_text='Select all dietary preferences this food meets'
     )
     
     class Meta:
+        model = Donation
+        fields = [
+            'title', 'description', 'food_category', 'quantity',
+            'expiry_datetime', 'pickup_start', 'pickup_end',
+            'pickup_location', 'latitude', 'longitude',
+            'image', 'dietary_tags', 'estimated_calories',
+            'ingredients_list', 'allergen_info'
+        ]
+        widgets = {
+            'title': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'e.g., Fresh Vegetables, Prepared Meals'
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'Describe the food items in detail...'
+            }),
+            'food_category': forms.Select(attrs={'class': 'form-select'}),
+            'quantity': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '1',
+                'placeholder': 'Number of servings/items'
+            }),
+            'expiry_datetime': forms.DateTimeInput(attrs={
+                'class': 'form-control',
+                'type': 'datetime-local'
+            }),
+            'pickup_start': forms.DateTimeInput(attrs={
+                'class': 'form-control',
+                'type': 'datetime-local'
+            }),
+            'pickup_end': forms.DateTimeInput(attrs={
+                'class': 'form-control',
+                'type': 'datetime-local'
+            }),
+            'pickup_location': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Where can this be picked up?',
+                'id': 'id_pickup_location'
+            }),
+            'latitude': forms.HiddenInput(),
+            'longitude': forms.HiddenInput(),
+            'image': forms.FileInput(attrs={'class': 'form-control'}),
+            'estimated_calories': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '0',
+                'placeholder': 'Estimated calories (optional)'
+            }),
+            'ingredients_list': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'List main ingredients (optional)'
+            }),
+            'allergen_info': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 2,
+                'placeholder': 'Any allergens? (e.g., contains nuts, dairy)'
+            }),
+        }
+    
+    def clean(self):
+        """Validate donation data"""
+        cleaned_data = super().clean()
+        
+        expiry = cleaned_data.get('expiry_datetime')
+        pickup_start = cleaned_data.get('pickup_start')
+        pickup_end = cleaned_data.get('pickup_end')
+        
+        # Validate pickup times
+        if pickup_start and pickup_end:
+            if pickup_end <= pickup_start:
+                raise ValidationError({
+                    'pickup_end': 'Pickup end time must be after pickup start time.'
+                })
+        
+        # Validate expiry vs pickup
+        if expiry and pickup_end:
+            if pickup_end > expiry:
+                raise ValidationError({
+                    'pickup_end': 'Pickup must be completed before food expires.'
+                })
+        
+        # Validate coordinates
+        pickup_location = cleaned_data.get('pickup_location')
+        latitude = cleaned_data.get('latitude')
+        longitude = cleaned_data.get('longitude')
+        
+        if pickup_location and (not latitude or not longitude):
+            raise ValidationError(
+                'Please select your pickup location from the map or address suggestions.'
+            )
+        
+        if latitude or longitude:
+            validate_coordinates(latitude, longitude)
+        
+        return cleaned_data
+
+
+class RatingForm(forms.ModelForm):
+    """
+    Form for rating users after donation completion
+    """
+    class Meta:
         model = Rating
-        fields = ('rating', 'comment')
+        fields = ['rating', 'comment']
+        widgets = {
+            'rating': forms.RadioSelect(
+                choices=[(i, f'{i} Star{"s" if i != 1 else ""}') for i in range(1, 6)],
+                attrs={'class': 'form-check-input'}
+            ),
+            'comment': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'Share your experience (optional)...',
+                'maxlength': '500'
+            }),
+        }
     
     def clean_rating(self):
+        """Validate rating value"""
         rating = self.cleaned_data.get('rating')
-        return int(rating)
+        if rating < 1 or rating > 5:
+            raise ValidationError('Rating must be between 1 and 5 stars.')
+        return rating
 
 
 class NutritionSearchForm(forms.Form):
-    """Form for nutrition-based donation search"""
-    food_type = forms.ChoiceField(
-        choices=[('', 'All Food Types')] + Donation.FOOD_CATEGORIES,
+    """
+    Form for searching donations with nutrition filters
+    """
+    DIETARY_TAG_CHOICES = [
+        ('vegetarian', 'Vegetarian'),
+        ('vegan', 'Vegan'),
+        ('gluten-free', 'Gluten-Free'),
+        ('dairy-free', 'Dairy-Free'),
+        ('nut-free', 'Nut-Free'),
+        ('halal', 'Halal'),
+        ('kosher', 'Kosher'),
+        ('organic', 'Organic'),
+    ]
+    
+    q = forms.CharField(
         required=False,
-        widget=forms.Select(attrs={'class': 'form-control'})
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Search donations...'
+        })
     )
     
-    dietary_tags = forms.MultipleChoiceField(
-        choices=DonationForm.DIETARY_TAG_CHOICES,
-        widget=forms.CheckboxSelectMultiple,
+    food_category = forms.ChoiceField(
         required=False,
-        label="Dietary Requirements"
+        choices=[('', 'All Categories')] + list(Donation.FOOD_CATEGORY_CHOICES),
+        widget=forms.Select(attrs={'class': 'form-select'})
     )
     
     max_calories = forms.IntegerField(
         required=False,
         min_value=0,
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Max calories'}),
-        label="Maximum Calories"
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Max calories'
+        })
     )
     
-    nutrition_score_min = forms.IntegerField(
+    min_nutrition_score = forms.IntegerField(
         required=False,
         min_value=0,
         max_value=100,
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Min nutrition score'}),
-        label="Minimum Nutrition Score"
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Min nutrition score (0-100)'
+        })
     )
     
-    sort_by = forms.ChoiceField(
-        choices=[
-            ('distance', 'Distance'),
-            ('nutrition_score', 'Nutrition Score'),
-            ('calories', 'Calories'),
-            ('created_at', 'Newest First')
-        ],
+    dietary_tags = forms.MultipleChoiceField(
         required=False,
-        initial='distance',
-        widget=forms.Select(attrs={'class': 'form-control'})
+        choices=DIETARY_TAG_CHOICES,
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'})
     )
+    
+    def clean_min_nutrition_score(self):
+        """Validate nutrition score range"""
+        score = self.cleaned_data.get('min_nutrition_score')
+        if score is not None and (score < 0 or score > 100):
+            raise ValidationError('Nutrition score must be between 0 and 100.')
+        return score

@@ -1,0 +1,46 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Sign In - FoodLoop{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-center min-vh-100 py-5" style="background-color: #f3f4f6;">
+    <div class="fl-card p-5 shadow-lg" style="max-width: 450px; width: 100%;">
+        <div class="text-center mb-4">
+            <div class="bg-primary bg-opacity-10 d-inline-flex p-3 rounded-circle mb-3">
+                <i class="fas fa-leaf text-primary fa-2x"></i>
+            </div>
+            <h2 class="fw-bold">Welcome Back</h2>
+            <p class="text-muted">Sign in to continue your food rescue journey.</p>
+        </div>
+
+        {% if form.errors %}
+            <div class="alert alert-danger rounded-3 small">
+                <i class="fas fa-exclamation-circle me-1"></i> Invalid username or password.
+            </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label small fw-bold text-uppercase text-muted">Username / Email</label>
+                <input type="text" name="username" class="form-control form-control-lg bg-light border-0" required autofocus>
+            </div>
+            
+            <div class="mb-4">
+                <div class="d-flex justify-content-between">
+                    <label class="form-label small fw-bold text-uppercase text-muted">Password</label>
+                    <a href="#" class="small text-primary text-decoration-none">Forgot?</a>
+                </div>
+                <input type="password" name="password" class="form-control form-control-lg bg-light border-0" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg w-100 mb-3">Sign In</button>
+            
+            <div class="text-center">
+                <span class="text-muted">New to FoodLoop?</span>
+                <a href="{% url 'core:signup' %}" class="fw-bold text-primary text-decoration-none">Create Account</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,136 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% load humanize %}
+{% load custom_filters %}
+
+{% block title %}AI Recommendations - FoodLoop{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    
+    <div class="bg-gradient-to-r from-violet-600 to-indigo-600 rounded-3xl p-8 md:p-12 mb-10 text-white relative overflow-hidden shadow-xl">
+        <div class="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl"></div>
+        <div class="relative z-10 text-center max-w-3xl mx-auto">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-md mb-6 text-3xl shadow-inner">
+                <i class="fas fa-robot text-white"></i>
+            </div>
+            <h1 class="text-3xl md:text-5xl font-extrabold mb-4 tracking-tight">AI-Powered Matches</h1>
+            <p class="text-lg text-indigo-100 leading-relaxed">
+                We've analyzed your dietary preferences, location, and nutrition goals to find the perfect donations for you.
+            </p>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-10">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="flex items-center gap-4">
+                <div class="p-3 bg-primary-50 rounded-full text-primary-600">
+                    <i class="fas fa-sliders-h text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-gray-900">Your Preferences</h3>
+                    <p class="text-sm text-gray-500">
+                        {% if user_profile.dietary_restrictions %}
+                            Filtering for: <span class="font-medium text-gray-800">{{ user_profile.dietary_restrictions|join:", "|title }}</span>
+                        {% else %}
+                            No restrictions set
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+            <a href="{% url 'core:dietary_preferences' %}" class="text-sm font-bold text-primary-600 hover:text-primary-700 border border-primary-200 px-4 py-2 rounded-xl hover:bg-primary-50 transition-colors">
+                Update Preferences
+            </a>
+        </div>
+    </div>
+
+    <div class="mb-6 flex justify-between items-end">
+        <h2 class="text-xl font-bold text-gray-900">Top Matches for You</h2>
+        <span class="text-sm text-gray-500">Sorted by relevance</span>
+    </div>
+
+    {% if recommendations %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {% for donation in recommendations %}
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group flex flex-col h-full overflow-hidden">
+            
+            <div class="relative h-48 bg-gray-200">
+                {% if donation.image %}
+                    <img src="{{ donation.image.url }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                {% else %}
+                    <div class="w-full h-full flex items-center justify-center text-gray-400 bg-gray-50">
+                        <i class="fas fa-utensils text-4xl opacity-50"></i>
+                    </div>
+                {% endif %}
+                
+                <div class="absolute top-3 right-3 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-xl shadow-lg flex items-center gap-2 border border-gray-100">
+                    <div class="relative w-8 h-8 flex items-center justify-center">
+                        <svg class="transform -rotate-90 w-8 h-8">
+                            <circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="3" fill="none" class="text-gray-100" />
+                            <circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="3" fill="none" 
+                                    class="text-indigo-500" 
+                                    stroke-dasharray="88" 
+                                    stroke-dashoffset="{{ 88|subtract:donation.match_score|multiply:0.88 }}" />
+                        </svg>
+                        <span class="absolute text-[10px] font-bold text-gray-900">{{ donation.match_score }}%</span>
+                    </div>
+                    <span class="text-xs font-bold text-indigo-900">Match</span>
+                </div>
+            </div>
+
+            <div class="p-5 flex-1 flex flex-col">
+                <div class="flex justify-between items-start mb-2">
+                    <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-600">
+                        {{ donation.get_food_category_display }}
+                    </span>
+                    <span class="flex items-center text-xs font-medium text-green-600">
+                        <i class="fas fa-leaf mr-1"></i> {{ donation.nutrition_score }}
+                    </span>
+                </div>
+
+                <h3 class="text-lg font-bold text-gray-900 mb-1 line-clamp-1 group-hover:text-primary-600 transition-colors">
+                    {{ donation.title }}
+                </h3>
+                
+                <p class="text-xs text-gray-500 mb-4 line-clamp-2">{{ donation.description }}</p>
+
+                {% if donation.match_reasons %}
+                <div class="mb-4 flex flex-wrap gap-1.5">
+                    {% for reason in donation.match_reasons|slice:":2" %}
+                    <span class="inline-flex items-center px-2 py-1 rounded-md text-[10px] font-medium bg-indigo-50 text-indigo-700 border border-indigo-100">
+                        <i class="fas fa-check mr-1"></i> {{ reason }}
+                    </span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="mt-auto pt-4 border-t border-gray-50 flex items-center justify-between gap-3">
+                    <div class="text-xs text-gray-500 flex items-center">
+                        <i class="fas fa-map-marker-alt mr-1.5 text-gray-400"></i>
+                        {{ donation.distance|default:"--" }}km
+                    </div>
+                    
+                    <a href="{% url 'core:donation_detail' donation.id %}" class="flex-1 bg-gray-900 hover:bg-primary-600 text-white text-xs font-bold py-2.5 px-4 rounded-xl transition-colors text-center shadow-lg shadow-gray-900/10 hover:shadow-primary-600/20">
+                        View
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-200">
+        <div class="mx-auto w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-6 text-gray-400">
+            <i class="fas fa-search text-3xl"></i>
+        </div>
+        <h3 class="text-xl font-bold text-gray-900 mb-2">No Matches Found</h3>
+        <p class="text-gray-500 max-w-md mx-auto mb-8">
+            We couldn't find any donations matching your specific criteria right now. Try broadening your preferences.
+        </p>
+        <a href="{% url 'core:search_donations' %}" class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-sm font-bold rounded-xl text-white bg-primary-600 hover:bg-primary-700 shadow-lg shadow-primary-500/30 transition-all">
+            Browse All Donations
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

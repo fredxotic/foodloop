@@ -1,117 +1,76 @@
-/* static/css/styles.css */
-/* Custom styles to complement TailwindCSS */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* Animation for alerts */
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+/* Custom Scrollbar for Webkit */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
 }
 
-.alert {
-    animation: fadeIn 0.5s ease-in;
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
 }
 
-/* Custom button styles */
-.btn-primary {
-    @apply bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded transition duration-200;
+::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 4px;
 }
 
-.btn-secondary {
-    @apply bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded transition duration-200;
+::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
 }
 
-.btn-danger {
-    @apply bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded transition duration-200;
+/* Glassmorphism Utilities */
+.glass {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-/* Card hover effects */
-.donation-card {
-    @apply bg-white rounded-lg shadow-md p-6 transition duration-200;
+.glass-dark {
+    background: rgba(17, 24, 39, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.donation-card:hover {
-    @apply shadow-lg transform -translate-y-1;
+/* Custom Card Hover Effects */
+.hover-lift {
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Form styling */
-.form-input {
-    @apply shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline;
+.hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
-.form-label {
-    @apply block text-gray-700 text-sm font-bold mb-2;
+/* Gradient Text */
+.text-gradient {
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-image: linear-gradient(to right, #10b981, #3b82f6);
 }
 
-/* Status badges */
-.status-badge {
-    @apply px-3 py-1 rounded-full text-xs font-semibold;
+/* Map specific styles */
+#map {
+    z-index: 1;
 }
 
-.status-available {
-    @apply bg-green-100 text-green-800;
+/* Form inputs focus ring override for better brand alignment */
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2); /* primary-500 with opacity */
+    border-color: #10b981;
 }
 
-.status-claimed {
-    @apply bg-blue-100 text-blue-800;
+/* Smooth Image Loading */
+img {
+    transition: opacity 0.3s ease-in-out;
 }
 
-.status-completed {
-    @apply bg-gray-100 text-gray-800;
+img[loading] {
+    opacity: 0;
 }
 
-.status-pending {
-    @apply bg-yellow-100 text-yellow-800;
+img.loaded {
+    opacity: 1;
 }
-
-/* Navigation active state */
-.nav-active {
-    @apply bg-green-700;
-}
-
-/* Loading spinner */
-.spinner {
-    border: 4px solid rgba(0, 0, 0, 0.1);
-    border-left: 4px solid #10b981;
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    animation: spin 1s linear infinite;
-    margin: 0 auto;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* Responsive table */
-.responsive-table {
-    @apply min-w-full;
-}
-
-.responsive-table th {
-    @apply bg-gray-100 text-left py-3 px-4 font-semibold text-gray-700;
-}
-
-.responsive-table td {
-    @apply border-t border-gray-200 py-3 px-4;
-}
-
-.responsive-table tr:hover {
-    @apply bg-gray-50;
-}
-
-/* Food category icons */
-.food-icon {
-    @apply text-2xl mb-2;
-}
-
-.vegetables { color: #22c55e; }
-.fruits { color: #f97316; }
-.dairy { color: #fbbf24; }
-.bakery { color: #a16207; }
-.cooked { color: #dc2626; }
-.other { color: #6b7280; }

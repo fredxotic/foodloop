@@ -1,13 +1,18 @@
-# core/consumers.py
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
-from channels.db import database_sync_to_async
-from django.contrib.auth.models import User
 
 class NotificationConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        self.user_id = self.scope['url_route']['kwargs']['user_id']
-        self.room_group_name = f'notifications_{self.user_id}'
+        # SECURITY FIX: Use the logged-in user, not the URL parameter
+        self.user = self.scope["user"]
+
+        if not self.user.is_authenticated:
+            # Reject connection if user is not logged in
+            await self.close()
+            return
+
+        # Create a group specific to this user ID
+        self.room_group_name = f'notifications_{self.user.id}'
 
         # Join room group
         await self.channel_layer.group_add(
@@ -19,26 +24,17 @@ class NotificationConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, close_code):
         # Leave room group
-        await self.channel_layer.group_discard(
-            self.room_group_name,
-            self.channel_name
-        )
+        if hasattr(self, 'room_group_name'):
+            await self.channel_layer.group_discard(
+                self.room_group_name,
+                self.channel_name
+            )
 
-    # Receive message from WebSocket
     async def receive(self, text_data):
-        text_data_json = json.loads(text_data)
-        message = text_data_json['message']
+        # Notifications are usually push-only (Server -> Client).
+        # We generally don't need to handle incoming JSON for simple notifications.
+        pass
 
-        # Send message to room group
-        await self.channel_layer.group_send(
-            self.room_group_name,
-            {
-                'type': 'notification_message',
-                'message': message
-            }
-        )
-
-    # Receive message from room group
     async def notification_message(self, event):
         message = event['message']
 
