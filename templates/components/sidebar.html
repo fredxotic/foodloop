@@ -8,104 +8,95 @@
      x-transition:leave="transition-opacity ease-linear duration-300"
      x-transition:leave-start="opacity-100"
      x-transition:leave-end="opacity-0"
-     class="fixed inset-0 bg-gray-900/80 z-40 lg:hidden glass-dark"
-     style="display: none;"></div>
+     class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-40 lg:hidden"></div>
 
-<div class="fixed lg:sticky top-0 lg:top-16 inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-100 transform transition-transform duration-300 ease-in-out lg:translate-x-0 h-screen lg:h-[calc(100vh-4rem)] overflow-y-auto"
-     :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
+<aside class="fixed lg:static inset-y-0 left-0 z-50 w-72 bg-dark-900 text-white transform transition-transform duration-300 ease-in-out lg:translate-x-0 flex flex-col h-full shadow-2xl lg:shadow-none border-r border-gray-800"
+       :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
     
-    <div class="flex items-center justify-between px-4 py-3 lg:hidden border-b border-gray-100">
-        <span class="font-bold text-lg text-gray-900">Menu</span>
-        <button @click="sidebarOpen = false" class="text-gray-500 hover:text-gray-700">
-            <i class="fas fa-times text-xl"></i>
+    <div class="h-16 flex items-center px-6 border-b border-gray-800 bg-dark-950">
+        <a href="{% url 'core:home' %}" class="flex items-center gap-3 group">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg shadow-primary-500/20 group-hover:scale-110 transition-transform duration-300">
+                <i class="fas fa-leaf text-white text-sm"></i>
+            </div>
+            <span class="font-bold text-xl tracking-tight text-white group-hover:text-primary-400 transition-colors">FoodLoop</span>
+        </a>
+        <button @click="sidebarOpen = false" class="ml-auto lg:hidden text-gray-400 hover:text-white p-1 rounded-md hover:bg-gray-800 transition-colors">
+            <i class="fas fa-times"></i>
         </button>
     </div>
 
-    <nav class="p-4 space-y-1">
-        <div class="pb-4">
-            <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Main</p>
-            <a href="{% url 'core:dashboard' %}" 
-               class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200
-               {% if 'dashboard' in request.path %}bg-primary-50 text-primary-700{% else %}text-gray-700 hover:bg-gray-50 hover:text-gray-900{% endif %}">
-                <i class="fas fa-home w-6 text-lg {% if 'dashboard' in request.path %}text-primary-600{% else %}text-gray-400 group-hover:text-gray-500{% endif %} transition-colors"></i>
-                Dashboard
-            </a>
+    <nav class="flex-1 px-3 py-6 space-y-8 overflow-y-auto custom-scrollbar">
+        
+        <div>
+            <p class="px-3 text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Overview</p>
+            <div class="space-y-1">
+                <a href="{% url 'core:dashboard' %}" 
+                   class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 {% if '/dashboard/' in request.path %}bg-primary-600 text-white shadow-glow{% else %}text-gray-400 hover:bg-gray-800 hover:text-white{% endif %}">
+                    <i class="fas fa-grid-2 w-5 text-center mr-3 {% if '/dashboard/' in request.path %}text-white{% else %}text-gray-500 group-hover:text-gray-300{% endif %}"></i>
+                    Dashboard
+                </a>
+                
+                <a href="{% url 'core:profile' %}" 
+                   class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 {% if '/profile/' in request.path and 'public' not in request.path %}bg-primary-600 text-white shadow-glow{% else %}text-gray-400 hover:bg-gray-800 hover:text-white{% endif %}">
+                    <i class="fas fa-user-circle w-5 text-center mr-3 {% if '/profile/' in request.path and 'public' not in request.path %}text-white{% else %}text-gray-500 group-hover:text-gray-300{% endif %}"></i>
+                    My Profile
+                </a>
+            </div>
         </div>
 
-        <div class="pb-4">
-            <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                {% if user.profile.user_type == 'donor' %}Giving{% else %}Receiving{% endif %}
+        <div>
+            <p class="px-3 text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
+                {% if user.profile.user_type == 'donor' %}Management{% else %}Discovery{% endif %}
             </p>
-            
-            {% if user.profile.user_type == 'donor' %}
-                <a href="{% url 'core:create_donation' %}" 
-                   class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 mb-1
-                   {% if 'create' in request.path %}bg-primary-50 text-primary-700{% else %}text-gray-700 hover:bg-gray-50 hover:text-gray-900{% endif %}">
-                    <i class="fas fa-plus-circle w-6 text-lg {% if 'create' in request.path %}text-primary-600{% else %}text-gray-400 group-hover:text-gray-500{% endif %}"></i>
-                    New Donation
-                </a>
-                <a href="{% url 'core:my_donations' %}" 
-                   class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200
-                   {% if 'my-donations' in request.path %}bg-primary-50 text-primary-700{% else %}text-gray-700 hover:bg-gray-50 hover:text-gray-900{% endif %}">
-                    <i class="fas fa-list-alt w-6 text-lg {% if 'my-donations' in request.path %}text-primary-600{% else %}text-gray-400 group-hover:text-gray-500{% endif %}"></i>
-                    My Donations
-                </a>
-            {% else %}
-                <a href="{% url 'core:search_donations' %}" 
-                   class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 mb-1
-                   {% if 'search' in request.path %}bg-primary-50 text-primary-700{% else %}text-gray-700 hover:bg-gray-50 hover:text-gray-900{% endif %}">
-                    <i class="fas fa-search w-6 text-lg {% if 'search' in request.path %}text-primary-600{% else %}text-gray-400 group-hover:text-gray-500{% endif %}"></i>
-                    Find Food
-                </a>
-                <a href="{% url 'core:my_donations' %}" 
-                   class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 mb-1
-                   {% if 'my-donations' in request.path %}bg-primary-50 text-primary-700{% else %}text-gray-700 hover:bg-gray-50 hover:text-gray-900{% endif %}">
-                    <i class="fas fa-shopping-basket w-6 text-lg {% if 'my-donations' in request.path %}text-primary-600{% else %}text-gray-400 group-hover:text-gray-500{% endif %}"></i>
-                    My Claims
-                </a>
-                <a href="{% url 'core:ai_recommendations' %}" 
-                   class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200
-                   {% if 'recommendations' in request.path %}bg-purple-50 text-purple-700{% else %}text-gray-700 hover:bg-gray-50 hover:text-gray-900{% endif %}">
-                    <i class="fas fa-wand-magic-sparkles w-6 text-lg {% if 'recommendations' in request.path %}text-purple-600{% else %}text-gray-400 group-hover:text-gray-500{% endif %}"></i>
-                    AI Matches
-                </a>
-            {% endif %}
+            <div class="space-y-1">
+                {% if user.profile.user_type == 'donor' %}
+                    <a href="{% url 'core:create_donation' %}" class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all {% if 'create' in request.path %}bg-gray-800 text-white border-l-4 border-primary-500{% else %}text-gray-400 hover:bg-gray-800 hover:text-white{% endif %}">
+                        <i class="fas fa-plus-circle w-5 text-center mr-3"></i> Create Donation
+                    </a>
+                    <a href="{% url 'core:my_donations' %}" class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all {% if 'my-donations' in request.path %}bg-gray-800 text-white border-l-4 border-primary-500{% else %}text-gray-400 hover:bg-gray-800 hover:text-white{% endif %}">
+                        <i class="fas fa-box-open w-5 text-center mr-3"></i> My Inventory
+                    </a>
+                {% else %}
+                    <a href="{% url 'core:search_donations' %}" class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all {% if 'search' in request.path %}bg-gray-800 text-white border-l-4 border-primary-500{% else %}text-gray-400 hover:bg-gray-800 hover:text-white{% endif %}">
+                        <i class="fas fa-search w-5 text-center mr-3"></i> Browse Food
+                    </a>
+                    <a href="{% url 'core:my_donations' %}" class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all {% if 'my-donations' in request.path %}bg-gray-800 text-white border-l-4 border-primary-500{% else %}text-gray-400 hover:bg-gray-800 hover:text-white{% endif %}">
+                        <i class="fas fa-shopping-basket w-5 text-center mr-3"></i> My Claims
+                    </a>
+                {% endif %}
+            </div>
         </div>
 
-        <div class="pb-4">
-            <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Insights</p>
-            <a href="{% url 'core:map_view' %}" 
-               class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 mb-1
-               {% if 'map' in request.path %}bg-primary-50 text-primary-700{% else %}text-gray-700 hover:bg-gray-50 hover:text-gray-900{% endif %}">
-                <i class="fas fa-map-marked-alt w-6 text-lg {% if 'map' in request.path %}text-primary-600{% else %}text-gray-400 group-hover:text-gray-500{% endif %}"></i>
-                Map View
-            </a>
-            <a href="{% url 'core:analytics' %}" 
-               class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200
-               {% if 'analytics' in request.path %}bg-primary-50 text-primary-700{% else %}text-gray-700 hover:bg-gray-50 hover:text-gray-900{% endif %}">
-                <i class="fas fa-chart-pie w-6 text-lg {% if 'analytics' in request.path %}text-primary-600{% else %}text-gray-400 group-hover:text-gray-500{% endif %}"></i>
-                Analytics
-            </a>
-        </div>
-
-        <div class="pt-4 border-t border-gray-100">
-            <a href="{% url 'core:profile' %}" 
-               class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 text-gray-700 hover:bg-gray-50">
-                <div class="w-6 mr-3">
-                    {% if user.profile.profile_picture %}
-                        <img src="{{ user.profile.profile_picture.url }}" class="w-6 h-6 rounded-full object-cover">
-                    {% else %}
-                        <div class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-xs text-gray-500 font-bold">
-                            {{ user.first_name|first|default:"U" }}
-                        </div>
-                    {% endif %}
-                </div>
-                My Account
-            </a>
-            <a href="{% url 'core:logout' %}" class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 text-red-600 hover:bg-red-50">
-                <i class="fas fa-sign-out-alt w-6 text-lg opacity-70"></i>
-                Sign Out
-            </a>
+        <div>
+            <p class="px-3 text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Insights</p>
+            <div class="space-y-1">
+                <a href="{% url 'core:analytics' %}" class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all {% if 'analytics' in request.path %}bg-gray-800 text-white border-l-4 border-primary-500{% else %}text-gray-400 hover:bg-gray-800 hover:text-white{% endif %}">
+                    <i class="fas fa-chart-pie w-5 text-center mr-3"></i> Analytics
+                </a>
+                <a href="{% url 'core:map_view' %}" class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all {% if 'map' in request.path %}bg-gray-800 text-white border-l-4 border-primary-500{% else %}text-gray-400 hover:bg-gray-800 hover:text-white{% endif %}">
+                    <i class="fas fa-map-marked-alt w-5 text-center mr-3"></i> Live Map
+                </a>
+            </div>
         </div>
     </nav>
-</div>
+
+    <div class="p-4 border-t border-gray-800 bg-dark-950">
+        <a href="{% url 'core:profile' %}" class="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-800 transition-all group">
+            <div class="relative">
+                {% if user.profile.profile_picture %}
+                    <img src="{{ user.profile.profile_picture.url }}" class="w-10 h-10 rounded-lg object-cover border border-gray-700 group-hover:border-primary-500 transition-colors">
+                {% else %}
+                    <div class="w-10 h-10 rounded-lg bg-gray-800 border border-gray-700 flex items-center justify-center text-sm font-bold text-gray-400 group-hover:text-white group-hover:bg-primary-600 group-hover:border-primary-500 transition-all">
+                        {{ user.first_name|first|default:"U" }}
+                    </div>
+                {% endif %}
+                <span class="absolute -bottom-1 -right-1 block h-3 w-3 rounded-full bg-green-500 ring-2 ring-gray-900"></span>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold text-white truncate">{{ user.first_name|default:user.username }}</p>
+                <p class="text-xs text-gray-500 truncate capitalize">{{ user.profile.user_type }}</p>
+            </div>
+            <i class="fas fa-chevron-right text-xs text-gray-600 group-hover:text-white transition-colors"></i>
+        </a>
+    </div>
+</aside>

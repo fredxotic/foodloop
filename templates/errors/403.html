@@ -1,22 +1,30 @@
 {% extends 'base/base.html' %}
+{% load static %}
 
 {% block title %}Access Denied - FoodLoop{% endblock %}
 
 {% block content %}
-<div class="min-h-[70vh] flex flex-col items-center justify-center text-center px-4">
-    <div class="bg-yellow-50 p-6 rounded-full mb-6">
-        <i class="fas fa-lock text-6xl text-yellow-500"></i>
+<div class="min-h-[60vh] flex flex-col items-center justify-center text-center px-4 py-12 animate-fade-in-up">
+    
+    <div class="relative mb-8">
+        <div class="absolute inset-0 bg-yellow-100 rounded-full blur-3xl opacity-50 transform scale-150"></div>
+        <div class="relative bg-white p-6 rounded-3xl shadow-xl border border-gray-100">
+            <i class="fas fa-lock text-6xl text-yellow-500"></i>
+        </div>
     </div>
-    <h1 class="text-6xl font-extrabold text-gray-900 mb-4">403</h1>
-    <h2 class="text-2xl font-bold text-gray-800 mb-2">Access Denied</h2>
-    <p class="text-gray-500 max-w-md mb-8">
-        You don't have permission to access this page. This might be because you need to log in as a different user type (Donor/Recipient).
+
+    <h1 class="text-6xl font-extrabold text-gray-900 mb-2 tracking-tight">403</h1>
+    <h2 class="text-2xl font-bold text-gray-800 mb-4">Access Denied</h2>
+    
+    <p class="text-gray-500 max-w-md mb-8 leading-relaxed text-lg">
+        You don't have permission to access this area. You might need to sign in with a different account type.
     </p>
-    <div class="flex gap-4">
-        <a href="{% url 'core:dashboard' %}" class="bg-primary-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-primary-700 transition-all">
+    
+    <div class="flex flex-col sm:flex-row gap-4">
+        <a href="{% url 'core:dashboard' %}" class="px-8 py-3 bg-primary-600 text-white rounded-xl font-bold hover:bg-primary-700 transition-all shadow-lg shadow-primary-500/20">
             Go to Dashboard
         </a>
-        <a href="{% url 'core:login' %}" class="bg-white border border-gray-200 text-gray-700 px-6 py-3 rounded-xl font-bold hover:bg-gray-50 transition-all">
+        <a href="{% url 'core:login' %}" class="px-8 py-3 bg-white border border-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition-all">
             Switch Account
         </a>
     </div>

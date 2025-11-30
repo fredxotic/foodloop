@@ -1,501 +1,101 @@
 {% extends 'base/base.html' %}
 {% load static %}
-{% load custom_filters %}
+
 {% block title %}Dietary Preferences - FoodLoop{% endblock %}
 
-{% block extra_css %}
-<style>
-    .preferences-header {
-        background: linear-gradient(135deg, #28a745, #20c997);
-        border-radius: 15px 15px 0 0;
-        color: white;
-    }
-    .dietary-section {
-        border: 1px solid #e9ecef;
-        border-radius: 12px;
-        padding: 25px;
-        background: #f8f9fa;
-        margin-bottom: 25px;
-    }
-    .preference-card {
-        border: none;
-        border-radius: 12px;
-        transition: all 0.3s ease;
-        background: white;
-    }
-    .preference-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-    }
-    .dietary-badge {
-        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
-        color: white;
-        border: none;
-        font-size: 0.8em;
-    }
-    .nutrition-badge {
-        background: linear-gradient(135deg, #00b894, #00a085);
-        color: white;
-        border: none;
-        font-size: 0.8em;
-    }
-    .preference-badge {
-        background: linear-gradient(135deg, #74b9ff, #0984e3);
-        color: white;
-        border: none;
-        font-size: 0.8em;
-    }
-    .form-check-input:checked {
-        background-color: #28a745;
-        border-color: #28a745;
-    }
-    .form-check-label {
-        font-weight: 500;
-        cursor: pointer;
-    }
-    .section-title {
-        border-bottom: 2px solid #e9ecef;
-        padding-bottom: 10px;
-        margin-bottom: 20px;
-        color: #2c3e50;
-    }
-    .benefit-item {
-        background: #e8f5e8;
-        border-radius: 8px;
-        padding: 15px;
-        margin-bottom: 10px;
-        border-left: 4px solid #28a745;
-    }
-    .current-preferences {
-        background: #fff3e0;
-        border-radius: 10px;
-        padding: 20px;
-        border-left: 4px solid #ff9800;
-    }
-</style>
-{% endblock %}
-
 {% block content %}
-<div class="container py-4">
-    <div class="row">
-        <div class="col-lg-10 mx-auto">
-            <!-- Header -->
-            <div class="card shadow-sm border-0 mb-4">
-                <div class="preferences-header text-white py-4">
-                    <div class="card-body text-center">
-                        <h1 class="card-title mb-3">
-                            <i class="fas fa-utensils me-2"></i>Dietary Preferences
-                        </h1>
-                        <p class="lead mb-0">Customize your food preferences for better recommendations</p>
+<div class="max-w-5xl mx-auto py-8 px-4 sm:px-6 lg:px-8 animate-fade-in-up">
+    
+    <div class="text-center max-w-2xl mx-auto mb-10">
+        <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight mb-3">Dietary Preferences</h1>
+        <p class="text-gray-500 text-lg">Customize your food profile. Our AI uses this to filter donations and find the best matches for you.</p>
+    </div>
+
+    <form method="post" id="preferencesForm">
+        {% csrf_token %}
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <div class="lg:col-span-2 space-y-8">
+                
+                <div class="bg-white rounded-2xl shadow-soft border border-gray-100 p-6 md:p-8">
+                    <h3 class="text-lg font-bold text-gray-900 mb-6 flex items-center">
+                        <i class="fas fa-ban text-red-500 mr-3"></i> Restrictions & Allergies
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {% for choice in form.dietary_restrictions %}
+                        <div class="relative">
+                            {{ choice.tag }} <label for="{{ choice.id_for_label }}" 
+                                   class="flex items-center p-4 rounded-xl border-2 border-gray-100 cursor-pointer hover:border-primary-200 hover:bg-primary-50 transition-all duration-200 select-none h-full group">
+                                <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 mr-3 group-hover:bg-white group-hover:text-primary-600 transition-colors">
+                                    <i class="fas fa-check opacity-0 scale-0 group-has-[:checked]:opacity-100 group-has-[:checked]:scale-100 transition-all"></i>
+                                    <i class="fas fa-leaf group-has-[:checked]:hidden"></i>
+                                </div>
+                                <span class="font-bold text-gray-700 group-has-[:checked]:text-primary-700">{{ choice.choice_label }}</span>
+                            </label>
+                        </div>
+                        {% endfor %}
                     </div>
+                </div>
+
+                <div class="flex justify-end pt-4">
+                    <a href="{% url 'core:profile' %}" class="px-6 py-3 text-gray-500 font-bold hover:text-gray-900 mr-4 transition-colors">Cancel</a>
+                    <button type="submit" class="px-8 py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl shadow-lg shadow-primary-600/20 transform hover:-translate-y-0.5 transition-all flex items-center">
+                        <i class="fas fa-save mr-2"></i> Save Preferences
+                    </button>
                 </div>
             </div>
 
-            <!-- Current Preferences Summary -->
-            <div class="card shadow-sm border-0 mb-4">
-                <div class="card-header bg-transparent border-0 py-3">
-                    <h4 class="card-title mb-0 text-warning">
-                        <i class="fas fa-user-check me-2"></i>Your Current Preferences
+            <div class="space-y-6">
+                
+                <div class="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-6 text-white shadow-xl">
+                    <h4 class="font-bold text-lg mb-4 flex items-center">
+                        <i class="fas fa-robot text-yellow-400 mr-2"></i> How AI Uses This
                     </h4>
+                    <ul class="space-y-4 text-sm text-gray-300">
+                        <li class="flex items-start">
+                            <i class="fas fa-filter mt-1 mr-3 text-primary-400"></i>
+                            <span><strong>Smart Filtering:</strong> We automatically hide donations that don't match your restrictions.</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-bell mt-1 mr-3 text-primary-400"></i>
+                            <span><strong>Alerts:</strong> You'll get notified when high-value items matching your diet appear nearby.</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-chart-pie mt-1 mr-3 text-primary-400"></i>
+                            <span><strong>Insights:</strong> Your nutrition analytics will track how well you're meeting your goals.</span>
+                        </li>
+                    </ul>
                 </div>
-                <div class="card-body">
-                    <div class="current-preferences">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h6 class="fw-bold mb-3">Dietary Restrictions</h6>
-                                {% if user_profile.dietary_restrictions %}
-                                <div class="d-flex flex-wrap gap-2 mb-3">
-                                    {% for restriction in user_profile.dietary_restrictions %}
-                                    <span class="badge dietary-badge">{{ restriction|title }}</span>
-                                    {% endfor %}
-                                </div>
-                                {% else %}
-                                <p class="text-muted mb-3">No dietary restrictions set</p>
-                                {% endif %}
 
-                                <h6 class="fw-bold mb-3">Nutrition Goals</h6>
-                                <p class="mb-0">
-                                    <span class="badge nutrition-badge">
-                                        {{ user_profile.get_nutrition_goals_display }}
-                                    </span>
-                                </p>
-                            </div>
-                            <div class="col-md-6">
-                                <h6 class="fw-bold mb-3">Preferred Food Types</h6>
-                                {% if user_profile.preferred_food_types %}
-                                <div class="d-flex flex-wrap gap-2 mb-3">
-                                    {% for food_type in user_profile.preferred_food_types %}
-                                    <span class="badge preference-badge">{{ food_type|title }}</span>
-                                    {% endfor %}
-                                </div>
-                                {% else %}
-                                <p class="text-muted mb-3">No preferred food types set</p>
-                                {% endif %}
-
-                                {% if user_profile.allergies %}
-                                <h6 class="fw-bold mb-3">Food Allergies</h6>
-                                <p class="mb-0 text-muted">{{ user_profile.allergies }}</p>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Benefits of Setting Preferences -->
-            <div class="card shadow-sm border-0 mb-4">
-                <div class="card-header bg-transparent border-0 py-3">
-                    <h4 class="card-title mb-0 text-success">
-                        <i class="fas fa-rocket me-2"></i>Why Set Your Preferences?
+                <div class="bg-blue-50 rounded-2xl p-6 border border-blue-100 text-blue-800">
+                    <h4 class="font-bold mb-2 flex items-center">
+                        <i class="fas fa-info-circle mr-2"></i> Note
                     </h4>
+                    <p class="text-sm opacity-90">
+                        Donors self-report ingredients. Always verify with the donor directly upon pickup if you have severe allergies.
+                    </p>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="benefit-item">
-                                <div class="d-flex align-items-center">
-                                    <i class="fas fa-bullseye text-success me-3 fa-lg"></i>
-                                    <div>
-                                        <h6 class="mb-1">Better Recommendations</h6>
-                                        <p class="mb-0 text-muted">Get AI-powered suggestions that match your dietary needs</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="benefit-item">
-                                <div class="d-flex align-items-center">
-                                    <i class="fas fa-shield-alt text-warning me-3 fa-lg"></i>
-                                    <div>
-                                        <h6 class="mb-1">Allergy Safety</h6>
-                                        <p class="mb-0 text-muted">Avoid foods that may cause allergic reactions</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="benefit-item">
-                                <div class="d-flex align-items-center">
-                                    <i class="fas fa-apple-alt text-primary me-3 fa-lg"></i>
-                                    <div>
-                                        <h6 class="mb-1">Nutrition Goals</h6>
-                                        <p class="mb-0 text-muted">Receive donations that support your health objectives</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="benefit-item">
-                                <div class="d-flex align-items-center">
-                                    <i class="fas fa-heart text-danger me-3 fa-lg"></i>
-                                    <div>
-                                        <h6 class="mb-1">Personalized Experience</h6>
-                                        <p class="mb-0 text-muted">See donations that align with your preferences first</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Dietary Preferences Form -->
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-transparent border-0 py-3">
-                    <h4 class="card-title mb-0">
-                        <i class="fas fa-edit me-2 text-primary"></i>Update Your Preferences
-                    </h4>
-                </div>
-                <div class="card-body">
-                    <form method="post" novalidate id="preferencesForm">
-                        {% csrf_token %}
-                        
-                        {% if form.non_field_errors %}
-                        <div class="alert alert-danger">
-                            {% for error in form.non_field_errors %}
-                                {{ error }}
-                            {% endfor %}
-                        </div>
-                        {% endif %}
-
-                        <!-- Dietary Restrictions Section -->
-                        <div class="dietary-section">
-                            <h4 class="section-title">
-                                <i class="fas fa-ban me-2 text-danger"></i>Dietary Restrictions
-                            </h4>
-                            <p class="text-muted mb-4">Select any dietary restrictions that apply to you. This helps us filter out incompatible donations.</p>
-                            
-                            <div class="row">
-                                {% for choice in form.dietary_restrictions %}
-                                <div class="col-md-6 mb-3">
-                                    <div class="form-check">
-                                        {{ choice.tag }}
-                                        <label class="form-check-label" for="{{ choice.id_for_label }}">
-                                            {{ choice.choice_label }}
-                                        </label>
-                                    </div>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-
-                        <!-- Food Allergies Section -->
-                        <div class="dietary-section">
-                            <h4 class="section-title">
-                                <i class="fas fa-exclamation-triangle me-2 text-warning"></i>Food Allergies
-                            </h4>
-                            <p class="text-muted mb-3">List any food allergies or sensitivities. We'll highlight potential matches.</p>
-                            
-                            <div class="mb-3">
-                                <label for="allergies" class="form-label fw-bold">Allergies & Sensitivities</label>
-                                <textarea class="form-control" id="allergies" name="allergies" rows="3"
-                                          placeholder="e.g., peanuts, shellfish, dairy, gluten...">{{ form.allergies.value|default:user_profile.allergies }}</textarea>
-                                <div class="form-text">Separate multiple allergies with commas. Be specific for your safety.</div>
-                            </div>
-                        </div>
-
-                        <!-- Nutrition Goals Section -->
-                        <div class="dietary-section">
-                            <h4 class="section-title">
-                                <i class="fas fa-bullseye me-2 text-success"></i>Nutrition Goals
-                            </h4>
-                            <p class="text-muted mb-3">Select your primary nutrition goal to receive relevant recommendations.</p>
-                            
-                            <div class="mb-3">
-                                <label for="nutrition_goals" class="form-label fw-bold">Primary Goal</label>
-                                <select class="form-control" id="nutrition_goals" name="nutrition_goals">
-                                    {% for value, text in form.fields.nutrition_goals.choices %}
-                                        <option value="{{ value }}" {% if form.nutrition_goals.value == value %}selected{% endif %}>
-                                            {{ text }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                                <div class="form-text">This helps us prioritize donations that support your health objectives.</div>
-                            </div>
-
-                            <!-- Goal Descriptions -->
-                            <div class="row mt-4">
-                                <div class="col-md-6">
-                                    <div class="card preference-card h-100">
-                                        <div class="card-body">
-                                            <h6 class="card-title text-success">
-                                                <i class="fas fa-weight me-2"></i>Weight Loss
-                                            </h6>
-                                            <p class="card-text text-muted small">
-                                                Lower-calorie options with high nutritional density. Focus on vegetables, lean proteins, and fruits.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="card preference-card h-100">
-                                        <div class="card-body">
-                                            <h6 class="card-title text-primary">
-                                                <i class="fas fa-dumbbell me-2"></i>Muscle Gain
-                                            </h6>
-                                            <p class="card-text text-muted small">
-                                                Protein-rich foods and calorie-dense options. Ideal for building and maintaining muscle.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6 mt-3">
-                                    <div class="card preference-card h-100">
-                                        <div class="card-body">
-                                            <h6 class="card-title text-info">
-                                                <i class="fas fa-balance-scale me-2"></i>Balanced Diet
-                                            </h6>
-                                            <p class="card-text text-muted small">
-                                                Variety of food types for overall health and wellness. Mixed nutrients and food groups.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6 mt-3">
-                                    <div class="card preference-card h-100">
-                                        <div class="card-body">
-                                            <h6 class="card-title text-warning">
-                                                <i class="fas fa-heartbeat me-2"></i>Health Condition
-                                            </h6>
-                                            <p class="card-text text-muted small">
-                                                Consult with healthcare providers for specific dietary needs related to health conditions.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Form Actions -->
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end border-top pt-4 mt-4">
-                            <a href="{% url 'profile' %}" class="btn btn-outline-secondary me-md-2 px-4">
-                                <i class="fas fa-arrow-left me-1"></i>Back to Profile
-                            </a>
-                            <button type="submit" class="btn btn-success px-4">
-                                <i class="fas fa-save me-1"></i>Save Preferences
-                            </button>
-                            <button type="button" class="btn btn-outline-primary ms-2 px-4" onclick="setDefaultPreferences()">
-                                <i class="fas fa-magic me-1"></i>Set Defaults
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Tips Section -->
-            <div class="card shadow-sm border-0 mt-4">
-                <div class="card-body text-center">
-                    <h5 class="text-success mb-3">
-                        <i class="fas fa-lightbulb me-2"></i>Pro Tips
-                    </h5>
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="d-flex align-items-center justify-content-center mb-3">
-                                <i class="fas fa-sync-alt text-primary me-3 fa-lg"></i>
-                                <div class="text-start">
-                                    <h6 class="mb-1">Update Regularly</h6>
-                                    <p class="text-muted mb-0 small">Review preferences as your needs change</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="d-flex align-items-center justify-content-center mb-3">
-                                <i class="fas fa-search text-success me-3 fa-lg"></i>
-                                <div class="text-start">
-                                    <h6 class="mb-1">Be Specific</h6>
-                                    <p class="text-muted mb-0 small">Detailed preferences = better matches</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="d-flex align-items-center justify-content-center mb-3">
-                                <i class="fas fa-shield-alt text-warning me-3 fa-lg"></i>
-                                <div class="text-start">
-                                    <h6 class="mb-1">Safety First</h6>
-                                    <p class="text-muted mb-0 small">Always list serious allergies</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
-    </div>
+    </form>
 </div>
-{% endblock %}
 
-{% block scripts %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Add any initialization code here
-    console.log('Dietary preferences page loaded');
-
-    // Real-time validation for allergies field
-    const allergiesField = document.getElementById('allergies');
-    if (allergiesField) {
-        allergiesField.addEventListener('input', function() {
-            const value = this.value;
-            if (value.length > 200) {
-                this.classList.add('is-invalid');
-            } else {
-                this.classList.remove('is-invalid');
-            }
-        });
+<style>
+    /* Custom Checkbox Styling Logic */
+    input[type="checkbox"] {
+        @apply sr-only; /* Hide default checkbox */
     }
-
-    // Enhanced checkbox styling
-    const checkboxes = document.querySelectorAll('.form-check-input');
-    checkboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            const label = this.nextElementSibling;
-            if (this.checked) {
-                label.classList.add('fw-bold', 'text-success');
-            } else {
-                label.classList.remove('fw-bold', 'text-success');
-            }
-        });
-
-        // Initialize checked state
-        if (checkbox.checked) {
-            const label = checkbox.nextElementSibling;
-            label.classList.add('fw-bold', 'text-success');
-        }
-    });
-});
-
-function setDefaultPreferences() {
-    if (confirm('Set common default preferences? This will select popular options for quick setup.')) {
-        // Set common dietary restrictions
-        const commonRestrictions = ['vegetarian', 'gluten_free'];
-        commonRestrictions.forEach(restriction => {
-            const checkbox = document.querySelector(`input[value="${restriction}"]`);
-            if (checkbox) {
-                checkbox.checked = true;
-                const label = checkbox.nextElementSibling;
-                label.classList.add('fw-bold', 'text-success');
-            }
-        });
-
-        // Set common food preferences
-        const commonFoods = ['vegetables', 'fruits', 'grains'];
-        commonFoods.forEach(food => {
-            const checkbox = document.querySelector(`input[value="${food}"]`);
-            if (checkbox) {
-                checkbox.checked = true;
-                const label = checkbox.nextElementSibling;
-                label.classList.add('fw-bold', 'text-success');
-            }
-        });
-
-        // Set balanced diet as default goal
-        const goalSelect = document.getElementById('nutrition_goals');
-        if (goalSelect) {
-            goalSelect.value = 'balanced';
-        }
-
-        showToast('Default preferences applied! You can customize them further.', 'success');
-    }
-}
-
-function showToast(message, type) {
-    // Simple toast notification
-    const toast = document.createElement('div');
-    toast.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
-    toast.style.cssText = 'top: 20px; right: 20px; z-index: 1050; min-width: 300px;';
-    toast.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-    document.body.appendChild(toast);
     
-    // Auto remove after 4 seconds
-    setTimeout(() => {
-        if (toast.parentNode) {
-            toast.parentNode.removeChild(toast);
-        }
-    }, 4000);
-}
-
-// Form submission enhancement
-const preferencesForm = document.getElementById('preferencesForm');
-if (preferencesForm) {
-    preferencesForm.addEventListener('submit', function(e) {
-        // Add any final validation here
-        const allergies = document.getElementById('allergies').value;
-        if (allergies.length > 500) {
-            e.preventDefault();
-            alert('Allergies description is too long. Please keep it under 500 characters.');
-            return;
-        }
-
-        // Show loading state
-        const submitBtn = this.querySelector('button[type="submit"]');
-        const originalText = submitBtn.innerHTML;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Saving...';
-        submitBtn.disabled = true;
-
-        // Form will submit normally after this
-    });
-}
-</script>
+    /* When checkbox is checked, style the label */
+    input[type="checkbox"]:checked + label {
+        @apply border-primary-500 bg-primary-50 ring-2 ring-primary-200 ring-offset-1;
+    }
+    
+    input[type="checkbox"]:checked + label .w-10 {
+        @apply bg-primary-500 text-white;
+    }
+</style>
 {% endblock %}

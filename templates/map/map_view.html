@@ -4,66 +4,107 @@
 {% block title %}Food Map - FoodLoop{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
-    /* Ensure map takes full height minus header */
-    #map { height: calc(100vh - 64px); z-index: 0; }
+    /* Force map container to fill available height */
+    #map-container { 
+        height: calc(100vh - 64px); 
+        width: 100%;
+        position: relative;
+        z-index: 1;
+    }
     
-    /* Custom Popup Styling */
-    .custom-popup .leaflet-popup-content-wrapper { 
-        border-radius: 1rem; 
+    /* Modern Leaflet Popup Styling */
+    .leaflet-popup-content-wrapper { 
+        border-radius: 16px; 
         padding: 0; 
         overflow: hidden; 
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        border: none;
     }
-    .custom-popup .leaflet-popup-content { 
-        margin: 0; 
-        width: 280px !important; 
+    .leaflet-popup-content { 
+        margin: 0 !important; 
+        width: 300px !important; 
     }
-    .custom-popup .leaflet-popup-tip {
-        background-color: white;
+    .leaflet-popup-tip-container {
+        display: none; /* Cleaner look without the triangle tip */
     }
     
-    /* Custom Marker Icon Base */
-    .custom-div-icon {
-        background: transparent;
-        border: none;
+    /* Custom Marker Icons */
+    .marker-pin {
+        width: 40px;
+        height: 40px;
+        border-radius: 50% 50% 50% 0;
+        background: #10b981;
+        position: absolute;
+        transform: rotate(-45deg);
+        left: 50%;
+        top: 50%;
+        margin: -15px 0 0 -15px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    }
+    .marker-pin::after {
+        content: '';
+        width: 24px;
+        height: 24px;
+        margin: 8px 0 0 8px;
+        background: #fff;
+        position: absolute;
+        border-radius: 50%;
+    }
+    .custom-div-icon i {
+        position: absolute;
+        top: 9px;
+        left: 13px;
+        font-size: 14px;
+        color: #10b981;
+        z-index: 10;
+        transform: rotate(45deg);
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="relative w-full h-[calc(100vh-64px)]">
+<div class="relative w-full">
     
-    <div id="map" class="w-full h-full bg-gray-100"></div>
-
-    <div class="absolute top-4 left-4 right-4 md:left-auto md:right-6 md:w-96 z-[1000]">
-        <div class="bg-white/90 backdrop-blur-md p-5 rounded-2xl shadow-xl border border-white/50">
-            <h1 class="text-lg font-extrabold text-gray-900 mb-3 flex items-center">
-                <i class="fas fa-map-marked-alt text-primary-500 mr-2"></i> Explore Donations
-            </h1>
+    <div class="absolute top-4 left-4 z-[1000] w-full max-w-sm px-4 md:px-0">
+        <div class="bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-white/50 p-5">
+            <div class="flex items-center justify-between mb-4">
+                <h1 class="text-lg font-extrabold text-gray-900 flex items-center">
+                    <span class="w-8 h-8 bg-primary-100 text-primary-600 rounded-lg flex items-center justify-center mr-3 shadow-sm">
+                        <i class="fas fa-map-marked-alt"></i>
+                    </span>
+                    Live Donations
+                </h1>
+                <div class="flex items-center space-x-2">
+                    <span class="relative flex h-3 w-3">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                    </span>
+                    <span class="text-xs font-bold text-green-600">Live</span>
+                </div>
+            </div>
             
+            <p class="text-sm text-gray-500 mb-4">Exploring <strong>{{ donations|length }}</strong> active donations in your area.</p>
+
             <div class="flex gap-3">
                 <a href="{% url 'core:search_donations' %}" class="flex-1 bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm flex items-center justify-center group">
                     <i class="fas fa-list mr-2 text-gray-400 group-hover:text-primary-500 transition-colors"></i> List View
                 </a>
-                <button onclick="centerMap()" class="bg-primary-50 text-primary-600 px-4 py-2.5 rounded-xl hover:bg-primary-100 transition-colors border border-primary-100 shadow-sm" title="My Location">
+                <button onclick="centerMap()" class="px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl shadow-lg shadow-primary-500/30 transition-all">
                     <i class="fas fa-location-arrow"></i>
                 </button>
             </div>
-            
-            <div class="mt-4 pt-3 border-t border-gray-200/60 text-xs font-medium text-gray-500 flex justify-between items-center">
-                <span>Showing <span class="text-gray-900 font-bold">{{ donations|length }}</span> active donation{{ donations|length|pluralize }}</span>
-                <span class="flex items-center"><div class="w-2 h-2 bg-green-500 rounded-full mr-1.5 animate-pulse"></div> Live</span>
-            </div>
         </div>
     </div>
+
+    <div id="map-container"></div>
 
 </div>
 
 <script id="map-data" type="application/json">
 {
-    "userLocation": {% if user_location and user_location.lat and user_location.lng %}{"lat": {{ user_location.lat }}, "lng": {{ user_location.lng }}}{% else %}null{% endif %},
+    "userLocation": {% if user_location and user_location.lat %}{"lat": {{ user_location.lat }}, "lng": {{ user_location.lng }}}{% else %}null{% endif %},
     "donations": [
         {% for d in donations %}
         {
@@ -82,133 +123,95 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     let map;
     let mapData;
     
     document.addEventListener('DOMContentLoaded', function() {
-        // Parse data from JSON script tag
         try {
             mapData = JSON.parse(document.getElementById('map-data').textContent);
         } catch (e) {
-            console.error("Error parsing map data:", e);
+            console.error("Error parsing map data");
             return;
         }
         
-        // Initialize Map
-        const defaultLat = -1.2921; // Nairobi default
+        const defaultLat = -1.2921;
         const defaultLng = 36.8219;
-        
-        const userLat = mapData.userLocation ? mapData.userLocation.lat : null;
-        const userLng = mapData.userLocation ? mapData.userLocation.lng : null;
-        
-        const startLat = userLat || defaultLat;
-        const startLng = userLng || defaultLng;
+        const startLat = mapData.userLocation ? mapData.userLocation.lat : defaultLat;
+        const startLng = mapData.userLocation ? mapData.userLocation.lng : defaultLng;
 
-        map = L.map('map', {
-            zoomControl: false // We add it manually to position it
-        }).setView([startLat, startLng], 13);
+        // Initialize Map with custom style (CartoDB Voyager is clean)
+        map = L.map('map-container', {
+            zoomControl: false 
+        }).setView([startLat, startLng], 14);
 
-        // Add Zoom Control to bottom right
-        L.control.zoom({
-            position: 'bottomright'
-        }).addTo(map);
-
-        // CartoDB Voyager Tile Layer (Clean, modern look matches Tailwind UI)
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-            subdomains: 'abcd',
+            attribution: '&copy; OpenStreetMap &copy; CARTO',
             maxZoom: 20
         }).addTo(map);
 
-        // Custom Icons
-        const foodIcon = L.divIcon({
-            className: 'custom-div-icon',
-            html: "<div class='w-10 h-10 bg-primary-500 rounded-full border-4 border-white shadow-lg flex items-center justify-center text-white transform hover:scale-110 transition-transform'><i class='fas fa-utensils'></i></div>",
-            iconSize: [40, 40],
-            iconAnchor: [20, 40],
-            popupAnchor: [0, -40]
-        });
+        L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-        const userIcon = L.divIcon({
-            className: 'custom-div-icon',
-            html: "<div class='w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-md ring-4 ring-blue-500/30 animate-pulse'></div>",
-            iconSize: [16, 16],
-            iconAnchor: [8, 8]
-        });
-
-        // Add User Marker
-        if (userLat !== null && userLng !== null) {
-            L.marker([userLat, userLng], {icon: userIcon}).addTo(map)
-                .bindPopup("<div class='font-sans font-bold text-gray-800 px-2'>You are here</div>");
-        }
-
-        // Add Donation Markers
+        // Custom Marker Logic
         const markers = L.featureGroup();
 
         mapData.donations.forEach(d => {
-            // Tailwind-styled popup content
+            // Create custom HTML icon
+            const iconHtml = `<div class='marker-pin'></div><i class='fas fa-utensils'></i>`;
+            const customIcon = L.divIcon({
+                className: 'custom-div-icon',
+                html: iconHtml,
+                iconSize: [30, 42],
+                iconAnchor: [15, 42],
+                popupAnchor: [0, -35]
+            });
+
             const popupContent = `
                 <div class="flex flex-col font-sans">
-                    <div class="h-24 bg-gray-100 relative mb-3 overflow-hidden">
-                        <div class="absolute inset-0 flex items-center justify-center text-gray-300">
-                            <i class="fas fa-image text-3xl"></i>
-                        </div>
-                        <div class="absolute top-2 right-2 bg-white/90 px-2 py-0.5 rounded text-xs font-bold text-gray-700 shadow-sm border border-gray-100">
+                    <div class="h-32 bg-gray-100 relative overflow-hidden bg-[url('{% static 'images/default-donation.png' %}')] bg-cover bg-center">
+                        <div class="absolute inset-0 bg-black/20"></div>
+                        <div class="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-lg text-xs font-bold text-gray-800 shadow-sm">
                             ${d.category}
                         </div>
                     </div>
-                    <div class="px-4 pb-4">
+                    <div class="p-5 bg-white">
                         <h3 class="font-bold text-gray-900 text-lg mb-1 leading-tight line-clamp-1">${d.title}</h3>
-                        <div class="flex items-center gap-2 mb-3">
-                            <span class="text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded-md font-bold border border-green-100">
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="text-xs bg-green-50 text-green-700 px-2 py-1 rounded-md font-bold border border-green-100">
                                 Score: ${d.score}
                             </span>
                         </div>
-                        <a href="/donation/${d.id}/" class="block w-full py-2 bg-primary-600 text-white text-center rounded-lg font-bold text-sm hover:bg-primary-700 transition-colors shadow-sm">
-                            View Details
+                        <a href="/donation/${d.id}/" class="block w-full py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-center rounded-xl font-bold text-sm transition-colors shadow-lg shadow-primary-500/30">
+                            Claim Donation
                         </a>
                     </div>
                 </div>
             `;
 
-            const marker = L.marker([d.lat, d.lng], {icon: foodIcon})
-                .bindPopup(popupContent, {
-                    className: 'custom-popup',
-                    minWidth: 260,
-                    maxWidth: 260,
-                    closeButton: false
-                });
+            const marker = L.marker([d.lat, d.lng], {icon: customIcon})
+                .bindPopup(popupContent, { minWidth: 280, maxWidth: 280 });
             
             markers.addLayer(marker);
         });
 
         markers.addTo(map);
 
-        // Fit bounds if markers exist
-        if (mapData.donations.length > 0) {
-            const bounds = markers.getBounds();
-            if (userLat && userLng) bounds.extend([userLat, userLng]);
-            map.fitBounds(bounds, {padding: [50, 50]});
+        // User Location Marker
+        if (mapData.userLocation) {
+            const userIcon = L.divIcon({
+                className: 'bg-transparent',
+                html: "<div class='w-4 h-4 bg-blue-600 rounded-full border-2 border-white shadow-md ring-4 ring-blue-500/30 animate-pulse'></div>",
+                iconSize: [20, 20],
+                iconAnchor: [10, 10]
+            });
+            L.marker([mapData.userLocation.lat, mapData.userLocation.lng], {icon: userIcon, zIndexOffset: 1000}).addTo(map);
         }
     });
 
-    // Center map on user location
     function centerMap() {
         if (mapData && mapData.userLocation) {
-            map.flyTo([mapData.userLocation.lat, mapData.userLocation.lng], 15, {
-                animate: true,
-                duration: 1.5
-            });
-        } else {
-            // Simple toast fallback
-            const toast = document.createElement('div');
-            toast.className = 'fixed bottom-4 right-4 bg-red-500 text-white px-6 py-3 rounded-xl shadow-lg z-[2000] font-medium animate-bounce';
-            toast.textContent = 'Location not found. Please update your profile.';
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
+            map.flyTo([mapData.userLocation.lat, mapData.userLocation.lng], 15, { duration: 1.5 });
         }
     }
 </script>

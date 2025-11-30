@@ -1,6 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en" class="h-full bg-gray-50/50">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,158 +12,85 @@
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
-                    },
+                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
                     colors: {
-                        primary: {
-                            50: '#ecfdf5',
-                            100: '#d1fae5',
-                            200: '#a7f3d0',
-                            300: '#6ee7b7',
-                            400: '#34d399',
-                            500: '#10b981', // Brand Color
-                            600: '#059669',
-                            700: '#047857',
-                            800: '#065f46',
-                            900: '#064e3b',
+                        primary: { 
+                            50: '#ecfdf5', 100: '#d1fae5', 200: '#a7f3d0', 
+                            300: '#6ee7b7', 400: '#34d399', 500: '#10b981', 
+                            600: '#059669', 700: '#047857', 800: '#065f46', 900: '#064e3b' 
                         },
-                        secondary: {
-                            50: '#eff6ff',
-                            100: '#dbeafe',
-                            500: '#3b82f6',
-                            600: '#2563eb',
-                            700: '#1d4ed8',
-                        }
+                        dark: { 800: '#1f2937', 900: '#111827', 950: '#030712' }
                     },
-                    animation: {
-                        'fade-in': 'fadeIn 0.5s ease-out',
-                        'slide-up': 'slideUp 0.5s ease-out',
-                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                    },
-                    keyframes: {
-                        fadeIn: {
-                            '0%': { opacity: '0' },
-                            '100%': { opacity: '1' },
-                        },
-                        slideUp: {
-                            '0%': { transform: 'translateY(20px)', opacity: '0' },
-                            '100%': { transform: 'translateY(0)', opacity: '1' },
-                        }
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+                        'glow': '0 0 15px rgba(16, 185, 129, 0.3)'
                     }
                 }
             }
         }
     </script>
-
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
+    
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+    
     <link href="{% static 'css/styles.css' %}" rel="stylesheet">
-
     {% block extra_css %}{% endblock %}
 </head>
-<body class="bg-gray-50 text-gray-900 font-sans antialiased flex flex-col min-h-screen" x-data="{ sidebarOpen: false }">
-    
-    <div id="toast-container" class="fixed top-4 right-4 z-[9999] space-y-4 pointer-events-none">
+<body class="h-full overflow-hidden text-gray-600 antialiased selection:bg-primary-500 selection:text-white" x-data="{ sidebarOpen: false }">
+
+    <div id="toast-container" class="fixed top-6 right-6 z-[100] space-y-4 pointer-events-none">
         {% if messages %}
             {% for message in messages %}
-                <div class="pointer-events-auto transform transition-all duration-300 translate-x-0 bg-white border-l-4 {% if message.tags == 'error' %}border-red-500{% elif message.tags == 'success' %}border-green-500{% else %}border-blue-500{% endif %} shadow-lg rounded-r-lg p-4 flex items-start space-x-3 max-w-sm animate-slide-up">
-                    <div class="flex-shrink-0">
-                        {% if message.tags == 'error' %}
-                            <i class="fas fa-circle-exclamation text-red-500"></i>
-                        {% elif message.tags == 'success' %}
-                            <i class="fas fa-check-circle text-green-500"></i>
-                        {% else %}
-                            <i class="fas fa-info-circle text-blue-500"></i>
-                        {% endif %}
-                    </div>
-                    <div class="flex-1">
-                        <p class="text-sm font-medium text-gray-900">{{ message }}</p>
-                    </div>
-                    <button onclick="this.parentElement.remove()" class="text-gray-400 hover:text-gray-500">
-                        <i class="fas fa-times"></i>
-                    </button>
+                <div class="pointer-events-auto bg-white border-l-4 {% if message.tags == 'error' %}border-red-500 text-red-700{% else %}border-primary-500 text-primary-700{% endif %} shadow-xl rounded-lg p-4 flex items-start gap-3 transform transition-all duration-300 animate-slide-in-right">
+                    <i class="fas {% if message.tags == 'error' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %} mt-0.5"></i>
+                    <span class="font-medium text-sm">{{ message }}</span>
                 </div>
             {% endfor %}
         {% endif %}
     </div>
 
-    {% include 'components/navbar.html' %}
-
-    <div class="flex flex-1 relative">
+    <div class="flex h-full w-full">
+        
         {% if user.is_authenticated %}
             {% include 'components/sidebar.html' %}
         {% endif %}
 
-        <main class="flex-1 w-full {% if user.is_authenticated %}lg:pl-64{% endif %} transition-all duration-300 ease-in-out">
-            <div id="page-loader" class="hidden fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
-                <div class="flex flex-col items-center">
-                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mb-3"></div>
-                    <p class="text-primary-700 font-medium animate-pulse">Loading...</p>
-                </div>
-            </div>
-
-            <div class="min-h-[calc(100vh-4rem)] flex flex-col">
-                {% block content %}{% endblock %}
-            </div>
+        <div class="flex-1 flex flex-col h-full min-w-0 bg-gray-50/50 relative overflow-hidden">
             
-            {% include 'components/footer.html' %}
-        </main>
+            {% include 'components/navbar.html' %}
+
+            <main class="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth p-4 md:p-6 lg:p-8" id="main-content">
+                <div id="page-loader" class="hidden fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center transition-opacity duration-300">
+                    <div class="flex flex-col items-center">
+                        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600 mb-3"></div>
+                        <span class="text-sm font-medium text-primary-700">Loading...</span>
+                    </div>
+                </div>
+
+                <div class="max-w-[1600px] mx-auto w-full">
+                    {% block content %}{% endblock %}
+                </div>
+                
+                <div class="mt-12">
+                    {% include 'components/footer.html' %}
+                </div>
+            </main>
+        </div>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    {% if user.is_authenticated %}
     <script src="{% static 'js/notifications.js' %}"></script>
+    {% endif %}
     <script src="{% static 'js/scripts.js' %}"></script>
-    
-    <script>
-        // Global Toast Function
-        window.showToast = function(message, type = 'info') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            
-            let borderClass = 'border-blue-500';
-            let iconClass = 'fa-info-circle text-blue-500';
-            
-            if (type === 'success') {
-                borderClass = 'border-green-500';
-                iconClass = 'fa-check-circle text-green-500';
-            } else if (type === 'error') {
-                borderClass = 'border-red-500';
-                iconClass = 'fa-circle-exclamation text-red-500';
-            }
-
-            toast.className = `pointer-events-auto transform transition-all duration-300 translate-y-4 opacity-0 bg-white border-l-4 ${borderClass} shadow-lg rounded-r-lg p-4 flex items-start space-x-3 max-w-sm`;
-            toast.innerHTML = `
-                <div class="flex-shrink-0"><i class="fas ${iconClass}"></i></div>
-                <div class="flex-1"><p class="text-sm font-medium text-gray-900">${message}</p></div>
-                <button onclick="this.parentElement.remove()" class="text-gray-400 hover:text-gray-500"><i class="fas fa-times"></i></button>
-            `;
-
-            container.appendChild(toast);
-            
-            // Trigger animation
-            requestAnimationFrame(() => {
-                toast.classList.remove('translate-y-4', 'opacity-0');
-            });
-
-            // Auto dismiss
-            setTimeout(() => {
-                toast.classList.add('opacity-0', 'translate-x-full');
-                setTimeout(() => toast.remove(), 300);
-            }, 5000);
-        }
-    </script>
-    
     {% block scripts %}{% endblock %}
 </body>
 </html>

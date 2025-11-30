@@ -1,0 +1,65 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Terms of Service - FoodLoop{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8 animate-fade-in-up">
+    
+    <div class="text-center mb-12">
+        <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight mb-4">Terms of Service</h1>
+        <p class="text-gray-500">Last updated: November 30, 2025</p>
+    </div>
+
+    <div class="bg-white rounded-3xl shadow-soft border border-gray-100 p-8 md:p-12">
+        <article class="prose prose-lg prose-green max-w-none text-gray-600">
+            
+            <h3 class="text-gray-900 font-bold">1. Acceptance of Terms</h3>
+            <p>
+                By accessing and using FoodLoop ("we," "our," or "us"), you agree to comply with and be bound by these Terms of Service. If you do not agree to these terms, please do not use our platform.
+            </p>
+
+            <h3 class="text-gray-900 font-bold mt-8">2. Nature of Service</h3>
+            <p>
+                FoodLoop acts as a facilitator connecting food donors with recipients. We do not manufacture, store, or prepare the food exchanged on our platform. We are a venue for community connection, not a food retailer.
+            </p>
+
+            <h3 class="text-gray-900 font-bold mt-8">3. Food Safety & Liability</h3>
+            <div class="bg-red-50 border-l-4 border-red-500 p-4 my-4 rounded-r-lg">
+                <p class="text-red-800 text-sm font-bold mb-1">IMPORTANT DISCLAIMER</p>
+                <p class="text-red-700 text-sm m-0">
+                    All food items are donated "as is." Donors are responsible for ensuring food is safe to eat and handled correctly. Recipients acknowledge that consuming donated food involves inherent risks.
+                </p>
+            </div>
+            <ul class="list-disc pl-5 space-y-2">
+                <li><strong>Donors:</strong> You agree to only donate food that is fresh, within its expiry date, and handled according to local food safety regulations.</li>
+                <li><strong>Recipients:</strong> You agree to inspect all food items upon pickup. You release FoodLoop and the donor from any liability arising from the consumption of donated food to the fullest extent permitted by applicable "Good Samaritan" laws.</li>
+            </ul>
+
+            <h3 class="text-gray-900 font-bold mt-8">4. User Conduct</h3>
+            <p>You agree not to:</p>
+            <ul class="list-disc pl-5 space-y-2">
+                <li>Create false accounts or misrepresent your identity.</li>
+                <li>Sell donations received through the platform.</li>
+                <li>Harass, abuse, or harm another person.</li>
+                <li>Use the platform for any illegal purpose.</li>
+            </ul>
+
+            <h3 class="text-gray-900 font-bold mt-8">5. Account Termination</h3>
+            <p>
+                We reserve the right to suspend or terminate your account at our sole discretion, without notice, for conduct that we believe violates these Terms of Service or is harmful to other users of the platform.
+            </p>
+
+            <div class="mt-12 p-6 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div>
+                    <h4 class="text-sm font-bold text-gray-900 uppercase mb-1">Questions?</h4>
+                    <p class="text-sm">For legal inquiries, please contact our team.</p>
+                </div>
+                <a href="{% url 'core:contact' %}" class="px-6 py-2.5 bg-white border border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-50 hover:text-primary-600 transition-colors shadow-sm text-sm">
+                    Contact Legal
+                </a>
+            </div>
+
+        </article>
+    </div>
+</div>
+{% endblock %}

@@ -1,592 +1,155 @@
 {% extends 'base/base.html' %}
 {% load static %}
 
-{% block title %}Sign Up - FoodLoop{% endblock %}
-
-{% block extra_css %}
-<style>
-    .role-card {
-        cursor: pointer;
-        transition: all 0.3s ease;
-        border: 2px solid transparent;
-    }
-    .role-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-    }
-    .role-card input[type="radio"] {
-        display: none;
-    }
-    .role-card.selected {
-        border-color: rgb(var(--color-primary)) !important;
-        background: linear-gradient(to bottom right, rgba(var(--color-primary), 0.05), rgba(var(--color-primary), 0.02));
-    }
-    .feature-icon {
-        width: 80px;
-        height: 80px;
-        background: linear-gradient(135deg, rgb(var(--color-primary)), rgb(var(--color-primary-dark)));
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 2rem;
-    }
-    .dietary-section {
-        background: linear-gradient(135deg, rgba(var(--color-primary), 0.05), rgba(var(--color-primary), 0.02));
-        border-radius: 1rem;
-        padding: 1.5rem;
-        border: 1px solid rgba(var(--color-primary), 0.1);
-    }
-    .dietary-checkbox {
-        border: 1px solid #e5e7eb;
-        border-radius: 0.5rem;
-        padding: 1rem;
-        margin-bottom: 0.5rem;
-        background: white;
-        transition: all 0.2s ease;
-        cursor: pointer;
-    }
-    .dietary-checkbox:hover {
-        border-color: rgb(var(--color-primary));
-        background: rgba(var(--color-primary), 0.03);
-    }
-    .dietary-checkbox.checked {
-        border-color: rgb(var(--color-primary));
-        background: rgba(var(--color-primary), 0.05);
-    }
-    .password-strength {
-        height: 4px;
-        border-radius: 2px;
-        margin-top: 8px;
-        transition: all 0.3s ease;
-    }
-    .step-indicator {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 2rem;
-        position: relative;
-    }
-    .step-indicator::before {
-        content: '';
-        position: absolute;
-        top: 15px;
-        left: 0;
-        right: 0;
-        height: 2px;
-        background: #e5e7eb;
-        z-index: 1;
-    }
-    .step {
-        text-align: center;
-        position: relative;
-        z-index: 2;
-        flex: 1;
-    }
-    .step-number {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        background: #e5e7eb;
-        color: #6b7280;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 8px;
-        font-weight: 700;
-        font-size: 0.875rem;
-    }
-    .step.active .step-number {
-        background: rgb(var(--color-primary));
-        color: white;
-        box-shadow: 0 0 0 4px rgba(var(--color-primary), 0.1);
-    }
-    .step-label {
-        font-size: 0.75rem;
-        color: #6b7280;
-        font-weight: 500;
-    }
-    .step.active .step-label {
-        color: rgb(var(--color-primary));
-        font-weight: 700;
-    }
-</style>
-{% endblock %}
+{% block title %}Join FoodLoop{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gray-50 py-8 px-4">
-    <div class="max-w-5xl mx-auto">
-        <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-            <!-- Header -->
-            <div class="bg-gradient-to-r from-primary-600 to-primary-700 text-white px-6 py-8 text-center">
-                <div class="flex items-center justify-center mb-3">
-                    <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                        <i class="fas fa-user-plus text-3xl"></i>
-                    </div>
+<div class="min-h-screen flex flex-col lg:flex-row animate-fade-in-up">
+    
+    <div class="hidden lg:flex w-1/2 bg-dark-950 relative overflow-hidden flex-col justify-between p-12 text-white">
+        <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+        <div class="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-primary-600 rounded-full blur-3xl opacity-20"></div>
+        <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-96 h-96 bg-blue-600 rounded-full blur-3xl opacity-20"></div>
+
+        <div class="relative z-10 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg shadow-primary-500/30">
+                <i class="fas fa-leaf text-white text-lg"></i>
+            </div>
+            <span class="font-bold text-2xl tracking-tight">FoodLoop</span>
+        </div>
+
+        <div class="relative z-10 max-w-lg">
+            <h2 class="text-4xl font-extrabold tracking-tight mb-6">Join the movement to end food waste.</h2>
+            <p class="text-lg text-gray-400 leading-relaxed mb-8">
+                "FoodLoop made it incredibly easy for our bakery to donate surplus bread. We've saved over 500 meals in just two months!"
+            </p>
+            <div class="flex items-center gap-4">
+                <div class="flex -space-x-2">
+                    <img class="w-10 h-10 rounded-full border-2 border-gray-900" src="https://ui-avatars.com/api/?name=Sarah+B&background=10b981&color=fff" alt="User">
+                    <img class="w-10 h-10 rounded-full border-2 border-gray-900" src="https://ui-avatars.com/api/?name=Mike+T&background=3b82f6&color=fff" alt="User">
+                    <img class="w-10 h-10 rounded-full border-2 border-gray-900" src="https://ui-avatars.com/api/?name=Anna+L&background=f59e0b&color=fff" alt="User">
                 </div>
-                <h1 class="text-3xl font-extrabold mb-2">Join FoodLoop Today</h1>
-                <p class="text-primary-100 text-lg">Start fighting food waste in your community</p>
+                <span class="text-sm font-bold text-gray-300">Join 2,000+ local heroes</span>
+            </div>
+        </div>
+
+        <div class="relative z-10 text-sm text-gray-500">
+            &copy; 2025 FoodLoop Inc.
+        </div>
+    </div>
+
+    <div class="w-full lg:w-1/2 bg-white flex flex-col justify-center p-6 md:p-12 lg:p-20">
+        <div class="max-w-md mx-auto w-full">
+            
+            <div class="text-center lg:text-left mb-10">
+                <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight mb-2">Create your account</h1>
+                <p class="text-gray-500">
+                    Already have an account? 
+                    <a href="{% url 'core:login' %}" class="text-primary-600 font-bold hover:text-primary-700 hover:underline">Sign in</a>
+                </p>
             </div>
 
-            <!-- Step Indicator -->
-            <div class="px-6 pt-6">
-                <div class="step-indicator">
-                    <div class="step active" id="step-1">
-                        <div class="step-number">1</div>
-                        <div class="step-label">Role</div>
+            <form method="post" class="space-y-6" x-data="{ role: 'donor' }">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg">
+                        {{ form.non_field_errors }}
                     </div>
-                    <div class="step" id="step-2">
-                        <div class="step-number">2</div>
-                        <div class="step-label">Account</div>
-                    </div>
-                    <div class="step" id="step-3">
-                        <div class="step-number">3</div>
-                        <div class="step-label">Details</div>
-                    </div>
-                    <div class="step" id="step-4">
-                        <div class="step-number">4</div>
-                        <div class="step-label">Complete</div>
+                {% endif %}
+
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-3">I want to...</label>
+                    <div class="grid grid-cols-2 gap-4">
+                        <label class="relative cursor-pointer group">
+                            <input type="radio" name="user_type" value="donor" class="peer sr-only" x-model="role">
+                            <div class="p-4 rounded-2xl border-2 border-gray-100 hover:border-primary-200 peer-checked:border-primary-600 peer-checked:bg-primary-50 transition-all text-center h-full">
+                                <div class="w-10 h-10 mx-auto rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-2 peer-checked:bg-primary-100 peer-checked:text-primary-600">
+                                    <i class="fas fa-hand-holding-heart text-xl"></i>
+                                </div>
+                                <span class="block font-bold text-gray-900">Donate Food</span>
+                                <span class="text-xs text-gray-500">I have surplus food</span>
+                            </div>
+                            <div class="absolute top-2 right-2 text-primary-600 opacity-0 peer-checked:opacity-100 transition-opacity">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                        </label>
+
+                        <label class="relative cursor-pointer group">
+                            <input type="radio" name="user_type" value="recipient" class="peer sr-only" x-model="role">
+                            <div class="p-4 rounded-2xl border-2 border-gray-100 hover:border-primary-200 peer-checked:border-primary-600 peer-checked:bg-primary-50 transition-all text-center h-full">
+                                <div class="w-10 h-10 mx-auto rounded-full bg-green-50 text-green-600 flex items-center justify-center mb-2 peer-checked:bg-primary-100 peer-checked:text-primary-600">
+                                    <i class="fas fa-utensils text-xl"></i>
+                                </div>
+                                <span class="block font-bold text-gray-900">Find Food</span>
+                                <span class="text-xs text-gray-500">I'm looking for meals</span>
+                            </div>
+                            <div class="absolute top-2 right-2 text-primary-600 opacity-0 peer-checked:opacity-100 transition-opacity">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                        </label>
                     </div>
                 </div>
-            </div>
 
-            <!-- Registration Form -->
-            <div class="p-6">
-                <form method="post" id="signupForm">
-                    {% csrf_token %}
-                    
-                    {% if form.non_field_errors %}
-                    <div class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg mb-6">
-                        <div class="flex items-start">
-                            <i class="fas fa-exclamation-circle mt-0.5 mr-2"></i>
-                            <div>
-                                {% for error in form.non_field_errors %}
-                                    <p>{{ error }}</p>
-                                {% endfor %}
-                            </div>
-                        </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">First Name</label>
+                        {{ form.first_name }}
                     </div>
-                    {% endif %}
-
-                    <!-- STEP 1: ROLE SELECTION -->
-                    <div class="space-y-6 mb-8 pb-8 border-b border-gray-200">
-                        <div>
-                            <label class="block text-lg font-bold text-gray-900 mb-4">
-                                <i class="fas fa-users text-primary-600 mr-2"></i>I want to join as a:
-                            </label>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <!-- Donor Option -->
-                                <div class="role-card bg-white rounded-xl border-2 p-6 {% if form.user_type.value == 'donor' %}selected{% endif %}" data-role="donor">
-                                    <label class="cursor-pointer">
-                                        <input type="radio" name="user_type" value="donor" required 
-                                               {% if form.user_type.value == 'donor' %}checked{% endif %}>
-                                        <div class="feature-icon mx-auto mb-4">
-                                            <i class="fas fa-donate"></i>
-                                        </div>
-                                        <h3 class="text-xl font-bold text-gray-900 mb-2 text-center">Food Donor</h3>
-                                        <p class="text-gray-600 text-sm text-center mb-4">
-                                            Share surplus food from your restaurant, cafe, or home with the community.
-                                        </p>
-                                        <ul class="space-y-2 text-sm">
-                                            <li class="flex items-start">
-                                                <i class="fas fa-check text-green-500 mr-2 mt-1"></i>
-                                                <span>Post food donations</span>
-                                            </li>
-                                            <li class="flex items-start">
-                                                <i class="fas fa-check text-green-500 mr-2 mt-1"></i>
-                                                <span>Help reduce waste</span>
-                                            </li>
-                                            <li class="flex items-start">
-                                                <i class="fas fa-check text-green-500 mr-2 mt-1"></i>
-                                                <span>Support your community</span>
-                                            </li>
-                                        </ul>
-                                    </label>
-                                </div>
-                                
-                                <!-- Recipient Option -->
-                                <div class="role-card bg-white rounded-xl border-2 p-6 {% if form.user_type.value == 'recipient' %}selected{% endif %}" data-role="recipient">
-                                    <label class="cursor-pointer">
-                                        <input type="radio" name="user_type" value="recipient" required
-                                               {% if form.user_type.value == 'recipient' %}checked{% endif %}>
-                                        <div class="feature-icon mx-auto mb-4">
-                                            <i class="fas fa-hands-helping"></i>
-                                        </div>
-                                        <h3 class="text-xl font-bold text-gray-900 mb-2 text-center">Food Recipient</h3>
-                                        <p class="text-gray-600 text-sm text-center mb-4">
-                                            Receive food donations for yourself, your family, or your organization.
-                                        </p>
-                                        <ul class="space-y-2 text-sm">
-                                            <li class="flex items-start">
-                                                <i class="fas fa-check text-green-500 mr-2 mt-1"></i>
-                                                <span>Claim food donations</span>
-                                            </li>
-                                            <li class="flex items-start">
-                                                <i class="fas fa-check text-green-500 mr-2 mt-1"></i>
-                                                <span>Save money on groceries</span>
-                                            </li>
-                                            <li class="flex items-start">
-                                                <i class="fas fa-check text-green-500 mr-2 mt-1"></i>
-                                                <span>Access fresh food</span>
-                                            </li>
-                                        </ul>
-                                    </label>
-                                </div>
-                            </div>
-                            {% if form.user_type.errors %}
-                                <p class="text-red-600 text-sm mt-2">{{ form.user_type.errors.0 }}</p>
-                            {% endif %}
-                        </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Last Name</label>
+                        {{ form.last_name }}
                     </div>
+                </div>
 
-                    <!-- STEP 2: ACCOUNT INFORMATION -->
-                    <div class="space-y-6 mb-8 pb-8 border-b border-gray-200">
-                        <h2 class="text-xl font-bold text-gray-900 flex items-center">
-                            <i class="fas fa-user-circle text-primary-600 mr-2"></i>
-                            Account Information
-                        </h2>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Username</label>
+                    {{ form.username }}
+                </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <!-- Username -->
-                            <div>
-                                <label for="id_username" class="block text-sm font-bold text-gray-700 mb-1">
-                                    Username <span class="text-red-500">*</span>
-                                </label>
-                                <input type="text" name="username" id="id_username" required
-                                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors {% if form.username.errors %}border-red-500{% endif %}"
-                                       value="{{ form.username.value|default:'' }}"
-                                       placeholder="Choose a unique username">
-                                {% if form.username.errors %}
-                                    <p class="text-red-600 text-sm mt-1">{{ form.username.errors.0 }}</p>
-                                {% else %}
-                                    <p class="text-gray-500 text-xs mt-1">This will be your public display name</p>
-                                {% endif %}
-                            </div>
-                            
-                            <!-- Email -->
-                            <div>
-                                <label for="id_email" class="block text-sm font-bold text-gray-700 mb-1">
-                                    Email Address <span class="text-red-500">*</span>
-                                </label>
-                                <input type="email" name="email" id="id_email" required
-                                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors {% if form.email.errors %}border-red-500{% endif %}"
-                                       value="{{ form.email.value|default:'' }}"
-                                       placeholder="your@email.com">
-                                {% if form.email.errors %}
-                                    <p class="text-red-600 text-sm mt-1">{{ form.email.errors.0 }}</p>
-                                {% else %}
-                                    <p class="text-gray-500 text-xs mt-1">We'll send a verification email</p>
-                                {% endif %}
-                            </div>
-                        </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Email</label>
+                    {{ form.email }}
+                </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <!-- Password -->
-                            <div>
-                                <label for="id_password1" class="block text-sm font-bold text-gray-700 mb-1">
-                                    Password <span class="text-red-500">*</span>
-                                </label>
-                                <input type="password" name="password1" id="id_password1" required
-                                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors {% if form.password1.errors %}border-red-500{% endif %}"
-                                       placeholder="Enter a strong password">
-                                {% if form.password1.errors %}
-                                    <p class="text-red-600 text-sm mt-1">{{ form.password1.errors.0 }}</p>
-                                {% endif %}
-                                <div class="mt-2">
-                                    <div class="password-strength bg-gray-200" id="passwordStrengthBar"></div>
-                                    <p class="text-xs text-gray-500 mt-1" id="passwordStrengthText">Password strength</p>
-                                </div>
-                            </div>
-                            
-                            <!-- Confirm Password -->
-                            <div>
-                                <label for="id_password2" class="block text-sm font-bold text-gray-700 mb-1">
-                                    Confirm Password <span class="text-red-500">*</span>
-                                </label>
-                                <input type="password" name="password2" id="id_password2" required
-                                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors {% if form.password2.errors %}border-red-500{% endif %}"
-                                       placeholder="Confirm your password">
-                                {% if form.password2.errors %}
-                                    <p class="text-red-600 text-sm mt-1">{{ form.password2.errors.0 }}</p>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- STEP 3: PERSONAL INFORMATION & PREFERENCES -->
-                    <div class="space-y-6 mb-8 pb-8 border-b border-gray-200">
-                        <h2 class="text-xl font-bold text-gray-900 flex items-center">
-                            <i class="fas fa-address-card text-primary-600 mr-2"></i>
-                            Personal Information
-                        </h2>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <!-- First Name -->
-                            <div>
-                                <label for="id_first_name" class="block text-sm font-medium text-gray-700 mb-1">
-                                    First Name
-                                </label>
-                                <input type="text" name="first_name" id="id_first_name"
-                                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-                                       value="{{ form.first_name.value|default:'' }}"
-                                       placeholder="John">
-                            </div>
-                            
-                            <!-- Last Name -->
-                            <div>
-                                <label for="id_last_name" class="block text-sm font-medium text-gray-700 mb-1">
-                                    Last Name
-                                </label>
-                                <input type="text" name="last_name" id="id_last_name"
-                                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-                                       value="{{ form.last_name.value|default:'' }}"
-                                       placeholder="Doe">
-                            </div>
-                        </div>
-
-                        <!-- Contact Information -->
-                        <div class="space-y-4">
-                            <h3 class="text-base font-bold text-gray-900 flex items-center border-b border-gray-200 pb-2">
-                                <i class="fas fa-phone text-blue-500 mr-2"></i>
-                                Contact Information
-                            </h3>
-
-                            <div>
-                                <label for="id_phone_number" class="block text-sm font-medium text-gray-700 mb-1">
-                                    Phone Number
-                                </label>
-                                <input type="tel" name="phone_number" id="id_phone_number"
-                                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors {% if form.phone_number.errors %}border-red-500{% endif %}"
-                                       value="{{ form.phone_number.value|default:'' }}"
-                                       placeholder="+254 712 345 678">
-                                {% if form.phone_number.errors %}
-                                    <p class="text-red-600 text-sm mt-1">{{ form.phone_number.errors.0 }}</p>
-                                {% else %}
-                                    <p class="text-gray-500 text-xs mt-1">Optional - for pickup coordination</p>
-                                {% endif %}
-                            </div>
-
-                            <div>
-                                <label for="id_address" class="block text-sm font-medium text-gray-700 mb-1">
-                                    Address
-                                </label>
-                                <textarea name="address" id="id_address" rows="2"
-                                          class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-                                          placeholder="Street address, City">{{ form.address.value|default:'' }}</textarea>
-                                <p class="text-gray-500 text-xs mt-1">Optional - helps show you relevant nearby donations</p>
-                            </div>
-                        </div>
-
-                        <!-- Dietary Preferences Section -->
-                        <div class="dietary-section">
-                            <h3 class="text-base font-bold text-gray-900 flex items-center mb-4 pb-2 border-b border-gray-300">
-                                <i class="fas fa-apple-alt text-green-500 mr-2"></i>
-                                Dietary Preferences
-                                <span class="ml-2 text-xs font-normal text-gray-500">(Optional - helps us match you with suitable food)</span>
-                            </h3>
-                            
-                            <div class="mb-4">
-                                <label class="block text-sm font-bold text-gray-700 mb-3">Dietary Restrictions</label>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                    {% for value, label in form.fields.dietary_restrictions.choices %}
-                                    <div class="dietary-checkbox" data-value="{{ value }}">
-                                        <label class="flex items-center cursor-pointer">
-                                            <input type="checkbox" name="dietary_restrictions" value="{{ value }}" 
-                                                   id="dietary_{{ value }}"
-                                                   class="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                                                   {% if value in form.dietary_restrictions.value %}checked{% endif %}>
-                                            <span class="ml-3 text-sm text-gray-700">{{ label }}</span>
-                                        </label>
-                                    </div>
-                                    {% endfor %}
-                                </div>
-                                <p class="text-gray-500 text-xs mt-2">
-                                    Select any dietary restrictions that apply. This helps us recommend suitable donations.
-                                </p>
-                            </div>
-
-                            <div class="mb-4">
-                                <label for="id_allergies" class="block text-sm font-medium text-gray-700 mb-1">
-                                    Food Allergies
-                                </label>
-                                <input type="text" name="allergies" id="id_allergies"
-                                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-                                       value="{{ form.allergies.value|default:'' }}"
-                                       placeholder="e.g., peanuts, shellfish, dairy">
-                                <p class="text-gray-500 text-xs mt-1">Separate multiple allergies with commas</p>
-                            </div>
-
-                            <div>
-                                <label for="id_nutrition_goals" class="block text-sm font-medium text-gray-700 mb-1">
-                                    Nutrition Goals
-                                </label>
-                                <select name="nutrition_goals" id="id_nutrition_goals"
-                                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors">
-                                    <option value="">Select your goal...</option>
-                                    {% for value, label in form.fields.nutrition_goals.choices %}
-                                        <option value="{{ value }}" {% if form.nutrition_goals.value == value %}selected{% endif %}>{{ label }}</option>
-                                    {% endfor %}
-                                </select>
-                                <p class="text-gray-500 text-xs mt-1">This helps us provide better food recommendations</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- STEP 4: TERMS AND SUBMISSION -->
-                    <div class="space-y-6">
-                        <!-- Terms Agreement -->
-                        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                            <label class="flex items-start cursor-pointer">
-                                <input type="checkbox" name="terms" id="id_terms" required
-                                       class="w-5 h-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500 mt-0.5 {% if form.terms.errors %}border-red-500{% endif %}">
-                                <span class="ml-3 text-sm text-gray-700">
-                                    I agree to the 
-                                    <a href="{% url 'core:terms' %}" target="_blank" class="text-primary-600 hover:text-primary-700 font-medium underline">Terms of Service</a> 
-                                    and 
-                                    <a href="{% url 'core:privacy' %}" target="_blank" class="text-primary-600 hover:text-primary-700 font-medium underline">Privacy Policy</a>
-                                </span>
-                            </label>
-                            {% if form.terms.errors %}
-                                <p class="text-red-600 text-sm mt-2 ml-8">{{ form.terms.errors.0 }}</p>
-                            {% endif %}
-                        </div>
-
-                        <!-- Submit Button -->
-                        <button type="submit" class="w-full bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-bold py-4 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center justify-center text-lg">
-                            <i class="fas fa-user-plus mr-2"></i>
-                            Create My Account
+                <div x-data="{ show: false }">
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Password</label>
+                    <div class="relative">
+                        <input :type="show ? 'text' : 'password'" name="password1" class="block w-full pr-10 rounded-xl border-gray-200 focus:border-primary-500 focus:ring-primary-500 text-sm py-3 transition-shadow" required placeholder="••••••••">
+                        <button type="button" @click="show = !show" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600">
+                            <i class="fas" :class="show ? 'fa-eye-slash' : 'fa-eye'"></i>
                         </button>
-
-                        <!-- Login Link -->
-                        <div class="text-center pt-4 border-t border-gray-200">
-                            <p class="text-gray-600">
-                                Already have an account? 
-                                <a href="{% url 'core:login' %}" class="text-primary-600 hover:text-primary-700 font-bold underline">
-                                    Sign in here
-                                </a>
-                            </p>
-                        </div>
                     </div>
-                </form>
-            </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Confirm Password</label>
+                    <input type="password" name="password2" class="block w-full rounded-xl border-gray-200 focus:border-primary-500 focus:ring-primary-500 text-sm py-3 transition-shadow" required placeholder="••••••••">
+                </div>
+
+                <div class="flex items-start">
+                    <div class="flex items-center h-5">
+                        <input id="terms" name="terms" type="checkbox" required class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded cursor-pointer">
+                    </div>
+                    <div class="ml-3 text-sm">
+                        <label for="terms" class="font-medium text-gray-700 cursor-pointer">
+                            I agree to the <a href="#" class="text-primary-600 hover:underline">Terms</a> and <a href="#" class="text-primary-600 hover:underline">Privacy Policy</a>
+                        </label>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-primary-500/30 text-sm font-bold text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all transform hover:-translate-y-0.5">
+                    Create Account
+                </button>
+            </form>
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block scripts %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Role Selection
-    const roleCards = document.querySelectorAll('.role-card');
-    roleCards.forEach(card => {
-        card.addEventListener('click', function() {
-            roleCards.forEach(c => c.classList.remove('selected'));
-            this.classList.add('selected');
-            const radio = this.querySelector('input[type="radio"]');
-            if (radio) radio.checked = true;
-        });
-    });
-
-    // Password Strength Indicator
-    const password1 = document.getElementById('id_password1');
-    const strengthBar = document.getElementById('passwordStrengthBar');
-    const strengthText = document.getElementById('passwordStrengthText');
-
-    if (password1 && strengthBar && strengthText) {
-        password1.addEventListener('input', function() {
-            const strength = calculatePasswordStrength(this.value);
-            updateStrengthIndicator(strength);
-        });
+<style>
+    /* Ensure form inputs have specific height and padding */
+    input[type="text"], input[type="email"], input[type="password"] {
+        @apply bg-gray-50 focus:bg-white;
     }
-
-    function calculatePasswordStrength(password) {
-        let strength = 0;
-        if (password.length >= 8) strength++;
-        if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength++;
-        if (password.match(/\d/)) strength++;
-        if (password.match(/[^a-zA-Z\d]/)) strength++;
-        return strength;
-    }
-
-    function updateStrengthIndicator(strength) {
-        const colors = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-blue-500', 'bg-green-500'];
-        const messages = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong'];
-        const widths = ['20%', '40%', '60%', '80%', '100%'];
-        
-        strengthBar.className = `password-strength ${colors[strength]}`;
-        strengthBar.style.width = widths[strength];
-        strengthText.textContent = `Password strength: ${messages[strength]}`;
-        strengthText.className = `text-xs mt-1 ${colors[strength].replace('bg-', 'text-')}`;
-    }
-
-    // Dietary Preferences Interaction
-    const dietaryCheckboxes = document.querySelectorAll('.dietary-checkbox');
-    dietaryCheckboxes.forEach(checkbox => {
-        const input = checkbox.querySelector('input[type="checkbox"]');
-        
-        checkbox.addEventListener('click', function(e) {
-            if (e.target.type !== 'checkbox') {
-                input.checked = !input.checked;
-                updateDietaryCheckboxStyle(checkbox);
-            }
-        });
-        
-        input.addEventListener('change', function() {
-            updateDietaryCheckboxStyle(checkbox);
-        });
-        
-        // Initialize
-        updateDietaryCheckboxStyle(checkbox);
-    });
-
-    function updateDietaryCheckboxStyle(checkbox) {
-        const input = checkbox.querySelector('input[type="checkbox"]');
-        if (input.checked) {
-            checkbox.classList.add('checked');
-        } else {
-            checkbox.classList.remove('checked');
-        }
-    }
-
-    // Real-time password confirmation check
-    const password2 = document.getElementById('id_password2');
-    if (password1 && password2) {
-        password2.addEventListener('input', function() {
-            if (password1.value !== password2.value && password2.value.length > 0) {
-                password2.classList.add('border-red-500');
-                password2.classList.remove('border-gray-300');
-            } else {
-                password2.classList.remove('border-red-500');
-                password2.classList.add('border-gray-300');
-            }
-        });
-    }
-
-    // Email format validation
-    const emailField = document.getElementById('id_email');
-    if (emailField) {
-        emailField.addEventListener('blur', function() {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (this.value && !emailRegex.test(this.value)) {
-                this.classList.add('border-red-500');
-            } else {
-                this.classList.remove('border-red-500');
-            }
-        });
-    }
-
-    // Phone number validation
-    const phoneField = document.getElementById('id_phone_number');
-    if (phoneField) {
-        phoneField.addEventListener('blur', function() {
-            if (this.value && !this.value.match(/^[\+]?[0-9\s\-\(\)]{10,}$/)) {
-                this.classList.add('border-red-500');
-            } else {
-                this.classList.remove('border-red-500');
-            }
-        });
-    }
-});
-</script>
+</style>
 {% endblock %}

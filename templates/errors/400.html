@@ -1,19 +1,27 @@
 {% extends 'base/base.html' %}
+{% load static %}
 
-{% block title %}Page Not Found - FoodLoop{% endblock %}
+{% block title %}Bad Request - FoodLoop{% endblock %}
 
 {% block content %}
-<div class="min-h-[70vh] flex flex-col items-center justify-center text-center px-4">
-    <div class="bg-gray-100 p-6 rounded-full mb-6">
-        <i class="fas fa-search text-6xl text-gray-400"></i>
+<div class="min-h-[60vh] flex flex-col items-center justify-center text-center px-4 py-12 animate-fade-in-up">
+    
+    <div class="relative mb-8">
+        <div class="absolute inset-0 bg-gray-200 rounded-full blur-3xl opacity-50 transform scale-150"></div>
+        <div class="relative bg-white p-6 rounded-3xl shadow-xl border border-gray-100">
+            <i class="fas fa-exclamation text-6xl text-gray-400"></i>
+        </div>
     </div>
-    <h1 class="text-6xl font-extrabold text-gray-900 mb-4">400</h1>
-    <h2 class="text-2xl font-bold text-gray-800 mb-2">Bad Request</h2>
-    <p class="text-gray-500 max-w-md mb-8">
-        Oops! The request could not be understood by the server due to malformed syntax.
+
+    <h1 class="text-6xl font-extrabold text-gray-900 mb-2 tracking-tight">400</h1>
+    <h2 class="text-2xl font-bold text-gray-800 mb-4">Bad Request</h2>
+    
+    <p class="text-gray-500 max-w-md mb-8 leading-relaxed text-lg">
+        The server couldn't understand your request. This usually happens with invalid data or broken links.
     </p>
-    <a href="{% url 'core:home' %}" class="bg-primary-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-primary-700 transition-all shadow-lg hover:shadow-primary-500/30">
-        Back to Home
+    
+    <a href="{% url 'core:home' %}" class="px-8 py-3 bg-gray-900 text-white rounded-xl font-bold hover:bg-black transition-all shadow-lg">
+        Return Home
     </a>
 </div>
 {% endblock %}

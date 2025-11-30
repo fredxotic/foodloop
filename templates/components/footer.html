@@ -1,179 +1,61 @@
 {% load static %}
 
-<footer class="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white border-t border-gray-700">
-    <div class="container mx-auto px-4 py-12">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+<footer class="bg-gray-900 text-white border-t border-gray-800 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
             
             <div class="space-y-4">
-                <div class="flex items-center space-x-3">
-                    <div class="bg-gradient-to-br from-primary-500 to-primary-700 p-2 rounded-lg">
-                        <i class="fas fa-leaf text-white text-2xl"></i>
+                <a href="/" class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg shadow-primary-500/20">
+                        <i class="fas fa-leaf text-white"></i>
                     </div>
-                    <span class="text-2xl font-bold text-white">FoodLoop</span>
-                </div>
+                    <span class="font-bold text-2xl tracking-tight">FoodLoop</span>
+                </a>
                 <p class="text-gray-400 text-sm leading-relaxed">
-                    Connecting food donors with those in need. Together, we're reducing waste and feeding communities.
+                    Connecting surplus food with communities in need. Join us in building a zero-waste future.
                 </p>
-                
-                <div class="flex space-x-3">
-                    <a href="#" class="w-10 h-10 bg-gray-800 hover:bg-primary-600 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110" aria-label="Facebook">
-                        <i class="fab fa-facebook-f"></i>
-                    </a>
-                    <a href="#" class="w-10 h-10 bg-gray-800 hover:bg-primary-600 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110" aria-label="Twitter">
-                        <i class="fab fa-twitter"></i>
-                    </a>
-                    <a href="#" class="w-10 h-10 bg-gray-800 hover:bg-primary-600 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110" aria-label="Instagram">
-                        <i class="fab fa-instagram"></i>
-                    </a>
-                    <a href="#" class="w-10 h-10 bg-gray-800 hover:bg-primary-600 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110" aria-label="LinkedIn">
-                        <i class="fab fa-linkedin-in"></i>
-                    </a>
+                <div class="flex gap-4">
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors"><i class="fab fa-twitter text-xl"></i></a>
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors"><i class="fab fa-instagram text-xl"></i></a>
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors"><i class="fab fa-linkedin text-xl"></i></a>
                 </div>
             </div>
 
             <div>
-                <h3 class="text-lg font-semibold mb-4 text-white">Quick Links</h3>
-                <ul class="space-y-2">
-                    <li>
-                        <a href="{% url 'core:home' %}" class="text-gray-400 hover:text-primary-400 transition-colors duration-200 flex items-center group">
-                            <i class="fas fa-chevron-right text-xs mr-2 group-hover:translate-x-1 transition-transform"></i>
-                            Home
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{% url 'core:about' %}" class="text-gray-400 hover:text-primary-400 transition-colors duration-200 flex items-center group">
-                            <i class="fas fa-chevron-right text-xs mr-2 group-hover:translate-x-1 transition-transform"></i>
-                            About Us
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{% url 'core:search_donations' %}" class="text-gray-400 hover:text-primary-400 transition-colors duration-200 flex items-center group">
-                            <i class="fas fa-chevron-right text-xs mr-2 group-hover:translate-x-1 transition-transform"></i>
-                            Browse Donations
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{% url 'core:contact' %}" class="text-gray-400 hover:text-primary-400 transition-colors duration-200 flex items-center group">
-                            <i class="fas fa-chevron-right text-xs mr-2 group-hover:translate-x-1 transition-transform"></i>
-                            Contact Us
-                        </a>
-                    </li>
+                <h3 class="font-bold text-white mb-4 tracking-wide uppercase text-xs">Platform</h3>
+                <ul class="space-y-3 text-sm text-gray-400">
+                    <li><a href="{% url 'core:home' %}" class="hover:text-primary-400 transition-colors">Home</a></li>
+                    <li><a href="{% url 'core:search_donations' %}" class="hover:text-primary-400 transition-colors">Browse Food</a></li>
+                    <li><a href="{% url 'core:map_view' %}" class="hover:text-primary-400 transition-colors">Live Map</a></li>
+                    <li><a href="{% url 'core:about' %}" class="hover:text-primary-400 transition-colors">About Us</a></li>
                 </ul>
             </div>
 
             <div>
-                <h3 class="text-lg font-semibold mb-4 text-white">For Users</h3>
-                <ul class="space-y-2">
-                    {% if user.is_authenticated %}
-                        <li>
-                            <a href="{% url 'core:dashboard' %}" 
-                               class="text-gray-400 hover:text-primary-400 transition-colors duration-200 flex items-center group">
-                                <i class="fas fa-chevron-right text-xs mr-2 group-hover:translate-x-1 transition-transform"></i>
-                                Dashboard
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{% url 'core:profile' %}" class="text-gray-400 hover:text-primary-400 transition-colors duration-200 flex items-center group">
-                                <i class="fas fa-chevron-right text-xs mr-2 group-hover:translate-x-1 transition-transform"></i>
-                                My Profile
-                            </a>
-                        </li>
-                        {% if user.profile.user_type == 'donor' %}
-                        <li>
-                            <a href="{% url 'core:create_donation' %}" class="text-gray-400 hover:text-primary-400 transition-colors duration-200 flex items-center group">
-                                <i class="fas fa-chevron-right text-xs mr-2 group-hover:translate-x-1 transition-transform"></i>
-                                Create Donation
-                            </a>
-                        </li>
-                        {% endif %}
-                        <li>
-                            <a href="{% url 'core:map_view' %}" class="text-gray-400 hover:text-primary-400 transition-colors duration-200 flex items-center group">
-                                <i class="fas fa-chevron-right text-xs mr-2 group-hover:translate-x-1 transition-transform"></i>
-                                Map View
-                            </a>
-                        </li>
-                    {% else %}
-                        <li>
-                            <a href="{% url 'core:login' %}" class="text-gray-400 hover:text-primary-400 transition-colors duration-200 flex items-center group">
-                                <i class="fas fa-chevron-right text-xs mr-2 group-hover:translate-x-1 transition-transform"></i>
-                                Login
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{% url 'core:signup' %}" class="text-gray-400 hover:text-primary-400 transition-colors duration-200 flex items-center group">
-                                <i class="fas fa-chevron-right text-xs mr-2 group-hover:translate-x-1 transition-transform"></i>
-                                Sign Up
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{% url 'core:search_donations' %}" class="text-gray-400 hover:text-primary-400 transition-colors duration-200 flex items-center group">
-                                <i class="fas fa-chevron-right text-xs mr-2 group-hover:translate-x-1 transition-transform"></i>
-                                Find Food
-                            </a>
-                        </li>
-                    {% endif %}
+                <h3 class="font-bold text-white mb-4 tracking-wide uppercase text-xs">Support</h3>
+                <ul class="space-y-3 text-sm text-gray-400">
+                    <li><a href="{% url 'core:contact' %}" class="hover:text-primary-400 transition-colors">Contact</a></li>
+                    <li><a href="{% url 'core:privacy' %}" class="hover:text-primary-400 transition-colors">Privacy Policy</a></li>
+                    <li><a href="{% url 'core:terms' %}" class="hover:text-primary-400 transition-colors">Terms of Service</a></li>
                 </ul>
             </div>
 
             <div>
-                <h3 class="text-lg font-semibold mb-4 text-white">Get In Touch</h3>
-                <ul class="space-y-3">
-                    <li class="flex items-start space-x-3 text-gray-400">
-                        <i class="fas fa-map-marker-alt text-primary-500 mt-1"></i>
-                        <span class="text-sm">123 Food Loop Street<br>City, State 12345</span>
-                    </li>
-                    <li class="flex items-center space-x-3 text-gray-400">
-                        <i class="fas fa-phone text-primary-500"></i>
-                        <a href="tel:+1234567890" class="text-sm hover:text-primary-400 transition-colors">
-                            +1 (234) 567-890
-                        </a>
-                    </li>
-                    <li class="flex items-center space-x-3 text-gray-400">
-                        <i class="fas fa-envelope text-primary-500"></i>
-                        <a href="mailto:info@foodloop.com" class="text-sm hover:text-primary-400 transition-colors">
-                            info@foodloop.com
-                        </a>
-                    </li>
-                </ul>
-
-                <div class="mt-6">
-                    <h4 class="text-sm font-semibold mb-2 text-white">Newsletter</h4>
-                    <form class="flex" onsubmit="event.preventDefault(); showToast('Thanks for subscribing!', 'success');">
-                        <input type="email" 
-                               placeholder="Your email" 
-                               required
-                               class="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded-l-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-primary-500">
-                        <button type="submit" 
-                                class="px-4 py-2 bg-primary-600 hover:bg-primary-700 rounded-r-lg transition-colors duration-200">
-                            <i class="fas fa-paper-plane"></i>
-                        </button>
-                    </form>
-                </div>
+                <h3 class="font-bold text-white mb-4 tracking-wide uppercase text-xs">Stay Updated</h3>
+                <form class="flex flex-col gap-2">
+                    <input type="email" placeholder="Enter your email" class="bg-gray-800 border border-gray-700 text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 placeholder-gray-500">
+                    <button type="button" class="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-2.5 px-4 rounded-lg transition-colors text-sm shadow-lg shadow-primary-900/20">
+                        Subscribe
+                    </button>
+                </form>
             </div>
         </div>
-    </div>
 
-    <div class="border-t border-gray-800">
-        <div class="container mx-auto px-4 py-6">
-            <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-                
-                <div class="text-gray-400 text-sm text-center md:text-left">
-                    &copy; {{ current_year|default:"2025" }} FoodLoop. All rights reserved. 
-                    <span class="hidden md:inline">|</span>
-                    <br class="md:hidden">
-                    Fighting food waste, feeding communities.
-                </div>
-
-                <div class="flex flex-wrap justify-center gap-4 text-sm">
-                    <a href="{% url 'core:privacy' %}" class="text-gray-400 hover:text-primary-400 transition-colors duration-200">
-                        Privacy Policy
-                    </a>
-                    <span class="text-gray-700">|</span>
-                    <a href="{% url 'core:terms' %}" class="text-gray-400 hover:text-primary-400 transition-colors duration-200">
-                        Terms of Service
-                    </a>
-                </div>
-            </div>
+        <div class="border-t border-gray-800 mt-12 pt-8 text-center md:text-left flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
+            <p>&copy; 2025 FoodLoop. All rights reserved.</p>
+            <p class="mt-2 md:mt-0 flex items-center gap-1">
+                Made with <i class="fas fa-heart text-red-500 mx-1"></i> in Nairobi
+            </p>
         </div>
     </div>
 </footer>
