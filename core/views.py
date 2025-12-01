@@ -259,30 +259,41 @@ def donation_detail_view(request, donation_id):
         )
         
         profile = request.user.profile
-        is_donor = donation.donor == request.user
-        is_recipient = donation.recipient == request.user
+        
+        # 1. Who is the user? (Role)
+        user_is_donor = profile.user_type == UserProfile.DONOR
+        user_is_recipient = profile.user_type == UserProfile.RECIPIENT
+        
+        # 2. What is their relationship to THIS donation?
+        is_owner = donation.donor == request.user
+        is_assignee = donation.recipient == request.user
+        
+        # 3. Can they claim it?
         can_claim = (
-            profile.user_type == UserProfile.RECIPIENT and
+            user_is_recipient and
             donation.status == Donation.AVAILABLE and
             not donation.is_expired() and
             profile.email_verified
         )
         
+        # 4. Can they rate it?
         can_rate = False
         if donation.status == Donation.COMPLETED:
-            if is_donor and donation.recipient:
+            if is_owner and donation.recipient:
                 can_rate = not Rating.objects.filter(
                     rating_user=request.user, donation=donation
                 ).exists()
-            elif is_recipient:
+            elif is_assignee:
                 can_rate = not Rating.objects.filter(
                     rating_user=request.user, donation=donation
                 ).exists()
         
         context = {
             'donation': donation,
-            'is_donor': is_donor,
-            'is_recipient': is_recipient,
+            'is_owner': is_owner,           # Is this MY donation?
+            'is_assignee': is_assignee,     # Did I claim this?
+            'user_is_donor': user_is_donor, # Am I a Donor type?
+            'user_is_recipient': user_is_recipient, # Am I a Recipient type?
             'can_claim': can_claim,
             'can_rate': can_rate,
             'is_expired': donation.is_expired(),
@@ -670,35 +681,38 @@ def mark_all_notifications_read_view(request):
 @profile_required
 def map_view(request):
     """Interactive map of donations"""
-    donations = Donation.objects.filter(
-        status=Donation.AVAILABLE,
-        latitude__isnull=False,
-        longitude__isnull=False
-    ).select_related('donor', 'donor__profile').values(
-        'id', 'title', 'food_category', 'latitude', 
-        'longitude', 'nutrition_score', 'expiry_datetime'
-    )[:100]
-    
-    donations_list = list(donations)
-    active_donations = [
-        d for d in donations_list 
-        if d['expiry_datetime'] > timezone.now()
-    ]
-    
-    profile = request.user.profile
-    user_location = None
-    if profile.has_valid_coordinates:
-        user_location = {
-            'lat': float(profile.latitude),
-            'lng': float(profile.longitude)
+    try:
+        donations = Donation.objects.filter(
+            status=Donation.AVAILABLE,
+            latitude__isnull=False,
+            longitude__isnull=False,
+            expiry_datetime__gt=timezone.now()  # Only non-expired
+        ).select_related('donor', 'donor__profile').values(
+            'id', 'title', 'food_category', 'latitude', 
+            'longitude', 'nutrition_score', 'expiry_datetime'
+        )[:100]
+        
+        donations_list = list(donations)
+        
+        profile = request.user.profile
+        user_location = None
+        if profile.has_valid_coordinates:
+            user_location = {
+                'lat': float(profile.latitude),
+                'lng': float(profile.longitude)
+            }
+        
+        context = {
+            'donations': donations_list,
+            'user_location': user_location,
         }
-    
-    context = {
-        'donations': active_donations,
-        'user_location': user_location,
-    }
-    
-    return render(request, 'map/map_view.html', context)
+        
+        return render(request, 'map/map_view.html', context)
+        
+    except Exception as e:
+        logger.error(f"Map view error: {e}")
+        messages.error(request, 'Error loading map. Please try again.')
+        return redirect('core:dashboard')
 
 
 # ============================================================================
@@ -715,12 +729,18 @@ def analytics_view(request):
     
     days_map = {'7d': 7, '30d': 30, '90d': 90}
     days = days_map.get(date_range, 30)
-    trends = AnalyticsService.get_donation_trends(days)
+    
+    # PASS THE USER HERE
+    trends = AnalyticsService.get_donation_trends(days, user=request.user)
+    
+    date_ranges = ['7d', '30d', '90d']
     
     context = {
         'analytics': analytics,
         'trends': trends,
         'date_range': date_range,
+        'date_ranges': date_ranges,
+        'is_donor': request.user.profile.user_type == 'donor', # Helper flag
     }
     
     return render(request, 'analytics/nutrition_analytics.html', context)

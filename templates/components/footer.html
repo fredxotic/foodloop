@@ -1,61 +1,27 @@
 {% load static %}
 
-<footer class="bg-gray-900 text-white border-t border-gray-800 mt-auto">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
+<footer class="mt-auto border-t border-slate-200 bg-white/50 backdrop-blur-sm">
+    <div class="max-w-7xl mx-auto px-6 py-8 md:py-12">
+        <div class="flex flex-col md:flex-row justify-between items-center gap-6">
             
-            <div class="space-y-4">
-                <a href="/" class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg shadow-primary-500/20">
-                        <i class="fas fa-leaf text-white"></i>
-                    </div>
-                    <span class="font-bold text-2xl tracking-tight">FoodLoop</span>
-                </a>
-                <p class="text-gray-400 text-sm leading-relaxed">
-                    Connecting surplus food with communities in need. Join us in building a zero-waste future.
-                </p>
-                <div class="flex gap-4">
-                    <a href="#" class="text-gray-400 hover:text-white transition-colors"><i class="fab fa-twitter text-xl"></i></a>
-                    <a href="#" class="text-gray-400 hover:text-white transition-colors"><i class="fab fa-instagram text-xl"></i></a>
-                    <a href="#" class="text-gray-400 hover:text-white transition-colors"><i class="fab fa-linkedin text-xl"></i></a>
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-gradient-to-tr from-brand-600 to-brand-400 rounded-lg flex items-center justify-center text-white text-xs shadow-sm">
+                    <i class="fas fa-leaf"></i>
                 </div>
+                <span class="font-display font-bold text-lg text-slate-900 tracking-tight">FoodLoop</span>
             </div>
 
-            <div>
-                <h3 class="font-bold text-white mb-4 tracking-wide uppercase text-xs">Platform</h3>
-                <ul class="space-y-3 text-sm text-gray-400">
-                    <li><a href="{% url 'core:home' %}" class="hover:text-primary-400 transition-colors">Home</a></li>
-                    <li><a href="{% url 'core:search_donations' %}" class="hover:text-primary-400 transition-colors">Browse Food</a></li>
-                    <li><a href="{% url 'core:map_view' %}" class="hover:text-primary-400 transition-colors">Live Map</a></li>
-                    <li><a href="{% url 'core:about' %}" class="hover:text-primary-400 transition-colors">About Us</a></li>
-                </ul>
+            <div class="flex flex-wrap justify-center gap-6 text-sm font-medium text-slate-500">
+                <a href="{% url 'core:about' %}" class="hover:text-brand-600 transition-colors">About</a>
+                <a href="{% url 'core:privacy' %}" class="hover:text-brand-600 transition-colors">Privacy</a>
+                <a href="{% url 'core:terms' %}" class="hover:text-brand-600 transition-colors">Terms</a>
+                <a href="{% url 'core:contact' %}" class="hover:text-brand-600 transition-colors">Contact</a>
             </div>
 
-            <div>
-                <h3 class="font-bold text-white mb-4 tracking-wide uppercase text-xs">Support</h3>
-                <ul class="space-y-3 text-sm text-gray-400">
-                    <li><a href="{% url 'core:contact' %}" class="hover:text-primary-400 transition-colors">Contact</a></li>
-                    <li><a href="{% url 'core:privacy' %}" class="hover:text-primary-400 transition-colors">Privacy Policy</a></li>
-                    <li><a href="{% url 'core:terms' %}" class="hover:text-primary-400 transition-colors">Terms of Service</a></li>
-                </ul>
+            <div class="text-sm text-slate-400 flex items-center gap-1">
+                &copy; 2025 FoodLoop. 
+                <span class="hidden lg:inline">Made with <i class="fas fa-heart text-red-400 text-xs mx-0.5"></i> by fredxotic</span>
             </div>
-
-            <div>
-                <h3 class="font-bold text-white mb-4 tracking-wide uppercase text-xs">Stay Updated</h3>
-                <form class="flex flex-col gap-2">
-                    <input type="email" placeholder="Enter your email" class="bg-gray-800 border border-gray-700 text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 placeholder-gray-500">
-                    <button type="button" class="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-2.5 px-4 rounded-lg transition-colors text-sm shadow-lg shadow-primary-900/20">
-                        Subscribe
-                    </button>
-                </form>
-            </div>
-        </div>
-
-        <div class="border-t border-gray-800 mt-12 pt-8 text-center md:text-left flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
-            <p>&copy; 2025 FoodLoop. All rights reserved.</p>
-            <p class="mt-2 md:mt-0 flex items-center gap-1">
-                Made with <i class="fas fa-heart text-red-500 mx-1"></i> in Nairobi
-            </p>
         </div>
     </div>
 </footer>

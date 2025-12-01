@@ -1,96 +1,76 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-gray-50/50">
+<html lang="en" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="FoodLoop - Connecting surplus food with communities in need.">
-    {% if user.is_authenticated %}
-    <meta name="user-id" content="{{ user.id }}">
-    {% endif %}
     <title>{% block title %}FoodLoop{% endblock %}</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+                    fontFamily: { 
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Outfit', 'sans-serif'],
+                    },
                     colors: {
-                        primary: { 
-                            50: '#ecfdf5', 100: '#d1fae5', 200: '#a7f3d0', 
-                            300: '#6ee7b7', 400: '#34d399', 500: '#10b981', 
+                        brand: { 
+                            50: '#f2fcf5', 100: '#e1f8e8', 200: '#c3eed2', 
+                            300: '#94e0b3', 400: '#5ac990', 500: '#34d399', 
                             600: '#059669', 700: '#047857', 800: '#065f46', 900: '#064e3b' 
                         },
-                        dark: { 800: '#1f2937', 900: '#111827', 950: '#030712' }
+                        earth: { 500: '#c2410c' }
                     },
-                    boxShadow: {
-                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
-                        'glow': '0 0 15px rgba(16, 185, 129, 0.3)'
+                    backgroundImage: {
+                        'mesh': "radial-gradient(at 0% 0%, hsla(152,100%,93%,1) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(128,100%,96%,1) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(152,100%,93%,1) 0, transparent 50%)",
                     }
                 }
             }
         }
     </script>
-    
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
-    
-    <link href="{% static 'css/styles.css' %}" rel="stylesheet">
-    {% block extra_css %}{% endblock %}
 </head>
-<body class="h-full overflow-hidden text-gray-600 antialiased selection:bg-primary-500 selection:text-white" x-data="{ sidebarOpen: false }">
 
-    <div id="toast-container" class="fixed top-6 right-6 z-[100] space-y-4 pointer-events-none">
+<body class="h-full bg-slate-50 font-sans text-slate-800 bg-mesh bg-fixed selection:bg-brand-500 selection:text-white" x-data="{ sidebarOpen: false }">
+
+    <div class="fixed top-24 right-6 z-[60] flex flex-col gap-3 pointer-events-none">
         {% if messages %}
             {% for message in messages %}
-                <div class="pointer-events-auto bg-white border-l-4 {% if message.tags == 'error' %}border-red-500 text-red-700{% else %}border-primary-500 text-primary-700{% endif %} shadow-xl rounded-lg p-4 flex items-start gap-3 transform transition-all duration-300 animate-slide-in-right">
-                    <i class="fas {% if message.tags == 'error' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %} mt-0.5"></i>
-                    <span class="font-medium text-sm">{{ message }}</span>
+                <div class="pointer-events-auto glass bg-white/90 p-4 rounded-2xl shadow-xl border-l-4 {% if message.tags == 'error' %}border-red-500 text-red-600{% else %}border-brand-500 text-brand-800{% endif %} flex items-center gap-3 transform transition-all duration-500 translate-x-0" x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)">
+                    <i class="fas {% if message.tags == 'error' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %} text-xl"></i>
+                    <span class="font-medium">{{ message }}</span>
                 </div>
             {% endfor %}
         {% endif %}
     </div>
 
-    <div class="flex h-full w-full">
-        
+    <div class="flex h-full overflow-hidden">
         {% if user.is_authenticated %}
             {% include 'components/sidebar.html' %}
         {% endif %}
 
-        <div class="flex-1 flex flex-col h-full min-w-0 bg-gray-50/50 relative overflow-hidden">
+        <div class="flex-1 flex flex-col h-full min-w-0 overflow-hidden relative">
             
             {% include 'components/navbar.html' %}
 
-            <main class="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth p-4 md:p-6 lg:p-8" id="main-content">
-                <div id="page-loader" class="hidden fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center transition-opacity duration-300">
-                    <div class="flex flex-col items-center">
-                        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600 mb-3"></div>
-                        <span class="text-sm font-medium text-primary-700">Loading...</span>
-                    </div>
-                </div>
-
-                <div class="max-w-[1600px] mx-auto w-full">
-                    {% block content %}{% endblock %}
-                </div>
+            <main class="flex-1 overflow-y-auto p-4 md:p-8 lg:p-10 scroll-smooth relative z-0">
+                {% block content %}{% endblock %}
                 
-                <div class="mt-12">
-                    {% include 'components/footer.html' %}
-                </div>
+                {% include 'components/footer.html' %}
             </main>
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    {% if user.is_authenticated %}
-    <script src="{% static 'js/notifications.js' %}"></script>
-    {% endif %}
-    <script src="{% static 'js/scripts.js' %}"></script>
+    <div x-show="sidebarOpen" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 lg:hidden" @click="sidebarOpen = false" x-transition.opacity></div>
+
     {% block scripts %}{% endblock %}
 </body>
 </html>

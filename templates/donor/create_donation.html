@@ -1,187 +1,157 @@
 {% extends 'base/base.html' %}
 {% load static %}
 
-{% block title %}New Donation - FoodLoop{% endblock %}
+{% block title %}Publish Donation - FoodLoop{% endblock %}
 
 {% block content %}
-<div class="space-y-6 animate-fade-in-up">
+<div class="max-w-4xl mx-auto py-8 animate-fade-in-up">
     
-    <div class="flex items-center justify-between">
-        <div>
-            <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">Create Donation</h1>
-            <p class="text-gray-500 mt-1">Share surplus food with your community.</p>
-        </div>
-        <a href="{% url 'core:dashboard' %}" class="text-sm font-bold text-gray-500 hover:text-gray-900 transition-colors">
-            Cancel
+    <div class="mb-8">
+        <a href="{% url 'core:dashboard' %}" class="inline-flex items-center text-sm font-bold text-slate-400 hover:text-slate-600 mb-4 transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
         </a>
+        <h1 class="text-3xl lg:text-4xl font-display font-extrabold text-slate-900">Publish Donation</h1>
+        <p class="text-slate-500 mt-2">Fill in the details to help recipients find your food.</p>
     </div>
 
-    <form method="post" enctype="multipart/form-data" class="grid grid-cols-1 lg:grid-cols-3 gap-8" x-data="imagePreview()">
+    <form method="post" enctype="multipart/form-data" class="space-y-8" x-data="{ imagePreview: null }">
         {% csrf_token %}
-        
-        <div class="lg:col-span-2 space-y-6">
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
-            <div class="bg-white rounded-2xl shadow-soft border border-gray-100 p-6 md:p-8">
-                <h3 class="text-lg font-bold text-gray-900 mb-6 flex items-center">
-                    <div class="w-8 h-8 rounded-lg bg-primary-100 text-primary-600 flex items-center justify-center mr-3 text-sm">1</div>
-                    Food Details
-                </h3>
+            <div class="lg:col-span-2 space-y-8">
                 
-                <div class="space-y-6">
-                    <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-2">Title</label>
-                        {{ form.title }}
-                        {% if form.title.errors %}
-                            <p class="mt-1 text-sm text-red-600">{{ form.title.errors.0 }}</p>
-                        {% endif %}
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">Category</label>
-                            {{ form.food_category }}
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">Quantity (Items/Servings)</label>
-                            {{ form.quantity }}
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-2">Description</label>
-                        {{ form.description }}
-                        <p class="mt-2 text-xs text-gray-400">Describe condition, packaging, and any handling instructions.</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-2xl shadow-soft border border-gray-100 p-6 md:p-8">
-                <h3 class="text-lg font-bold text-gray-900 mb-6 flex items-center">
-                    <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center mr-3 text-sm">2</div>
-                    Photos
-                </h3>
-
-                <div class="flex items-start gap-6">
-                    <div class="w-32 h-32 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden relative">
-                        <template x-if="!imageUrl">
-                            <i class="fas fa-camera text-gray-300 text-2xl"></i>
-                        </template>
-                        <template x-if="imageUrl">
-                            <img :src="imageUrl" class="w-full h-full object-cover">
-                        </template>
-                    </div>
-                    <div class="flex-1">
-                        <label class="block text-sm font-bold text-gray-700 mb-2">Upload Image</label>
-                        <input type="file" name="image" @change="fileChosen" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 transition-colors cursor-pointer"/>
-                        <p class="mt-2 text-xs text-gray-400">PNG, JPG up to 5MB. Photos help recipients find your donation faster.</p>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-        <div class="space-y-6">
-            
-            <div class="bg-white rounded-2xl shadow-soft border border-gray-100 p-6">
-                <h3 class="text-lg font-bold text-gray-900 mb-6 flex items-center">
-                    <div class="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center mr-3 text-sm">3</div>
-                    Logistics
-                </h3>
-                
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Expiry Date</label>
-                        {{ form.expiry_datetime }}
-                    </div>
+                <div class="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100">
+                    <h2 class="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
+                        <i class="fas fa-info-circle text-brand-500"></i> Basic Information
+                    </h2>
                     
-                    <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-5">
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Pickup Start</label>
-                            {{ form.pickup_start }}
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Title</label>
+                            {{ form.title }}
+                            <p class="text-xs text-slate-400 mt-1">e.g., "Fresh Sourdough Bread", "Box of Mixed Veggies"</p>
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Pickup End</label>
-                            {{ form.pickup_end }}
-                        </div>
-                    </div>
 
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Location</label>
-                        <div class="relative">
-                            <i class="fas fa-map-marker-alt absolute left-3 top-3.5 text-gray-400"></i>
-                            {{ form.pickup_location }}
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Description</label>
+                            {{ form.description }}
                         </div>
-                        {{ form.latitude }}
-                        {{ form.longitude }}
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Category</label>
+                                {{ form.food_category }}
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Quantity</label>
+                                {{ form.quantity }}
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="bg-white rounded-2xl shadow-soft border border-gray-100 p-6">
-                <h3 class="text-lg font-bold text-gray-900 mb-6 flex items-center">
-                    <div class="w-8 h-8 rounded-lg bg-green-100 text-green-600 flex items-center justify-center mr-3 text-sm">4</div>
-                    Nutrition (Optional)
-                </h3>
-                
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Est. Calories</label>
-                        {{ form.estimated_calories }}
-                    </div>
+                <div class="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100">
+                    <h2 class="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
+                        <i class="fas fa-truck-fast text-blue-500"></i> Logistics
+                    </h2>
                     
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Dietary Tags</label>
-                        <div class="space-y-2 max-h-40 overflow-y-auto custom-scrollbar p-1">
-                            {% for value, label in form.fields.dietary_tags.choices %}
-                            <label class="flex items-center p-2 rounded-lg hover:bg-gray-50 border border-transparent hover:border-gray-100 cursor-pointer transition-colors">
-                                <input type="checkbox" name="dietary_tags" value="{{ value }}" class="rounded text-primary-600 focus:ring-primary-500 border-gray-300">
-                                <span class="ml-3 text-sm text-gray-600">{{ label }}</span>
-                            </label>
-                            {% endfor %}
+                    <div class="space-y-5">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Pickup Starts</label>
+                                {{ form.pickup_start }}
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Pickup Ends</label>
+                                {{ form.pickup_end }}
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Expiry Date</label>
+                            {{ form.expiry_datetime }}
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Pickup Location</label>
+                            <div class="relative">
+                                <i class="fas fa-location-dot absolute left-4 top-3.5 text-slate-400"></i>
+                                {{ form.pickup_location }}
+                            </div>
+                            {{ form.latitude }}
+                            {{ form.longitude }}
                         </div>
                     </div>
                 </div>
+
             </div>
 
-            <div class="sticky top-6">
-                <button type="submit" class="w-full py-4 bg-gray-900 hover:bg-black text-white font-bold rounded-2xl shadow-lg shadow-gray-900/20 transform hover:-translate-y-1 transition-all duration-200 flex items-center justify-center group">
-                    <i class="fas fa-check-circle mr-2 group-hover:scale-110 transition-transform"></i>
-                    Publish Donation
-                </button>
-                <p class="text-center text-xs text-gray-400 mt-3">
-                    By publishing, you agree to our <a href="#" class="underline">food safety guidelines</a>.
-                </p>
-            </div>
+            <div class="space-y-8">
+                
+                <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+                    <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">Food Photo</h2>
+                    
+                    <div class="relative w-full aspect-square bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 overflow-hidden group hover:border-brand-400 transition-colors cursor-pointer">
+                        <input type="file" name="image" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer z-10" 
+                               @change="imagePreview = URL.createObjectURL($event.target.files[0])">
+                        
+                        <div class="absolute inset-0 flex flex-col items-center justify-center text-slate-400" x-show="!imagePreview">
+                            <i class="fas fa-camera text-3xl mb-2 group-hover:scale-110 transition-transform"></i>
+                            <span class="text-xs font-bold">Tap to upload</span>
+                        </div>
+                        
+                        <img x-bind:src="imagePreview" class="absolute inset-0 w-full h-full object-cover" x-show="imagePreview">
+                    </div>
+                    <p class="text-xs text-slate-400 mt-2 text-center">Clear photos increase claim rates by 40%.</p>
+                </div>
 
+                <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+                    <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">Nutrition (Optional)</h2>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1">Calories (Approx)</label>
+                            {{ form.estimated_calories }}
+                        </div>
+                        
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-2">Dietary Tags</label>
+                            <div class="flex flex-wrap gap-2">
+                                {% for value, label in form.fields.dietary_tags.choices %}
+                                <label class="cursor-pointer">
+                                    <input type="checkbox" name="dietary_tags" value="{{ value }}" class="peer sr-only">
+                                    <span class="inline-block px-3 py-1.5 bg-slate-50 text-slate-600 text-xs font-bold rounded-lg border border-slate-200 peer-checked:bg-brand-500 peer-checked:text-white peer-checked:border-brand-500 transition-all">
+                                        {{ label }}
+                                    </span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sticky top-24">
+                    <button type="submit" class="w-full py-4 bg-slate-900 hover:bg-black text-white rounded-2xl font-bold shadow-xl shadow-slate-900/20 hover:-translate-y-1 transition-all flex items-center justify-center gap-2">
+                        <span>Publish Donation</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                    <p class="text-[10px] text-center text-slate-400 mt-3 px-4">
+                        By publishing, you agree to our Food Safety Guidelines.
+                    </p>
+                </div>
+
+            </div>
         </div>
     </form>
 </div>
 
-<script>
-    function imagePreview() {
-        return {
-            imageUrl: null,
-            fileChosen(event) {
-                this.fileToDataUrl(event, src => this.imageUrl = src)
-            },
-            fileToDataUrl(event, callback) {
-                if (! event.target.files.length) return
-                let file = event.target.files[0],
-                    reader = new FileReader()
-                reader.readAsDataURL(file)
-                reader.onload = e => callback(e.target.result)
-            },
-        }
-    }
-</script>
-
 <style>
-    /* Field Styling Overrides for Tailwind */
+    /* Styling Django widgets via CSS */
     input[type="text"], input[type="number"], input[type="datetime-local"], select, textarea {
-        @apply w-full rounded-xl border-gray-200 focus:border-primary-500 focus:ring-primary-500 text-sm py-2.5 transition-shadow bg-gray-50 focus:bg-white;
+        @apply w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none transition-all font-medium text-slate-800 placeholder:text-slate-400;
     }
-    input[type="text"].pl-10 {
-        padding-left: 2.5rem;
-    }
+    textarea { resize: vertical; }
+    input[type="text"]#id_pickup_location { padding-left: 2.5rem; }
 </style>
 {% endblock %}

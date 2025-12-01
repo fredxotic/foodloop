@@ -2,214 +2,167 @@
 {% load static %}
 {% load humanize %}
 
-{% block title %}Dashboard - FoodLoop{% endblock %}
+{% block title %}Donor Dashboard - FoodLoop{% endblock %}
 
 {% block content %}
-<div class="space-y-6 animate-fade-in-up">
+<div class="max-w-7xl mx-auto space-y-8 animate-fade-in-up">
     
-    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-2">
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-            <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">
-                Dashboard
+            <span class="text-brand-600 font-bold tracking-wider uppercase text-xs mb-1 block">Donor Portal</span>
+            <h1 class="font-display text-4xl font-extrabold text-slate-900">
+                My Inventory
             </h1>
-            <p class="text-gray-500 mt-1 text-lg">Welcome back, <span class="font-semibold text-gray-800">{{ user.first_name }}</span>! Here's your impact today.</p>
         </div>
-        <div class="flex gap-3">
-            <a href="{% url 'core:create_donation' %}" class="inline-flex items-center justify-center px-5 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 transition-all shadow-lg shadow-gray-900/20 active:scale-95 group">
-                <i class="fas fa-plus mr-2 group-hover:rotate-90 transition-transform duration-300"></i> New Donation
-            </a>
+        <a href="{% url 'core:create_donation' %}" class="group relative inline-flex items-center justify-center px-8 py-3.5 bg-slate-900 text-white font-bold rounded-2xl overflow-hidden transition-all hover:scale-[1.02] shadow-xl hover:shadow-2xl">
+            <span class="absolute inset-0 bg-gradient-to-r from-brand-500 to-brand-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+            <span class="relative flex items-center gap-2">
+                <i class="fas fa-plus-circle"></i> <span>New Donation</span>
+            </span>
+        </a>
+    </div>
+
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="glass bg-white/60 p-5 rounded-3xl border border-white/50 shadow-sm relative overflow-hidden group">
+            <div class="absolute top-0 right-0 w-16 h-16 bg-brand-100 rounded-full -mr-6 -mt-6 transition-transform group-hover:scale-150"></div>
+            <p class="text-slate-500 text-xs font-bold uppercase tracking-wider relative z-10">Total Items</p>
+            <p class="text-3xl font-display font-bold text-slate-900 mt-1 relative z-10">{{ stats.donation_stats.total|default:0 }}</p>
+        </div>
+
+        <div class="glass bg-white/60 p-5 rounded-3xl border border-white/50 shadow-sm relative overflow-hidden group">
+            <div class="absolute top-0 right-0 w-16 h-16 bg-blue-100 rounded-full -mr-6 -mt-6 transition-transform group-hover:scale-150"></div>
+            <p class="text-slate-500 text-xs font-bold uppercase tracking-wider relative z-10">Active</p>
+            <p class="text-3xl font-display font-bold text-blue-600 mt-1 relative z-10">{{ stats.donation_stats.available|default:0 }}</p>
+        </div>
+
+        <div class="glass bg-white/60 p-5 rounded-3xl border border-white/50 shadow-sm relative overflow-hidden group">
+            <div class="absolute top-0 right-0 w-16 h-16 bg-emerald-100 rounded-full -mr-6 -mt-6 transition-transform group-hover:scale-150"></div>
+            <p class="text-slate-500 text-xs font-bold uppercase tracking-wider relative z-10">Completed</p>
+            <p class="text-3xl font-display font-bold text-emerald-600 mt-1 relative z-10">{{ stats.donation_stats.completed|default:0 }}</p>
+        </div>
+
+        <div class="glass bg-white/60 p-5 rounded-3xl border border-white/50 shadow-sm relative overflow-hidden group">
+            <div class="absolute top-0 right-0 w-16 h-16 bg-orange-100 rounded-full -mr-6 -mt-6 transition-transform group-hover:scale-150"></div>
+            <p class="text-slate-500 text-xs font-bold uppercase tracking-wider relative z-10">Calories Saved</p>
+            <p class="text-3xl font-display font-bold text-orange-600 mt-1 relative z-10">{{ stats.nutrition_impact.total_calories|intcomma }}</p>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-soft hover:shadow-lg transition-all duration-300 group">
-            <div class="flex justify-between items-start mb-4">
-                <div class="p-3 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
-                    <i class="fas fa-box-open text-xl"></i>
-                </div>
-                <span class="inline-flex items-center px-2 py-1 rounded-md bg-blue-50 text-blue-700 text-xs font-bold">
-                    +{{ stats.donation_stats.available|default:0 }} Active
-                </span>
+        <div class="lg:col-span-2 space-y-6">
+            <div class="flex items-center justify-between">
+                <h3 class="text-xl font-bold text-slate-800">Recent Activity</h3>
+                <a href="{% url 'core:my_donations' %}" class="text-sm font-bold text-brand-600 hover:text-brand-700 hover:underline">View History</a>
             </div>
-            <h3 class="text-3xl font-extrabold text-gray-900 mb-1">{{ stats.donation_stats.total|default:0 }}</h3>
-            <p class="text-sm font-medium text-gray-500">Total Donations</p>
-        </div>
 
-        <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-soft hover:shadow-lg transition-all duration-300 group">
-            <div class="flex justify-between items-start mb-4">
-                <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-300">
-                    <i class="fas fa-check-circle text-xl"></i>
-                </div>
-                <span class="inline-flex items-center px-2 py-1 rounded-md bg-emerald-50 text-emerald-700 text-xs font-bold">
-                    {{ stats.donation_stats.completed }} Done
-                </span>
-            </div>
-            <h3 class="text-3xl font-extrabold text-gray-900 mb-1">{{ stats.donation_stats.completion_rate }}%</h3>
-            <p class="text-sm font-medium text-gray-500">Completion Rate</p>
-        </div>
-
-        <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-soft hover:shadow-lg transition-all duration-300 group">
-            <div class="flex justify-between items-start mb-4">
-                <div class="p-3 bg-orange-50 text-orange-600 rounded-xl group-hover:bg-orange-600 group-hover:text-white transition-colors duration-300">
-                    <i class="fas fa-fire text-xl"></i>
-                </div>
-            </div>
-            <h3 class="text-3xl font-extrabold text-gray-900 mb-1">{{ stats.nutrition_impact.total_calories|intcomma }}</h3>
-            <p class="text-sm font-medium text-gray-500">Calories Distributed</p>
-        </div>
-
-        <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-soft hover:shadow-lg transition-all duration-300 group">
-            <div class="flex justify-between items-start mb-4">
-                <div class="p-3 bg-yellow-50 text-yellow-600 rounded-xl group-hover:bg-yellow-500 group-hover:text-white transition-colors duration-300">
-                    <i class="fas fa-star text-xl"></i>
-                </div>
-                <span class="inline-flex items-center px-2 py-1 rounded-md bg-gray-50 text-gray-600 text-xs font-bold">
-                    {{ stats.reputation.total_ratings }} Reviews
-                </span>
-            </div>
-            <div class="flex items-baseline gap-2">
-                <h3 class="text-3xl font-extrabold text-gray-900 mb-1">{{ stats.reputation.avg_rating|default:"0.0" }}</h3>
-                <span class="text-sm text-gray-400 font-medium">/ 5.0</span>
-            </div>
-            <p class="text-sm font-medium text-gray-500">Reputation Score</p>
-        </div>
-    </div>
-
-    <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
-        
-        <div class="xl:col-span-8 space-y-6">
-            <div class="bg-white rounded-2xl border border-gray-100 shadow-soft overflow-hidden flex flex-col h-full">
-                <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/30">
-                    <div class="flex items-center gap-3">
-                        <div class="h-8 w-1 bg-primary-500 rounded-full"></div>
-                        <h3 class="font-bold text-lg text-gray-900">Recent Activity</h3>
-                    </div>
-                    <a href="{% url 'core:my_donations' %}" class="text-sm text-primary-600 font-bold hover:text-primary-700 hover:underline decoration-2 underline-offset-4">View Full History</a>
-                </div>
-                
-                <div class="flex-1 overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="text-xs font-bold text-gray-400 uppercase border-b border-gray-100 bg-gray-50/50">
-                                <th class="px-6 py-4">Item Details</th>
-                                <th class="px-6 py-4">Status</th>
-                                <th class="px-6 py-4">Posted</th>
-                                <th class="px-6 py-4 text-right">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-50">
-                            {% for donation in recent_donations %}
-                            <tr class="hover:bg-gray-50/80 transition-colors group">
-                                <td class="px-6 py-4">
-                                    <div class="flex items-center gap-4">
-                                        <div class="w-12 h-12 rounded-xl bg-gray-100 flex-shrink-0 overflow-hidden border border-gray-200 group-hover:border-primary-200 transition-colors">
-                                            {% if donation.image %}
-                                                <img src="{{ donation.image.url }}" class="w-full h-full object-cover">
-                                            {% else %}
-                                                <div class="w-full h-full flex items-center justify-center text-gray-400">
-                                                    <i class="fas fa-utensils"></i>
-                                                </div>
-                                            {% endif %}
-                                        </div>
-                                        <div>
-                                            <p class="text-sm font-bold text-gray-900 group-hover:text-primary-600 transition-colors">{{ donation.title }}</p>
-                                            <p class="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
-                                                <i class="fas fa-tag text-[10px]"></i> {{ donation.quantity }} items
-                                            </p>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold border
-                                        {% if donation.status == 'available' %}bg-green-50 text-green-700 border-green-200
-                                        {% elif donation.status == 'claimed' %}bg-yellow-50 text-yellow-700 border-yellow-200
-                                        {% elif donation.status == 'completed' %}bg-blue-50 text-blue-700 border-blue-200
-                                        {% else %}bg-gray-50 text-gray-600 border-gray-200{% endif %}">
-                                        <span class="w-1.5 h-1.5 rounded-full mr-2 
-                                            {% if donation.status == 'available' %}bg-green-500
-                                            {% elif donation.status == 'claimed' %}bg-yellow-500
-                                            {% elif donation.status == 'completed' %}bg-blue-500
-                                            {% else %}bg-gray-400{% endif %}"></span>
-                                        {{ donation.get_status_display }}
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <div class="flex flex-col">
-                                        <span class="text-sm font-medium text-gray-900">{{ donation.created_at|date:"M d" }}</span>
-                                        <span class="text-xs text-gray-400">{{ donation.created_at|date:"H:i" }}</span>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 text-right">
-                                    <a href="{% url 'core:donation_detail' donation.id %}" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white border border-gray-200 text-gray-400 hover:text-primary-600 hover:border-primary-200 hover:shadow-sm transition-all">
-                                        <i class="fas fa-chevron-right text-xs"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="4" class="px-6 py-16 text-center">
-                                    <div class="bg-gray-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3">
-                                        <i class="fas fa-box-open text-2xl text-gray-300"></i>
-                                    </div>
-                                    <p class="text-gray-900 font-medium">No donations yet</p>
-                                    <p class="text-sm text-gray-500 mb-4">Start your journey by creating a listing.</p>
-                                    <a href="{% url 'core:create_donation' %}" class="text-sm font-bold text-primary-600 hover:underline">Create Donation</a>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <div class="xl:col-span-4 space-y-6">
-            
-            <div class="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl shadow-xl p-6 text-white relative overflow-hidden group">
-                <div class="absolute top-0 right-0 -mr-8 -mt-8 w-40 h-40 bg-primary-500 opacity-20 rounded-full blur-3xl group-hover:opacity-30 transition-opacity duration-500"></div>
-                <div class="absolute bottom-0 left-0 -ml-8 -mb-8 w-32 h-32 bg-blue-500 opacity-20 rounded-full blur-3xl"></div>
-                
-                <div class="relative z-10">
-                    <div class="flex items-center gap-2 mb-4">
-                        <div class="p-2 bg-white/10 rounded-lg backdrop-blur-sm">
-                            <i class="fas fa-sparkles text-yellow-400"></i>
+            {% if recent_donations %}
+                <div class="space-y-4">
+                    {% for donation in recent_donations %}
+                    <div class="group bg-white p-4 rounded-3xl border border-slate-100 hover:border-brand-200 shadow-sm hover:shadow-md transition-all flex flex-col sm:flex-row gap-5">
+                        
+                        <div class="w-full sm:w-32 h-32 rounded-2xl bg-slate-100 overflow-hidden shrink-0 relative">
+                            {% if donation.image %}
+                                <img src="{{ donation.image.url }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                            {% else %}
+                                <div class="w-full h-full flex items-center justify-center text-slate-300"><i class="fas fa-image text-3xl"></i></div>
+                            {% endif %}
+                            
+                            <div class="absolute top-2 left-2">
+                                {% if donation.status == 'available' %}
+                                    <span class="bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm">Active</span>
+                                {% elif donation.status == 'claimed' %}
+                                    <span class="bg-yellow-400 text-yellow-900 text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm">Claimed</span>
+                                {% elif donation.status == 'completed' %}
+                                    <span class="bg-blue-500 text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm">Done</span>
+                                {% else %}
+                                    <span class="bg-slate-500 text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm">{{ donation.get_status_display }}</span>
+                                {% endif %}
+                            </div>
                         </div>
-                        <h3 class="text-lg font-bold">Smart Insights</h3>
+
+                        <div class="flex-1 flex flex-col">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-bold text-lg text-slate-900 line-clamp-1">{{ donation.title }}</h4>
+                                    <p class="text-sm text-slate-500 mt-1 flex items-center gap-2">
+                                        <i class="far fa-clock"></i> Posted {{ donation.created_at|timesince }} ago
+                                    </p>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-2xl font-display font-bold text-slate-700">{{ donation.quantity }}</span>
+                                    <span class="block text-[10px] font-bold uppercase text-slate-400">Qty</span>
+                                </div>
+                            </div>
+
+                            <div class="mt-auto pt-4 flex gap-3">
+                                <a href="{% url 'core:donation_detail' donation.id %}" class="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-700 py-2 rounded-xl text-sm font-bold text-center transition-colors">
+                                    Manage
+                                </a>
+                                {% if donation.status == 'claimed' %}
+                                <form action="{% url 'core:complete_donation' donation.id %}" method="post" class="flex-1">
+                                    {% csrf_token %}
+                                    <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white py-2 rounded-xl text-sm font-bold shadow-md shadow-brand-500/20 transition-colors">
+                                        Confirm Pickup
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
-                    
-                    <p class="text-gray-300 text-sm mb-6 leading-relaxed">Based on current demand in your area, here is what recipients are looking for:</p>
-                    
-                    <ul class="space-y-3">
-                        {% for rec in recommendations %}
-                        <li class="flex gap-3 text-sm items-start bg-white/5 p-3 rounded-xl border border-white/10 hover:bg-white/10 transition-colors">
-                            <i class="fas fa-lightbulb text-yellow-400 mt-1 shrink-0"></i>
-                            <span class="leading-snug text-gray-200">{{ rec }}</span>
-                        </li>
-                        {% empty %}
-                        <li class="text-sm text-gray-400 italic">Gathering data for insights...</li>
-                        {% endfor %}
-                    </ul>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-16 bg-white rounded-3xl border-2 border-dashed border-slate-200">
+                    <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
+                        <i class="fas fa-box-open text-3xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-900">Your inventory is empty</h3>
+                    <p class="text-slate-500 mt-2 mb-6">Start helping your community by sharing surplus food.</p>
+                    <a href="{% url 'core:create_donation' %}" class="text-brand-600 font-bold hover:underline">Create your first donation</a>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="space-y-6">
+            
+            <div class="bg-gradient-to-b from-slate-900 to-slate-800 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-brand-500 rounded-full blur-3xl opacity-20 -mr-16 -mt-16"></div>
+                
+                <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                    <i class="fas fa-lightbulb text-yellow-400"></i> Local Demand
+                </h3>
+                
+                <div class="space-y-3 relative z-10">
+                    {% for rec in recommendations %}
+                    <div class="flex gap-3 items-start bg-white/10 p-3 rounded-xl border border-white/5">
+                        <i class="fas fa-arrow-trend-up text-brand-300 mt-1 shrink-0"></i>
+                        <p class="text-sm text-slate-200 leading-snug">{{ rec }}</p>
+                    </div>
+                    {% empty %}
+                    <p class="text-slate-400 text-sm italic">Gathering local insights...</p>
+                    {% endfor %}
                 </div>
             </div>
 
-            <div class="bg-white rounded-2xl border border-gray-100 shadow-soft p-1 group overflow-hidden">
-                <div class="relative h-40 rounded-xl overflow-hidden">
-                    <div class="absolute inset-0 bg-gray-200 flex items-center justify-center">
-                        <i class="fas fa-map-marked-alt text-6xl text-gray-300 opacity-50 transform group-hover:scale-110 transition-transform duration-500"></i>
-                    </div>
-                    <div class="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-gray-900/40 to-transparent flex flex-col justify-end p-5">
-                        <h4 class="text-white font-bold text-lg mb-1">Community Map</h4>
-                        <p class="text-gray-300 text-xs mb-3">See where your donations make an impact.</p>
-                        <a href="{% url 'core:map_view' %}" class="block w-full py-2.5 bg-white/10 backdrop-blur-md border border-white/20 text-white text-center text-sm font-bold rounded-lg hover:bg-white hover:text-gray-900 transition-all">
-                            Open Map View
-                        </a>
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+                <h3 class="font-bold text-slate-900 mb-4">Your Reputation</h3>
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="text-4xl font-display font-extrabold text-slate-900">{{ profile.average_rating }}</div>
+                    <div class="flex flex-col">
+                        <div class="flex text-yellow-400 text-sm">
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        </div>
+                        <span class="text-xs text-slate-500 font-bold uppercase tracking-wider">{{ profile.total_ratings }} Verified Reviews</span>
                     </div>
                 </div>
+                <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                    <div class="bg-yellow-400 h-full rounded-full" style="width: {% widthratio profile.average_rating 5 100 %}%"></div>
+                </div>
+                <p class="text-xs text-slate-400 mt-3 text-center">High ratings increase pickup priority</p>
             </div>
 
         </div>
-
     </div>
 </div>
 {% endblock %}

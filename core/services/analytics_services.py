@@ -181,28 +181,43 @@ class AnalyticsService:
             return {'error': 'Failed to generate user analytics'}
     
     @staticmethod
-    def get_donation_trends(days: int = 30) -> Dict[str, Any]:
+    def get_donation_trends(days: int = 30, user=None) -> Dict[str, Any]:
         """
         Get donation trends over time period with caching
         
         Args:
             days: Number of days to analyze
-        
-        Returns:
-            Dictionary containing trend data
+            user: Optional user to filter by (for personal analytics)
         """
         try:
+            # Generate a specific cache key if a user is provided
+            cache_key = f'donation_trends_{days}'
+            if user:
+                cache_key += f'_user_{user.id}'
+                
             # Check cache
-            cached_trends = CacheManager.get_analytics(f'donation_trends_{days}')
+            cached_trends = CacheManager.get_analytics(cache_key)
             if cached_trends:
                 return cached_trends
             
             start_date = timezone.now() - timedelta(days=days)
             
+            # Base query
+            base_query = Q(created_at__gte=start_date)
+            
+            # Filter by user role if provided
+            if user:
+                from core.models import UserProfile
+                try:
+                    if user.profile.user_type == UserProfile.DONOR:
+                        base_query &= Q(donor=user)
+                    else:
+                        base_query &= Q(recipient=user, status__in=['claimed', 'completed'])
+                except Exception:
+                    pass
+
             # Get donations by day
-            donations = Donation.objects.filter(
-                created_at__gte=start_date
-            ).extra(
+            donations = Donation.objects.filter(base_query).extra(
                 select={'day': 'DATE(created_at)'}
             ).values('day').annotate(
                 count=Count('id'),
@@ -210,9 +225,7 @@ class AnalyticsService:
             ).order_by('day')
             
             # Get category breakdown
-            categories = Donation.objects.filter(
-                created_at__gte=start_date
-            ).values('food_category').annotate(
+            categories = Donation.objects.filter(base_query).values('food_category').annotate(
                 count=Count('id')
             ).order_by('-count')
             
@@ -225,7 +238,7 @@ class AnalyticsService:
             }
             
             # Cache for 1 hour
-            CacheManager.set_analytics(f'donation_trends_{days}', trends)
+            CacheManager.set_analytics(cache_key, trends)
             
             return trends
             

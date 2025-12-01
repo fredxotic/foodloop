@@ -199,9 +199,10 @@ class DonationService(BaseService):
     def search_donations(cls, query_params: Dict, user: Optional[User] = None) -> List[Donation]:
         """Optimized donation search with efficient queries"""
         try:
-            # Build optimized queryset
+            # FILTER AT DB LEVEL: Only fetch future expiry dates
             queryset = Donation.objects.filter(
-                status=Donation.AVAILABLE
+                status=Donation.AVAILABLE,
+                expiry_datetime__gt=timezone.now()
             ).select_related(
                 'donor', 
                 'donor__profile'
@@ -212,9 +213,8 @@ class DonationService(BaseService):
             # Apply filters efficiently
             queryset = cls._apply_search_filters(queryset, query_params)
             
-            # Filter expired donations in Python to use cached expiry_datetime
-            donations = list(queryset[:50])  # Limit results
-            return [d for d in donations if not d.is_expired()]
+            # Now safe to limit
+            return list(queryset[:50])
             
         except Exception as e:
             logger.error(f"Search error: {e}")
@@ -248,10 +248,17 @@ class DonationService(BaseService):
             except (ValueError, TypeError):
                 pass
         
-        # Dietary tags (efficient JSON containment)
-        if dietary_tags := query_params.getlist('dietary_tags'):
+        if hasattr(query_params, 'getlist'):
+            dietary_tags = query_params.getlist('dietary_tags')
+        else:
+            # Handle standard dict where value might be a list or single item
+            tags = query_params.get('dietary_tags', [])
+            dietary_tags = tags if isinstance(tags, list) else [tags] if tags else []
+
+        if dietary_tags:
             for tag in dietary_tags:
-                queryset = queryset.filter(dietary_tags__contains=[tag])
+                if tag: # Ensure empty strings don't filter
+                    queryset = queryset.filter(dietary_tags__contains=[tag])
         
         return queryset
 

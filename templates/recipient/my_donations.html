@@ -1,185 +1,116 @@
 {% extends 'base/base.html' %}
 {% load static %}
 {% load humanize %}
-{% load custom_filters %}
 
 {% block title %}My Claims - FoodLoop{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto py-8 animate-fade-in-up">
+<div class="max-w-7xl mx-auto space-y-8 animate-fade-in-up">
     
-    <div class="mb-8">
-        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
-            <div>
-                <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">My Food Basket</h1>
-                <p class="text-gray-500 mt-1">Track your active claims and past pickups.</p>
-            </div>
-            <a href="{% url 'core:search_donations' %}" class="inline-flex items-center justify-center px-5 py-2.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 shadow-lg shadow-primary-500/20 transition-all active:scale-95 group">
-                <i class="fas fa-search mr-2 group-hover:scale-110 transition-transform"></i> Find More Food
-            </a>
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+            <h1 class="font-display text-3xl font-extrabold text-slate-900">My Food Basket</h1>
+            <p class="text-slate-500 mt-2">You have saved <span class="font-bold text-brand-600">{{ stats.total_calories|intcomma }}</span> calories from going to waste.</p>
         </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div class="bg-white p-5 rounded-2xl shadow-soft border border-gray-100 flex items-center">
-                <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl mr-4">
-                    <i class="fas fa-shopping-basket"></i>
-                </div>
-                <div>
-                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Active Pickups</p>
-                    <p class="text-2xl font-extrabold text-gray-900">{{ stats.active_donations }}</p>
-                </div>
-            </div>
-            <div class="bg-white p-5 rounded-2xl shadow-soft border border-gray-100 flex items-center">
-                <div class="w-12 h-12 rounded-xl bg-green-50 text-green-600 flex items-center justify-center text-xl mr-4">
-                    <i class="fas fa-history"></i>
-                </div>
-                <div>
-                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Received</p>
-                    <p class="text-2xl font-extrabold text-gray-900">{{ stats.completed_donations }}</p>
-                </div>
-            </div>
-            <div class="bg-white p-5 rounded-2xl shadow-soft border border-gray-100 flex items-center">
-                <div class="w-12 h-12 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center text-xl mr-4">
-                    <i class="fas fa-fire-alt"></i>
-                </div>
-                <div>
-                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Calories Saved</p>
-                    <p class="text-2xl font-extrabold text-gray-900">{{ stats.total_calories|intcomma }}</p>
-                </div>
-            </div>
-        </div>
+        <a href="{% url 'core:search_donations' %}" class="bg-slate-900 hover:bg-slate-800 text-white px-6 py-3 rounded-2xl font-bold shadow-lg shadow-slate-900/20 hover:-translate-y-0.5 transition-all flex items-center gap-2">
+            <i class="fas fa-search"></i> Find More
+        </a>
     </div>
 
-    <div class="border-b border-gray-200 mb-6">
-        <nav class="-mb-px flex space-x-8 overflow-x-auto no-scrollbar">
-            {% with current=current_status %}
-            <a href="?status=all" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors {% if current == 'all' %}border-primary-500 text-primary-600{% else %}border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300{% endif %}">
-                All History
-            </a>
-            <a href="?status=claimed" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors {% if current == 'claimed' %}border-yellow-500 text-yellow-600{% else %}border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300{% endif %}">
-                Active Pickups <span class="ml-1.5 bg-yellow-100 text-yellow-800 py-0.5 px-2 rounded-full text-xs">Action</span>
-            </a>
-            <a href="?status=completed" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors {% if current == 'completed' %}border-green-500 text-green-600{% else %}border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300{% endif %}">
-                Completed
-            </a>
-            {% endwith %}
-        </nav>
+    <div class="flex overflow-x-auto pb-2 no-scrollbar gap-2">
+        {% with current=current_status %}
+        <a href="?status=all" class="px-5 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap {% if current == 'all' %}bg-slate-900 text-white shadow-md{% else %}bg-white text-slate-600 hover:bg-slate-100{% endif %}">
+            All History
+        </a>
+        <a href="?status=claimed" class="px-5 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap {% if current == 'claimed' %}bg-yellow-500 text-white shadow-md{% else %}bg-white text-slate-600 hover:bg-slate-100{% endif %}">
+            Active Pickups
+        </a>
+        <a href="?status=completed" class="px-5 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap {% if current == 'completed' %}bg-green-600 text-white shadow-md{% else %}bg-white text-slate-600 hover:bg-slate-100{% endif %}">
+            Completed
+        </a>
+        {% endwith %}
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    {% if donations %}
+    <div class="space-y-4">
         {% for donation in donations %}
-        <div class="bg-white rounded-2xl p-5 shadow-soft border border-gray-100 hover:shadow-lg transition-all group flex flex-col sm:flex-row gap-5">
+        <div class="group glass bg-white/80 p-4 rounded-3xl border border-white/50 shadow-sm hover:shadow-lg transition-all flex flex-col md:flex-row gap-6 items-start md:items-center relative overflow-hidden">
             
-            <div class="w-full sm:w-32 h-40 sm:h-auto flex-shrink-0 bg-gray-100 rounded-xl overflow-hidden relative">
+            <div class="absolute left-0 top-0 bottom-0 w-1.5 {% if donation.status == 'claimed' %}bg-yellow-400{% elif donation.status == 'completed' %}bg-green-500{% else %}bg-slate-300{% endif %}"></div>
+
+            <div class="w-full md:w-32 h-32 rounded-2xl bg-slate-100 overflow-hidden shrink-0 relative">
                 {% if donation.image %}
-                    <img src="{{ donation.image.url }}" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
+                    <img src="{{ donation.image.url }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                 {% else %}
-                    <div class="w-full h-full flex items-center justify-center text-gray-400">
-                        <i class="fas fa-utensils text-3xl opacity-50"></i>
-                    </div>
+                    <div class="w-full h-full flex items-center justify-center text-slate-300"><i class="fas fa-utensils text-3xl"></i></div>
                 {% endif %}
-                
-                <div class="absolute top-2 left-2 sm:hidden">
-                    <span class="px-2 py-1 rounded-md text-xs font-bold shadow-sm backdrop-blur-md
-                        {% if donation.status == 'claimed' %}bg-yellow-500/90 text-white
-                        {% elif donation.status == 'completed' %}bg-green-500/90 text-white
-                        {% else %}bg-gray-500/90 text-white{% endif %}">
-                        {{ donation.get_status_display }}
-                    </span>
-                </div>
             </div>
 
-            <div class="flex-1 min-w-0 flex flex-col">
-                <div class="flex justify-between items-start mb-2">
-                    <div>
-                        <h3 class="text-lg font-bold text-gray-900 line-clamp-1 group-hover:text-primary-600 transition-colors">
-                            {{ donation.title }}
-                        </h3>
-                        <p class="text-sm text-gray-500 flex items-center gap-1">
-                            <span>Donor: {{ donation.donor.first_name }}</span>
-                            <span class="w-1 h-1 bg-gray-300 rounded-full"></span>
-                            <span>{{ donation.quantity }} items</span>
-                        </p>
-                    </div>
-                    
-                    <span class="hidden sm:inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold border
-                        {% if donation.status == 'claimed' %}bg-yellow-50 text-yellow-700 border-yellow-200
-                        {% elif donation.status == 'completed' %}bg-green-50 text-green-700 border-green-200
-                        {% else %}bg-gray-50 text-gray-600 border-gray-200{% endif %}">
-                        {{ donation.get_status_display }}
-                    </span>
-                </div>
-
-                <div class="mb-4 p-3 rounded-xl {% if donation.status == 'claimed' %}bg-yellow-50 border border-yellow-100{% else %}bg-gray-50 border border-gray-100{% endif %}">
+            <div class="flex-1 min-w-0 py-1 space-y-2">
+                <div class="flex flex-wrap items-center gap-2 mb-1">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">{{ donation.food_category }}</span>
                     {% if donation.status == 'claimed' %}
-                        <div class="flex items-center gap-3 text-sm text-yellow-800">
-                            <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center text-yellow-600 shadow-sm shrink-0">
-                                <i class="fas fa-clock"></i>
-                            </div>
-                            <div class="leading-tight">
-                                <span class="font-bold block">Pickup Required</span>
-                                <span class="text-xs opacity-90">By {{ donation.pickup_end|date:"l, M d @ g:i A" }}</span>
-                            </div>
-                        </div>
-                    {% else %}
-                        <div class="flex items-center gap-3 text-sm text-gray-600">
-                            <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center text-gray-400 shadow-sm shrink-0">
-                                <i class="fas fa-check-double"></i>
-                            </div>
-                            <div class="leading-tight">
-                                <span class="font-bold block">Completed</span>
-                                <span class="text-xs opacity-90">On {{ donation.completed_at|date:"M d, Y" }}</span>
-                            </div>
-                        </div>
+                        <span class="bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2 py-0.5 rounded-full">Active Pickup</span>
                     {% endif %}
                 </div>
+                
+                <h3 class="font-display font-bold text-xl text-slate-900 truncate">{{ donation.title }}</h3>
+                
+                <div class="flex flex-col sm:flex-row sm:items-center gap-3 text-sm text-slate-500">
+                    <span class="flex items-center gap-1.5"><i class="fas fa-user-circle text-slate-400"></i> Donor: {{ donation.donor.first_name }}</span>
+                    <span class="hidden sm:block text-slate-300">•</span>
+                    <span class="flex items-center gap-1.5"><i class="fas fa-location-dot text-slate-400"></i> {{ donation.pickup_location }}</span>
+                </div>
+                
+                {% if donation.status == 'claimed' %}
+                    <p class="text-xs font-bold text-red-500 mt-1 flex items-center gap-1">
+                        <i class="far fa-clock"></i> Pickup Deadline: {{ donation.pickup_end|date:"M d, g:i A" }}
+                    </p>
+                {% endif %}
+            </div>
 
-                <div class="mt-auto pt-2 flex gap-3">
-                    <a href="{% url 'core:donation_detail' donation.id %}" class="flex-1 py-2 bg-white border border-gray-200 text-gray-700 text-sm font-bold rounded-lg text-center hover:bg-gray-50 transition-colors">
-                        Details
+            <div class="flex flex-row md:flex-col gap-3 w-full md:w-auto mt-2 md:mt-0">
+                <a href="{% url 'core:donation_detail' donation.id %}" class="flex-1 md:flex-none px-6 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 text-center transition-colors">
+                    Details
+                </a>
+                
+                {% if donation.status == 'claimed' and donation.has_valid_coordinates %}
+                    <a href="https://www.google.com/maps/dir/?api=1&destination={{ donation.latitude }},{{ donation.longitude }}" target="_blank" class="flex-1 md:flex-none px-6 py-2.5 rounded-xl bg-brand-600 text-white font-bold text-sm hover:bg-brand-700 shadow-md shadow-brand-500/20 text-center transition-colors flex items-center justify-center gap-2">
+                        <i class="fas fa-directions"></i> Navigate
                     </a>
-                    
-                    {% if donation.status == 'claimed' and donation.has_valid_coordinates %}
-                        <a href="https://www.google.com/maps/dir/?api=1&destination={{ donation.latitude }},{{ donation.longitude }}" target="_blank" class="flex-1 py-2 bg-primary-600 text-white text-sm font-bold rounded-lg text-center hover:bg-primary-700 transition-colors shadow-sm flex items-center justify-center gap-2">
-                            <i class="fas fa-directions"></i> Navigate
-                        </a>
-                    {% endif %}
-                </div>
+                {% endif %}
             </div>
-        </div>
-        {% empty %}
-        <div class="col-span-1 lg:col-span-2 text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-200">
-            <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
-                <i class="fas fa-shopping-basket text-4xl"></i>
-            </div>
-            <h3 class="text-xl font-bold text-gray-900">Your basket is empty</h3>
-            <p class="text-gray-500 mt-2 mb-8 max-w-sm mx-auto">You haven't claimed any donations yet. Browse available food near you to get started.</p>
-            <a href="{% url 'core:search_donations' %}" class="inline-flex items-center px-8 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-bold shadow-lg shadow-primary-500/30 transition-all transform hover:-translate-y-1">
-                Browse Donations
-            </a>
+
         </div>
         {% endfor %}
     </div>
 
     {% if donations.has_other_pages %}
-    <div class="mt-10 flex justify-center">
-        <nav class="inline-flex rounded-xl shadow-sm bg-white border border-gray-200 overflow-hidden">
+    <div class="flex justify-center pt-8">
+        <nav class="glass bg-white/50 rounded-full px-4 py-2 flex items-center gap-2 shadow-sm">
             {% if donations.has_previous %}
-                <a href="?page={{ donations.previous_page_number }}&status={{ current_status }}" class="px-4 py-2.5 border-r border-gray-200 text-gray-600 hover:bg-gray-50 bg-white transition-colors">
+                <a href="?page={{ donations.previous_page_number }}&status={{ current_status }}" class="w-8 h-8 flex items-center justify-center rounded-full bg-white text-slate-600 hover:bg-brand-50 hover:text-brand-600 transition-colors">
                     <i class="fas fa-chevron-left"></i>
                 </a>
             {% endif %}
-            
-            <span class="px-6 py-2.5 text-sm font-bold text-gray-900 bg-white flex items-center">
-                Page {{ donations.number }}
-            </span>
-
+            <span class="text-sm font-bold text-slate-600 px-2">Page {{ donations.number }}</span>
             {% if donations.has_next %}
-                <a href="?page={{ donations.next_page_number }}&status={{ current_status }}" class="px-4 py-2.5 border-l border-gray-200 text-gray-600 hover:bg-gray-50 bg-white transition-colors">
+                <a href="?page={{ donations.next_page_number }}&status={{ current_status }}" class="w-8 h-8 flex items-center justify-center rounded-full bg-white text-slate-600 hover:bg-brand-50 hover:text-brand-600 transition-colors">
                     <i class="fas fa-chevron-right"></i>
                 </a>
             {% endif %}
         </nav>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="text-center py-24 bg-white/50 rounded-3xl border-2 border-dashed border-slate-200">
+        <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
+            <i class="fas fa-basket-shopping text-3xl"></i>
+        </div>
+        <h3 class="text-lg font-bold text-slate-900">Your basket is empty</h3>
+        <p class="text-slate-500 mt-2 mb-6">Browse available food in your area.</p>
+        <a href="{% url 'core:search_donations' %}" class="text-brand-600 font-bold hover:underline">Browse Donations</a>
     </div>
     {% endif %}
 </div>

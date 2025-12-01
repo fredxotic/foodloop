@@ -4,62 +4,54 @@
 {% block title %}Rate User - FoodLoop{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto py-12 px-4 animate-fade-in-up">
+<div class="max-w-xl mx-auto py-12 px-4 animate-fade-in-up">
     
-    <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-        <div class="bg-gradient-to-r from-gray-900 to-gray-800 p-8 text-center text-white relative overflow-hidden">
+    <div class="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden">
+        <div class="bg-slate-900 p-8 text-center text-white relative overflow-hidden">
             <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]"></div>
-            
             <div class="relative z-10">
                 <div class="w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center mx-auto mb-4 border border-white/20">
-                    <i class="fas fa-star text-3xl text-yellow-400"></i>
+                    <i class="fas fa-handshake text-3xl text-brand-300"></i>
                 </div>
-                <h1 class="text-2xl font-bold mb-2">How was your experience?</h1>
-                <p class="text-gray-400">
-                    With <span class="text-white font-bold">{{ rated_user.get_full_name|default:rated_user.username }}</span> regarding <span class="text-white font-bold">"{{ donation.title }}"</span>
+                <h1 class="text-2xl font-display font-bold mb-2">Exchange Complete!</h1>
+                <p class="text-slate-400 text-sm">
+                    How was your experience with <span class="text-white font-bold">{{ rated_user.first_name }}</span>?
                 </p>
             </div>
         </div>
 
-        <div class="p-8 md:p-10">
-            <form method="post" class="space-y-8" x-data="{ rating: {{ existing_rating.rating|default:0 }}, tempRating: 0 }">
+        <div class="p-8">
+            <form method="post" class="space-y-8" x-data="{ rating: {{ existing_rating.rating|default:0 }}, hoverRating: 0 }">
                 {% csrf_token %}
                 
                 <div class="text-center">
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Tap to Rate</label>
-                    
-                    <div class="flex justify-center gap-2" @mouseleave="tempRating = 0">
+                    <div class="flex justify-center gap-3" @mouseleave="hoverRating = 0">
                         {% for i in "12345" %}
                         <label class="cursor-pointer group">
                             <input type="radio" name="rating" value="{{ i }}" class="sr-only" x-model="rating">
-                            <i class="fas fa-star text-4xl md:text-5xl transition-all duration-200 transform group-hover:scale-110"
-                               :class="(tempRating || rating) >= {{ i }} ? 'text-yellow-400 drop-shadow-md' : 'text-gray-200'"
-                               @mouseenter="tempRating = {{ i }}"></i>
+                            <i class="fas fa-star text-4xl transition-transform duration-200 group-hover:scale-110"
+                               :class="(hoverRating || rating) >= {{ i }} ? 'text-yellow-400 drop-shadow-sm' : 'text-slate-200'"
+                               @mouseenter="hoverRating = {{ i }}"></i>
                         </label>
                         {% endfor %}
                     </div>
-                    
-                    <div class="h-6 mt-4 text-sm font-bold text-primary-600 transition-opacity" x-show="rating > 0">
-                        <span x-text="['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'][rating]"></span> Experience
-                    </div>
-                    
                     {% if form.rating.errors %}
-                        <p class="text-red-600 text-sm mt-2">{{ form.rating.errors.0 }}</p>
+                        <p class="text-red-500 text-xs mt-2 font-bold">{{ form.rating.errors.0 }}</p>
                     {% endif %}
                 </div>
 
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-2">Feedback (Optional)</label>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Feedback (Optional)</label>
                     <textarea name="comment" rows="4" 
-                              class="w-full rounded-xl border-gray-200 focus:border-primary-500 focus:ring-primary-500 bg-gray-50 focus:bg-white transition-colors p-4"
+                              class="w-full rounded-2xl border-slate-200 focus:border-brand-500 focus:ring-brand-500 bg-slate-50 focus:bg-white transition-colors p-4 text-sm"
                               placeholder="Share details about punctuality, food quality, or communication...">{{ form.comment.value|default:'' }}</textarea>
                 </div>
 
-                <div class="flex gap-4 pt-2">
-                    <a href="{% url 'core:donation_detail' donation.id %}" class="flex-1 py-3.5 bg-white border border-gray-200 text-gray-600 font-bold rounded-xl hover:bg-gray-50 transition-colors text-center">
+                <div class="flex gap-4">
+                    <a href="{% url 'core:donation_detail' donation.id %}" class="flex-1 py-3.5 bg-white border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition-colors text-center text-sm">
                         Skip
                     </a>
-                    <button type="submit" class="flex-1 py-3.5 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl shadow-lg shadow-primary-500/30 transition-all transform hover:-translate-y-0.5">
+                    <button type="submit" class="flex-1 py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-lg shadow-brand-500/30 transition-all text-sm">
                         Submit Review
                     </button>
                 </div>

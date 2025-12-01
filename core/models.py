@@ -8,6 +8,8 @@ from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.templatetags.static import static
 from django.core.exceptions import ValidationError
+from geopy.geocoders import Nominatim 
+from geopy.exc import GeocoderTimedOut
 import uuid
 from .validators import (
     validate_phone_number, validate_coordinates,
@@ -27,23 +29,30 @@ class TimeStampedModel(models.Model):
 class LocationAwareModel(models.Model):
     """Abstract base model for location data"""
     location = models.CharField(max_length=255, blank=True)
-    latitude = models.DecimalField(
-        max_digits=9, 
-        decimal_places=6, 
-        null=True, 
-        blank=True,
-        help_text="Latitude coordinate"
-    )
-    longitude = models.DecimalField(
-        max_digits=9, 
-        decimal_places=6, 
-        null=True, 
-        blank=True,
-        help_text="Longitude coordinate"
-    )
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     
     class Meta:
         abstract = True
+    
+    def save(self, *args, **kwargs):
+        # If location exists but coords are missing, fetch them here.
+        if self.location and (not self.latitude or not self.longitude):
+            self._geocode_location()
+        super().save(*args, **kwargs)
+
+    def _geocode_location(self):
+        try:
+            geolocator = Nominatim(user_agent="foodloop_app")
+            location = geolocator.geocode(self.location, timeout=5)
+            if location:
+                self.latitude = location.latitude
+                self.longitude = location.longitude
+        except (GeocoderTimedOut, Exception) as e:
+            # Log error but don't stop the save
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Geocoding failed for {self.location}: {e}")
     
     @property
     def has_valid_coordinates(self):

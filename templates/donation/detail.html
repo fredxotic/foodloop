@@ -6,228 +6,230 @@
 {% block title %}{{ donation.title }} - FoodLoop{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto py-8 animate-fade-in-up">
+<div class="max-w-6xl mx-auto py-6 lg:py-10 animate-fade-in-up">
     
-    <nav class="flex mb-8 text-sm text-gray-500 font-medium" aria-label="Breadcrumb">
-        <a href="{% url 'core:home' %}" class="hover:text-primary-600 transition-colors">Home</a>
-        <span class="mx-3 text-gray-300">/</span>
-        {% if is_donor %}
-            <a href="{% url 'core:my_donations' %}" class="hover:text-primary-600 transition-colors">My Inventory</a>
+    <nav class="flex mb-6 text-sm font-medium text-slate-500">
+        <a href="{% url 'core:dashboard' %}" class="hover:text-brand-600 transition-colors">Dashboard</a>
+        <span class="mx-2">/</span>
+        {% if user_is_donor %}
+            <a href="{% url 'core:my_donations' %}" class="hover:text-brand-600 transition-colors">Inventory</a>
         {% else %}
-            <a href="{% url 'core:search_donations' %}" class="hover:text-primary-600 transition-colors">Browse</a>
+            <a href="{% url 'core:search_donations' %}" class="hover:text-brand-600 transition-colors">Search</a>
         {% endif %}
-        <span class="mx-3 text-gray-300">/</span>
-        <span class="text-gray-900 truncate max-w-xs">{{ donation.title }}</span>
+        <span class="mx-2">/</span>
+        <span class="text-slate-900 truncate max-w-[200px]">{{ donation.title }}</span>
     </nav>
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
         
-        <div class="lg:col-span-8 space-y-8">
+        <div class="lg:col-span-7 space-y-8">
             
-            <div class="bg-gray-100 rounded-3xl overflow-hidden aspect-video relative shadow-soft group">
+            <div class="relative aspect-video rounded-3xl overflow-hidden shadow-md group">
                 {% if donation.image %}
                     <img src="{{ donation.image.url }}" alt="{{ donation.title }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
                 {% else %}
-                    <div class="w-full h-full flex flex-col items-center justify-center text-gray-400 bg-gray-50">
-                        <i class="fas fa-utensils text-6xl mb-4 opacity-30"></i>
-                        <span class="font-medium">No image provided</span>
+                    <div class="w-full h-full bg-slate-100 flex items-center justify-center text-slate-300">
+                        <i class="fas fa-image text-6xl"></i>
                     </div>
                 {% endif %}
                 
                 <div class="absolute top-4 left-4">
-                    <span class="inline-flex items-center px-4 py-1.5 rounded-full text-sm font-bold shadow-lg backdrop-blur-md border border-white/20
-                        {% if donation.status == 'available' %}bg-green-500/90 text-white
-                        {% elif donation.status == 'claimed' %}bg-yellow-500/90 text-white
-                        {% elif donation.status == 'completed' %}bg-blue-500/90 text-white
-                        {% else %}bg-gray-500/90 text-white{% endif %}">
-                        {{ donation.get_status_display }}
-                    </span>
+                    {% if donation.status == 'available' %}
+                        <span class="bg-white/90 backdrop-blur-md text-green-700 text-xs font-bold px-3 py-1.5 rounded-full shadow-sm flex items-center gap-1.5">
+                            <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Available
+                        </span>
+                    {% elif donation.status == 'claimed' %}
+                        <span class="bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1.5 rounded-full shadow-sm">Claimed</span>
+                    {% else %}
+                        <span class="bg-slate-800 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-sm">{{ donation.get_status_display }}</span>
+                    {% endif %}
                 </div>
             </div>
 
             <div>
-                <div class="flex justify-between items-start mb-6">
-                    <div>
-                        <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight mb-2">{{ donation.title }}</h1>
-                        <p class="text-gray-500 flex items-center">
-                            <i class="far fa-calendar mr-2"></i> Posted {{ donation.created_at|date:"F j, Y" }}
-                        </p>
-                    </div>
-                    <div class="text-right">
-                        <div class="text-3xl font-extrabold text-primary-600">{{ donation.quantity }}</div>
-                        <div class="text-xs font-bold text-gray-400 uppercase tracking-wider">Items</div>
+                <div class="flex justify-between items-start mb-4">
+                    <h1 class="text-3xl md:text-4xl font-display font-extrabold text-slate-900 leading-tight">{{ donation.title }}</h1>
+                    <div class="text-right shrink-0 ml-4">
+                        <span class="block text-3xl font-display font-bold text-brand-600">{{ donation.quantity }}</span>
+                        <span class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Items</span>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                    <div class="p-4 bg-gray-50 rounded-2xl border border-gray-100 text-center">
-                        <i class="fas fa-fire text-orange-500 text-xl mb-2"></i>
-                        <p class="text-xs font-bold text-gray-400 uppercase">Energy</p>
-                        <p class="font-bold text-gray-900">{{ donation.estimated_calories|default:"--" }} kcal</p>
-                    </div>
-                    <div class="p-4 bg-gray-50 rounded-2xl border border-gray-100 text-center">
-                        <i class="fas fa-tag text-blue-500 text-xl mb-2"></i>
-                        <p class="text-xs font-bold text-gray-400 uppercase">Type</p>
-                        <p class="font-bold text-gray-900">{{ donation.get_food_category_display }}</p>
-                    </div>
-                    <div class="p-4 bg-gray-50 rounded-2xl border border-gray-100 text-center">
-                        <i class="fas fa-leaf text-green-500 text-xl mb-2"></i>
-                        <p class="text-xs font-bold text-gray-400 uppercase">Nutri-Score</p>
-                        <p class="font-bold text-gray-900">{{ donation.nutrition_score }}/100</p>
-                    </div>
-                    <div class="p-4 bg-gray-50 rounded-2xl border border-gray-100 text-center">
-                        <i class="fas fa-clock text-red-500 text-xl mb-2"></i>
-                        <p class="text-xs font-bold text-gray-400 uppercase">Expiry</p>
-                        <p class="font-bold text-gray-900 {% if is_expired %}text-red-600{% endif %}">
-                            {% if is_expired %}Expired{% else %}{{ time_until_expiry|time_since }}{% endif %}
-                        </p>
-                    </div>
+                <div class="flex flex-wrap gap-2 mb-6">
+                    <span class="px-3 py-1 rounded-lg bg-slate-100 text-slate-600 text-xs font-bold border border-slate-200">
+                        {{ donation.get_food_category_display }}
+                    </span>
+                    <span class="px-3 py-1 rounded-lg bg-orange-50 text-orange-600 text-xs font-bold border border-orange-100 flex items-center gap-1">
+                        <i class="fas fa-fire"></i> {{ donation.estimated_calories|default:"--" }} kcal
+                    </span>
+                    <span class="px-3 py-1 rounded-lg bg-green-50 text-green-600 text-xs font-bold border border-green-100 flex items-center gap-1">
+                        <i class="fas fa-leaf"></i> {{ donation.nutrition_score }} Score
+                    </span>
                 </div>
 
-                <div class="prose prose-lg text-gray-600 max-w-none">
-                    <h3 class="text-lg font-bold text-gray-900 mb-2">Description</h3>
+                <div class="prose prose-slate max-w-none text-slate-600 leading-relaxed">
+                    <h3 class="text-lg font-bold text-slate-900 mb-2">Description</h3>
                     <p>{{ donation.description|linebreaksbr }}</p>
                 </div>
             </div>
 
-            <div class="bg-white rounded-2xl border border-gray-200 p-6">
-                <h3 class="text-lg font-bold text-gray-900 mb-4">Details & Dietary</h3>
-                
-                <div class="flex flex-wrap gap-2 mb-6">
-                    {% for tag in donation.dietary_tags %}
-                        <span class="px-3 py-1 bg-primary-50 text-primary-700 rounded-full text-sm font-medium border border-primary-100">
-                            {{ tag }}
-                        </span>
-                    {% empty %}
-                        <span class="text-gray-400 text-sm italic">No dietary tags specified</span>
-                    {% endfor %}
-                </div>
-
-                <div class="grid md:grid-cols-2 gap-6 pt-6 border-t border-gray-100">
+            <div class="glass bg-white/60 rounded-3xl p-6 border border-white/50">
+                <h3 class="text-lg font-bold text-slate-900 mb-4">Dietary & Allergen Info</h3>
+                <div class="grid sm:grid-cols-2 gap-6">
                     <div>
-                        <p class="text-xs font-bold text-gray-400 uppercase mb-1">Ingredients</p>
-                        <p class="text-sm text-gray-700">{{ donation.ingredients_list|default:"Not specified" }}</p>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Suitable For</p>
+                        <div class="flex flex-wrap gap-2">
+                            {% for tag in donation.dietary_tags %}
+                                <span class="text-xs font-medium bg-white border border-slate-200 px-2 py-1 rounded-md text-slate-700">{{ tag }}</span>
+                            {% empty %}
+                                <span class="text-sm text-slate-400 italic">No specific tags</span>
+                            {% endfor %}
+                        </div>
                     </div>
                     <div>
-                        <p class="text-xs font-bold text-gray-400 uppercase mb-1">Allergen Info</p>
-                        <p class="text-sm text-red-600 bg-red-50 inline-block px-2 py-1 rounded">
-                            {{ donation.allergen_info|default:"None specified" }}
-                        </p>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Allergens</p>
+                        {% if donation.allergen_info %}
+                            <p class="text-sm text-red-600 bg-red-50 p-2 rounded-lg border border-red-100 inline-block">
+                                <i class="fas fa-triangle-exclamation mr-1"></i> {{ donation.allergen_info }}
+                            </p>
+                        {% else %}
+                            <p class="text-sm text-slate-500">No allergens listed.</p>
+                        {% endif %}
                     </div>
                 </div>
             </div>
 
         </div>
 
-        <div class="lg:col-span-4 space-y-6">
+        <div class="lg:col-span-5 space-y-6">
             
-            <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 sticky top-24">
-                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Pickup Logistics</h3>
+            <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 p-6 lg:p-8 sticky top-24">
                 
-                <div class="space-y-4 mb-6">
-                    <div class="flex items-start">
-                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center mt-0.5">
-                            <i class="fas fa-map-marker-alt text-primary-600"></i>
+                <div class="flex items-center gap-4 mb-6 pb-6 border-b border-slate-100">
+                    {% if donation.donor.profile.profile_picture %}
+                        <img src="{{ donation.donor.profile.profile_picture.url }}" class="w-14 h-14 rounded-full object-cover border-2 border-white shadow-md">
+                    {% else %}
+                        <div class="w-14 h-14 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center font-bold text-xl border-2 border-white shadow-md">
+                            {{ donation.donor.first_name|first }}
                         </div>
-                        <div class="ml-3">
-                            <p class="text-sm font-bold text-gray-900">Location</p>
-                            <p class="text-sm text-gray-600">{{ donation.pickup_location }}</p>
-                        </div>
-                    </div>
-                    
-                    <div class="flex items-start">
-                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center mt-0.5">
-                            <i class="fas fa-clock text-primary-600"></i>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-sm font-bold text-gray-900">Window</p>
-                            <p class="text-sm text-gray-600">
-                                {{ donation.pickup_start|date:"M d, g:i A" }} - <br>
-                                {{ donation.pickup_end|date:"M d, g:i A" }}
-                            </p>
+                    {% endif %}
+                    <div>
+                        <p class="text-xs text-slate-400 font-bold uppercase">Donated by</p>
+                        <a href="{% url 'core:public_profile' donation.donor.id %}" class="text-lg font-bold text-slate-900 hover:text-brand-600 transition-colors">
+                            {{ donation.donor.get_full_name }}
+                        </a>
+                        <div class="flex items-center text-xs text-yellow-400 mt-0.5">
+                            <i class="fas fa-star"></i>
+                            <span class="text-slate-600 font-bold ml-1">{{ donation.donor.profile.average_rating }}</span>
+                            <span class="text-slate-400 ml-1">({{ donation.donor.profile.total_ratings }})</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="space-y-3 pt-6 border-t border-gray-100">
-                    {% if is_donor %}
+                <div class="space-y-4 mb-8">
+                    <div class="flex gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center shrink-0 text-slate-400">
+                            <i class="fas fa-location-dot"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-400 uppercase">Pickup Location</p>
+                            <p class="text-sm font-semibold text-slate-800">{{ donation.pickup_location }}</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center shrink-0 text-slate-400">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-400 uppercase">Pickup Window</p>
+                            <p class="text-sm font-semibold text-slate-800">
+                                {{ donation.pickup_start|date:"M d, H:i" }} - {{ donation.pickup_end|date:"H:i" }}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    {% if is_expired %}
+                        <div class="bg-red-50 text-red-600 p-3 rounded-xl text-center text-sm font-bold border border-red-100">
+                            This donation has expired.
+                        </div>
+                    {% else %}
+                        <div class="bg-orange-50 text-orange-600 p-3 rounded-xl text-center text-sm font-bold border border-orange-100">
+                            Expires in {{ donation.expiry_datetime|timeuntil }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="space-y-3">
+                    
+                    {% if is_owner %}
                         {% if donation.status == 'available' %}
-                            <button class="w-full py-3 bg-gray-100 text-gray-400 font-bold rounded-xl cursor-not-allowed" disabled>
+                            <button class="w-full py-3 bg-slate-100 text-slate-400 font-bold rounded-xl cursor-not-allowed border border-slate-200" disabled>
                                 Waiting for Recipient
                             </button>
-                            <form action="{% url 'core:cancel_donation' donation.id %}" method="post" onsubmit="return confirm('Cancel this donation?');">
+                            <form action="{% url 'core:cancel_donation' donation.id %}" method="post" onsubmit="return confirm('Cancel this listing?');">
                                 {% csrf_token %}
-                                <button type="submit" class="w-full py-3 text-red-600 hover:bg-red-50 font-medium rounded-xl transition-colors text-sm">
+                                <button type="submit" class="w-full py-3.5 border-2 border-red-100 text-red-600 font-bold rounded-xl hover:bg-red-50 transition-colors">
                                     Cancel Listing
                                 </button>
                             </form>
                         {% elif donation.status == 'claimed' %}
-                            <div class="bg-blue-50 text-blue-700 p-3 rounded-xl text-sm mb-3">
-                                <span class="font-bold">Claimed!</span> Please verify pickup.
+                            <div class="bg-blue-50 text-blue-800 p-4 rounded-xl text-sm mb-4 border border-blue-100">
+                                <p class="font-bold mb-1">Claimed by {{ donation.recipient.first_name }}</p>
+                                <p>Please verify their identity upon pickup.</p>
                             </div>
                             <form action="{% url 'core:complete_donation' donation.id %}" method="post">
                                 {% csrf_token %}
-                                <button type="submit" class="w-full py-3.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl shadow-lg shadow-green-600/20 transition-all transform hover:-translate-y-0.5">
-                                    Confirm Pickup Complete
+                                <button type="submit" class="w-full py-4 bg-brand-600 text-white font-bold rounded-xl shadow-lg hover:bg-brand-700 hover:shadow-brand-500/30 transition-all transform hover:-translate-y-0.5">
+                                    Confirm Handover
                                 </button>
                             </form>
                         {% endif %}
 
-                    {% elif is_recipient %}
+                    {% elif user_is_recipient %}
+                        
                         {% if donation.status == 'available' %}
                             {% if can_claim %}
                                 <form action="{% url 'core:claim_donation' donation.id %}" method="post">
                                     {% csrf_token %}
-                                    <button type="submit" class="w-full py-3.5 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl shadow-lg shadow-primary-600/20 transition-all transform hover:-translate-y-0.5 text-lg">
-                                        Claim Donation
+                                    <button type="submit" class="w-full py-4 bg-brand-600 text-white font-bold rounded-xl shadow-lg hover:bg-brand-700 hover:shadow-brand-500/30 transition-all transform hover:-translate-y-0.5 text-lg flex items-center justify-center gap-2">
+                                        <span>Claim Donation</span>
+                                        <i class="fas fa-arrow-right"></i>
                                     </button>
                                 </form>
-                                <p class="text-xs text-center text-gray-500 mt-2">Commit to pickup within the window.</p>
+                                <p class="text-xs text-center text-slate-400 mt-2">By claiming, you commit to picking up within the window.</p>
                             {% else %}
-                                <button class="w-full py-3 bg-gray-100 text-gray-400 font-bold rounded-xl cursor-not-allowed" disabled>
-                                    Unavailable
+                                <button disabled class="w-full py-4 bg-slate-100 text-slate-400 font-bold rounded-xl cursor-not-allowed border border-slate-200">
+                                    {% if not user.profile.email_verified %}Verify Email to Claim{% else %}Unavailable{% endif %}
                                 </button>
-                                <p class="text-xs text-center text-red-500 mt-2">
-                                    {% if is_expired %}Expired item{% elif not user.profile.email_verified %}Verification required{% endif %}
-                                </p>
+                                {% if not user.profile.email_verified %}
+                                <p class="text-center text-xs mt-2"><a href="{% url 'core:profile' %}" class="text-brand-600 underline">Verify here</a></p>
+                                {% endif %}
                             {% endif %}
                         
-                        {% elif donation.status == 'claimed' and donation.recipient == user %}
-                            <div class="p-4 bg-green-50 border border-green-100 rounded-xl text-center">
-                                <i class="fas fa-check-circle text-3xl text-green-600 mb-2"></i>
-                                <h4 class="font-bold text-green-800">Claimed!</h4>
-                                <p class="text-sm text-green-700 mt-1">Head to the location for pickup.</p>
+                        {% elif is_assignee %}
+                            <div class="bg-green-50 border-2 border-green-100 rounded-2xl p-6 text-center">
+                                <div class="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-3 text-xl">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                                <h4 class="font-bold text-green-800 text-lg mb-1">Claim Successful!</h4>
+                                <p class="text-green-700 text-sm mb-4">Please pick up the items before the deadline.</p>
+                                
+                                {% if donation.has_valid_coordinates %}
+                                <a href="https://www.google.com/maps/dir/?api=1&destination={{ donation.latitude }},{{ donation.longitude }}" target="_blank" class="inline-flex items-center justify-center px-6 py-2.5 bg-white border border-green-200 text-green-700 font-bold rounded-xl hover:bg-green-50 transition-colors shadow-sm">
+                                    <i class="fas fa-directions mr-2"></i> Get Directions
+                                </a>
+                                {% endif %}
                             </div>
-                            {% if donation.has_valid_coordinates %}
-                            <a href="https://www.google.com/maps/dir/?api=1&destination={{ donation.latitude }},{{ donation.longitude }}" target="_blank" class="block w-full py-3 bg-white border border-gray-200 text-gray-700 font-bold text-center rounded-xl hover:bg-gray-50 transition-colors mt-2">
-                                Get Directions
-                            </a>
-                            {% endif %}
+                        
+                        {% elif donation.status == 'claimed' %}
+                            <button disabled class="w-full py-4 bg-slate-100 text-slate-400 font-bold rounded-xl cursor-not-allowed border border-slate-200">
+                                Already Claimed
+                            </button>
                         {% endif %}
+                    
                     {% endif %}
                 </div>
-            </div>
 
-            <div class="bg-white rounded-2xl border border-gray-100 p-5 flex items-center gap-4">
-                {% if donation.donor.profile.profile_picture %}
-                    <img src="{{ donation.donor.profile.profile_picture.url }}" class="w-12 h-12 rounded-full object-cover">
-                {% else %}
-                    <div class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 font-bold">
-                        {{ donation.donor.first_name|first }}
-                    </div>
-                {% endif %}
-                <div class="flex-1 min-w-0">
-                    <p class="text-sm font-bold text-gray-900 truncate">{{ donation.donor.get_full_name }}</p>
-                    <div class="flex items-center text-xs text-yellow-500">
-                        <i class="fas fa-star mr-1"></i>
-                        <span class="font-bold text-gray-700">{{ donation.donor.profile.average_rating|default:"New" }}</span>
-                        <span class="text-gray-400 mx-1">•</span>
-                        <span class="text-gray-500">{{ donation.donor.profile.total_ratings }} reviews</span>
-                    </div>
-                </div>
-                <a href="{% url 'core:public_profile' donation.donor.id %}" class="text-gray-400 hover:text-primary-600">
-                    <i class="fas fa-chevron-right"></i>
-                </a>
             </div>
 
         </div>

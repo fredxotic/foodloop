@@ -4,105 +4,30 @@
 {% block title %}About Us - FoodLoop{% endblock %}
 
 {% block content %}
-<div class="relative bg-dark-950 overflow-hidden py-24 sm:py-32">
-    <div class="absolute inset-0 opacity-20">
-        <div class="absolute -top-24 -left-24 w-96 h-96 bg-primary-600 rounded-full blur-3xl opacity-30 animate-pulse"></div>
-        <div class="absolute bottom-0 right-0 w-96 h-96 bg-blue-600 rounded-full blur-3xl opacity-30"></div>
-        <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-    </div>
-    
-    <div class="relative max-w-7xl mx-auto px-6 lg:px-8 text-center">
-        <div class="inline-flex items-center rounded-full px-3 py-1 text-sm font-medium text-primary-400 ring-1 ring-inset ring-primary-400/30 mb-6 bg-primary-400/10">
-            Our Mission
-        </div>
-        <h1 class="text-4xl font-extrabold tracking-tight text-white sm:text-6xl mb-6">
-            Connecting Food.<br>
-            <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-emerald-400">Connecting People.</span>
-        </h1>
-        <p class="mt-6 text-lg leading-8 text-gray-300 max-w-2xl mx-auto">
-            We are on a mission to eliminate food waste and hunger by building the world's most efficient, transparent, and community-driven food rescue platform.
-        </p>
+<div class="bg-slate-900 text-white py-24 relative overflow-hidden">
+    <div class="absolute inset-0 bg-mesh opacity-10"></div>
+    <div class="max-w-4xl mx-auto px-6 text-center relative z-10">
+        <h1 class="font-display text-4xl md:text-5xl font-extrabold mb-6">Connecting Food, Connecting People.</h1>
+        <p class="text-xl text-slate-400">We are on a mission to eliminate food waste and hunger by building the world's most efficient food rescue platform.</p>
     </div>
 </div>
 
-<div class="py-24 bg-white sm:py-32">
-    <div class="mx-auto max-w-7xl px-6 lg:px-8">
-        <div class="mx-auto max-w-2xl text-center mb-16">
-            <h2 class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Our Core Values</h2>
-            <p class="mt-4 text-lg leading-8 text-gray-600">The principles that drive every decision we make at FoodLoop.</p>
+<div class="max-w-7xl mx-auto px-6 py-20">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+        <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
+            <div class="w-12 h-12 bg-green-100 text-green-600 rounded-xl flex items-center justify-center text-xl mb-4"><i class="fas fa-seedling"></i></div>
+            <h3 class="font-bold text-xl text-slate-900 mb-2">Sustainability First</h3>
+            <p class="text-slate-600 leading-relaxed">Food belongs on plates, not landfills. Every meal saved is a victory for our planet.</p>
         </div>
-
-        <div class="grid grid-cols-1 gap-8 md:grid-cols-3">
-            <div class="relative group bg-gray-50 p-8 rounded-3xl border border-gray-100 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
-                <div class="w-14 h-14 rounded-2xl bg-green-100 flex items-center justify-center text-green-600 text-2xl mb-6 group-hover:scale-110 transition-transform">
-                    <i class="fas fa-seedling"></i>
-                </div>
-                <h3 class="text-xl font-bold text-gray-900 mb-3">Sustainability First</h3>
-                <p class="text-gray-600 leading-relaxed">
-                    We believe food belongs on plates, not in landfills. Every meal saved is a measurable victory for our planet.
-                </p>
-            </div>
-
-            <div class="relative group bg-gray-50 p-8 rounded-3xl border border-gray-100 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
-                <div class="w-14 h-14 rounded-2xl bg-blue-100 flex items-center justify-center text-blue-600 text-2xl mb-6 group-hover:scale-110 transition-transform">
-                    <i class="fas fa-users"></i>
-                </div>
-                <h3 class="text-xl font-bold text-gray-900 mb-3">Community Driven</h3>
-                <p class="text-gray-600 leading-relaxed">
-                    Technology is the tool, but people are the solution. We empower local communities to take care of their own.
-                </p>
-            </div>
-
-            <div class="relative group bg-gray-50 p-8 rounded-3xl border border-gray-100 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
-                <div class="w-14 h-14 rounded-2xl bg-purple-100 flex items-center justify-center text-purple-600 text-2xl mb-6 group-hover:scale-110 transition-transform">
-                    <i class="fas fa-shield-alt"></i>
-                </div>
-                <h3 class="text-xl font-bold text-gray-900 mb-3">Trust & Transparency</h3>
-                <p class="text-gray-600 leading-relaxed">
-                    We build systems that ensure food safety and foster trust between donors and recipients through verified profiles.
-                </p>
-            </div>
+        <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
+            <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center text-xl mb-4"><i class="fas fa-users"></i></div>
+            <h3 class="font-bold text-xl text-slate-900 mb-2">Community Driven</h3>
+            <p class="text-slate-600 leading-relaxed">Technology is the tool, people are the solution. We empower communities to care for their own.</p>
         </div>
-    </div>
-</div>
-
-<div class="bg-gray-50 py-24 sm:py-32 border-t border-gray-200">
-    <div class="mx-auto max-w-7xl px-6 lg:px-8">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div>
-                <h2 class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-6">Our Story</h2>
-                <div class="prose prose-lg text-gray-600 space-y-6">
-                    <p>
-                        FoodLoop began with a simple observation: restaurants were throwing away perfectly good food at the end of the night, while people just blocks away were going hungry.
-                    </p>
-                    <p>
-                        The gap wasn't a lack of food; it was a logistics problem. We built FoodLoop to bridge that gap using smart technology, real-time location services, and AI-driven matching.
-                    </p>
-                    <p>
-                        Today, we are a growing network of thousands of donors and recipients, proving that when we connect the loop, everyone eats.
-                    </p>
-                </div>
-                
-                <div class="mt-10 flex gap-4">
-                    <a href="{% url 'core:signup' %}" class="px-6 py-3 bg-primary-600 text-white font-bold rounded-xl shadow-lg shadow-primary-500/30 hover:bg-primary-700 transition-all transform hover:-translate-y-0.5">
-                        Join the Loop
-                    </a>
-                </div>
-            </div>
-            
-            <div class="relative">
-                <div class="aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl transform rotate-2 hover:rotate-0 transition-all duration-500">
-                    <div class="absolute inset-0 bg-gradient-to-br from-primary-600 to-blue-700 mix-blend-multiply opacity-90"></div>
-                    <img src="https://images.unsplash.com/photo-1488459716781-31db52582fe9?auto=format&fit=crop&q=80" alt="Volunteers" class="w-full h-full object-cover">
-                    <div class="absolute inset-0 flex items-center justify-center">
-                        <div class="text-center text-white p-8">
-                            <i class="fas fa-heart text-5xl mb-4 animate-bounce-subtle"></i>
-                            <h3 class="text-2xl font-bold">Built with Love by FoodLoop Team</h3>
-                        </div>
-                    </div>
-                </div>
-                <div class="absolute -bottom-6 -left-6 w-24 h-24 bg-yellow-400 rounded-full blur-2xl opacity-40 -z-10"></div>
-            </div>
+        <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
+            <div class="w-12 h-12 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center text-xl mb-4"><i class="fas fa-shield-alt"></i></div>
+            <h3 class="font-bold text-xl text-slate-900 mb-2">Trust & Safety</h3>
+            <p class="text-slate-600 leading-relaxed">We build systems ensuring food safety and fostering trust through verified profiles.</p>
         </div>
     </div>
 </div>
