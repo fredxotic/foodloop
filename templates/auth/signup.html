@@ -1,154 +1,93 @@
 {% extends 'base/base_auth.html' %}
-{% load static %}
 
-{% block title %}Join FoodLoop{% endblock %}
+{% block auth_heading %}Join the movement today{% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex">
-    
-    <div class="hidden lg:flex w-1/2 bg-brand-900 relative overflow-hidden flex-col justify-between p-16 text-white">
-        <div class="absolute inset-0 bg-gradient-to-br from-brand-900 to-slate-900"></div>
-        <div class="absolute top-0 right-0 w-[40rem] h-[40rem] bg-brand-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob"></div>
-        <div class="absolute bottom-0 left-0 w-[40rem] h-[40rem] bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-2000"></div>
+<form method="post" style="display: flex; flex-direction: column; gap: 1.25rem;" x-data="{ role: 'donor' }">
+    {% csrf_token %}
 
-        <div class="relative z-10">
-            <div class="flex items-center gap-3 mb-12">
-                <div class="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20">
-                    <i class="fas fa-leaf text-brand-300"></i>
-                </div>
-                <span class="font-display font-bold text-2xl tracking-tight">FoodLoop</span>
-            </div>
-
-            <h1 class="font-display text-5xl font-extrabold leading-tight mb-6">
-                Turn surplus into <br>
-                <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-300 to-emerald-300">sustenance.</span>
-            </h1>
-            <p class="text-brand-100 text-lg max-w-md leading-relaxed">
-                Join thousands of local heroes fighting food waste. Whether you're a donor or a recipient, you are part of the solution.
-            </p>
+    {% if form.non_field_errors %}
+        <div style="background: #fef2f2; border: 1px solid #fee2e2; color: #991b1b; padding: 1rem; border-radius: var(--radius-md); font-size: 0.9rem;">
+            {{ form.non_field_errors }}
         </div>
+    {% endif %}
 
-        <div class="relative z-10 flex gap-8">
-            <div>
-                <p class="text-3xl font-display font-bold text-white">2.5k+</p>
-                <p class="text-brand-300 text-sm font-medium">Donations</p>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 0.5rem;">
+        <label style="cursor: pointer; position: relative;">
+            <input type="radio" name="user_type" value="donor" class="sr-only" x-model="role" style="display: none;">
+            <div class="role-card" 
+                 :style="role === 'donor' ? 'border-color: var(--color-primary); background: var(--color-primary-light);' : 'border-color: #e2e8f0;'"
+                 style="padding: 1rem; border: 2px solid; border-radius: var(--radius-md); text-align: center; transition: all 0.2s;">
+                <div style="font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--color-primary);">
+                    <i class="fas fa-hand-holding-heart"></i>
+                </div>
+                <span style="font-weight: 700; font-size: 0.9rem; display: block;">I want to Donate</span>
             </div>
-            <div>
-                <p class="text-3xl font-display font-bold text-white">100%</p>
-                <p class="text-brand-300 text-sm font-medium">Verified</p>
+        </label>
+
+        <label style="cursor: pointer; position: relative;">
+            <input type="radio" name="user_type" value="recipient" class="sr-only" x-model="role" style="display: none;">
+            <div class="role-card" 
+                 :style="role === 'recipient' ? 'border-color: var(--color-warning); background: #fffbeb;' : 'border-color: #e2e8f0;'"
+                 style="padding: 1rem; border: 2px solid; border-radius: var(--radius-md); text-align: center; transition: all 0.2s;">
+                <div style="font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--color-warning);">
+                    <i class="fas fa-utensils"></i>
+                </div>
+                <span style="font-weight: 700; font-size: 0.9rem; display: block;">I want Food</span>
             </div>
+        </label>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div>
+            <label class="label-muted">First Name</label>
+            {{ form.first_name }}
+        </div>
+        <div>
+            <label class="label-muted">Last Name</label>
+            {{ form.last_name }}
         </div>
     </div>
 
-    <div class="w-full lg:w-1/2 flex flex-col justify-center p-6 md:p-12 lg:p-20 overflow-y-auto">
-        <div class="max-w-md mx-auto w-full">
-            
-            <div class="mb-10 lg:hidden">
-                <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-brand-100 text-brand-600 mb-4">
-                    <i class="fas fa-leaf text-xl"></i>
-                </div>
-                <h1 class="text-3xl font-display font-bold text-slate-900">Create Account</h1>
-            </div>
-
-            <h2 class="hidden lg:block text-3xl font-display font-bold text-slate-900 mb-2">Get Started</h2>
-            <p class="text-slate-500 mb-8">Create your account to start connecting.</p>
-
-            <form method="post" class="space-y-5" x-data="{ role: 'donor' }">
-                {% csrf_token %}
-
-                {% if form.non_field_errors %}
-                    <div class="bg-red-50 border border-red-100 text-red-600 p-4 rounded-xl text-sm">
-                        {{ form.non_field_errors }}
-                    </div>
-                {% endif %}
-
-                <div class="grid grid-cols-2 gap-4 mb-6">
-                    <label class="relative cursor-pointer group">
-                        <input type="radio" name="user_type" value="donor" class="peer sr-only" x-model="role">
-                        <div class="p-4 rounded-2xl border-2 border-slate-100 hover:border-brand-200 peer-checked:border-brand-500 peer-checked:bg-brand-50/50 transition-all text-center h-full">
-                            <div class="w-10 h-10 mx-auto rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mb-2 peer-checked:bg-brand-200 peer-checked:text-brand-700 transition-colors">
-                                <i class="fas fa-hand-holding-heart"></i>
-                            </div>
-                            <span class="block font-bold text-slate-900 text-sm">I want to Donate</span>
-                        </div>
-                        <div class="absolute top-2 right-2 text-brand-600 opacity-0 peer-checked:opacity-100 transition-opacity scale-0 peer-checked:scale-100">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
-                    </label>
-
-                    <label class="relative cursor-pointer group">
-                        <input type="radio" name="user_type" value="recipient" class="peer sr-only" x-model="role">
-                        <div class="p-4 rounded-2xl border-2 border-slate-100 hover:border-brand-200 peer-checked:border-brand-500 peer-checked:bg-brand-50/50 transition-all text-center h-full">
-                            <div class="w-10 h-10 mx-auto rounded-full bg-orange-100 text-orange-600 flex items-center justify-center mb-2 peer-checked:bg-brand-200 peer-checked:text-brand-700 transition-colors">
-                                <i class="fas fa-utensils"></i>
-                            </div>
-                            <span class="block font-bold text-slate-900 text-sm">I want Food</span>
-                        </div>
-                        <div class="absolute top-2 right-2 text-brand-600 opacity-0 peer-checked:opacity-100 transition-opacity scale-0 peer-checked:scale-100">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
-                    </label>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="space-y-1">
-                        <label class="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">First Name</label>
-                        {{ form.first_name }}
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Last Name</label>
-                        {{ form.last_name }}
-                    </div>
-                </div>
-
-                <div class="space-y-1">
-                    <label class="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Username</label>
-                    {{ form.username }}
-                </div>
-
-                <div class="space-y-1">
-                    <label class="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Email Address</label>
-                    {{ form.email }}
-                </div>
-
-                <div class="space-y-1">
-                    <label class="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Password</label>
-                    <input type="password" name="password1" class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none transition-all font-medium" placeholder="••••••••">
-                </div>
-
-                <div class="space-y-1">
-                    <label class="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Confirm Password</label>
-                    <input type="password" name="password2" class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none transition-all font-medium" placeholder="••••••••">
-                </div>
-
-                <button type="submit" class="w-full py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold shadow-lg shadow-slate-900/20 hover:-translate-y-0.5 transition-all duration-200 mt-4">
-                    Create Account
-                </button>
-            </form>
-
-            <p class="text-center mt-8 text-slate-500 text-sm">
-                Already have an account? 
-                <a href="{% url 'core:login' %}" class="font-bold text-brand-600 hover:text-brand-700 hover:underline">Log in</a>
-            </p>
-        </div>
+    <div>
+        <label class="label-muted">Username</label>
+        {{ form.username }}
     </div>
+
+    <div>
+        <label class="label-muted">Email Address</label>
+        {{ form.email }}
+    </div>
+
+    <div>
+        <label class="label-muted">Password</label>
+        <input type="password" name="password1" class="form-control" placeholder="••••••••">
+    </div>
+
+    <div>
+        <label class="label-muted">Confirm Password</label>
+        <input type="password" name="password2" class="form-control" placeholder="••••••••">
+    </div>
+
+    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; margin-top: 0.5rem;">
+        Create Account
+    </button>
+</form>
+
+<div style="text-align: center; margin-top: 2rem; font-size: 0.9rem; color: var(--color-text-muted);">
+    Already have an account? 
+    <a href="{% url 'core:login' %}" style="color: var(--color-primary); font-weight: 600;">Log in</a>
 </div>
 
 <style>
-    /* Styling Django form inputs via CSS since we can't easily add classes in backend for every field */
-    input[type="text"], input[type="email"] {
-        @apply w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none transition-all font-medium text-slate-800 placeholder:text-slate-400;
+    .label-muted {
+        display: block; 
+        font-size: 0.75rem; 
+        font-weight: 700; 
+        text-transform: uppercase; 
+        color: var(--color-text-muted); 
+        margin-bottom: 0.4rem;
+        letter-spacing: 0.05em;
     }
-    
-    .animate-blob {
-        animation: blob 7s infinite;
-    }
-    @keyframes blob {
-        0% { transform: translate(0px, 0px) scale(1); }
-        33% { transform: translate(30px, -50px) scale(1.1); }
-        66% { transform: translate(-20px, 20px) scale(0.9); }
-        100% { transform: translate(0px, 0px) scale(1); }
-    }
-    .animation-delay-2000 { animation-delay: 2s; }
 </style>
 {% endblock %}

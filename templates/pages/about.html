@@ -4,30 +4,39 @@
 {% block title %}About Us - FoodLoop{% endblock %}
 
 {% block content %}
-<div class="bg-slate-900 text-white py-24 relative overflow-hidden">
-    <div class="absolute inset-0 bg-mesh opacity-10"></div>
-    <div class="max-w-4xl mx-auto px-6 text-center relative z-10">
-        <h1 class="font-display text-4xl md:text-5xl font-extrabold mb-6">Connecting Food, Connecting People.</h1>
-        <p class="text-xl text-slate-400">We are on a mission to eliminate food waste and hunger by building the world's most efficient food rescue platform.</p>
+<div style="background: var(--color-text-main); color: white; padding: 6rem 0; text-align: center; border-radius: var(--radius-xl); margin-bottom: 4rem;">
+    <div class="container" style="max-width: 800px;">
+        <h1 style="font-size: 3rem; margin-bottom: 1.5rem;">Connecting Food, Connecting People.</h1>
+        <p style="font-size: 1.25rem; color: #94a3b8; line-height: 1.7;">
+            We are on a mission to eliminate food waste and hunger by building the world's most efficient food rescue platform.
+        </p>
     </div>
 </div>
 
-<div class="max-w-7xl mx-auto px-6 py-20">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
-        <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
-            <div class="w-12 h-12 bg-green-100 text-green-600 rounded-xl flex items-center justify-center text-xl mb-4"><i class="fas fa-seedling"></i></div>
-            <h3 class="font-bold text-xl text-slate-900 mb-2">Sustainability First</h3>
-            <p class="text-slate-600 leading-relaxed">Food belongs on plates, not landfills. Every meal saved is a victory for our planet.</p>
+<div class="container">
+    <div class="grid-cols-3" style="gap: 3rem;">
+        <div class="card" style="border: none; box-shadow: none; background: transparent;">
+            <div style="width: 3.5rem; height: 3.5rem; background: #dcfce7; color: #166534; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1.5rem;">
+                <i class="fas fa-seedling"></i>
+            </div>
+            <h3 style="font-size: 1.5rem; margin-bottom: 1rem;">Sustainability First</h3>
+            <p style="color: var(--color-text-muted);">Food belongs on plates, not landfills. Every meal saved is a victory for our planet.</p>
         </div>
-        <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
-            <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center text-xl mb-4"><i class="fas fa-users"></i></div>
-            <h3 class="font-bold text-xl text-slate-900 mb-2">Community Driven</h3>
-            <p class="text-slate-600 leading-relaxed">Technology is the tool, people are the solution. We empower communities to care for their own.</p>
+        
+        <div class="card" style="border: none; box-shadow: none; background: transparent;">
+            <div style="width: 3.5rem; height: 3.5rem; background: #dbeafe; color: #1e40af; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1.5rem;">
+                <i class="fas fa-users"></i>
+            </div>
+            <h3 style="font-size: 1.5rem; margin-bottom: 1rem;">Community Driven</h3>
+            <p style="color: var(--color-text-muted);">Technology is the tool, people are the solution. We empower communities to care for their own.</p>
         </div>
-        <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
-            <div class="w-12 h-12 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center text-xl mb-4"><i class="fas fa-shield-alt"></i></div>
-            <h3 class="font-bold text-xl text-slate-900 mb-2">Trust & Safety</h3>
-            <p class="text-slate-600 leading-relaxed">We build systems ensuring food safety and fostering trust through verified profiles.</p>
+
+        <div class="card" style="border: none; box-shadow: none; background: transparent;">
+            <div style="width: 3.5rem; height: 3.5rem; background: #f3e8ff; color: #6b21a8; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1.5rem;">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <h3 style="font-size: 1.5rem; margin-bottom: 1rem;">Trust & Safety</h3>
+            <p style="color: var(--color-text-muted);">We build systems ensuring food safety and fostering trust through verified profiles.</p>
         </div>
     </div>
 </div>

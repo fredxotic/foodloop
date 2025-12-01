@@ -1,225 +1,156 @@
-// static/js/scripts.js
-// JavaScript for FoodLoop application
+/**
+ * FoodLoop Core Scripts
+ * Modernized Entry Point for UI/UX Interactions
+ */
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize all functionality
-    initDateTimeInputs();
-    initAjaxForms();
-    initStatusUpdates();
-    initNotifications();
-});
+const FoodLoop = {
+    // =========================================
+    // 1. Initialization
+    // =========================================
+    init() {
+        this.setupCSRF();
+        this.setupMobileMenu();
+        this.setupDateTimeInputs();
+        console.log('✅ FoodLoop UI Initialized');
+    },
 
-// Initialize datetime inputs with proper constraints
-function initDateTimeInputs() {
-    const datetimeInputs = document.querySelectorAll('input[type="datetime-local"]');
-    datetimeInputs.forEach(input => {
-        // Set minimum to current datetime
-        const now = new Date();
-        const localDatetime = now.toISOString().slice(0, 16);
-        input.min = localDatetime;
+    // =========================================
+    // 2. Security & Networking
+    // =========================================
+    getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    },
+
+    setupCSRF() {
+        // Ensure all fetch requests have the CSRF token automatically
+        const csrftoken = this.getCookie('csrftoken');
+        if (csrftoken) {
+            const originalFetch = window.fetch;
+            window.fetch = function(url, options = {}) {
+                if (!options.headers) options.headers = {};
+                if (!options.headers['X-CSRFToken']) {
+                    options.headers['X-CSRFToken'] = csrftoken;
+                }
+                // Add AJAX identifier
+                options.headers['X-Requested-With'] = 'XMLHttpRequest';
+                return originalFetch(url, options);
+            };
+        }
+    },
+
+    // =========================================
+    // 3. UI Components
+    // =========================================
+    
+    // Toggle Sidebar/Navbar on Mobile
+    setupMobileMenu() {
+        // This is handled via Alpine.js in the new base.html, 
+        // but we keep this as a fallback or for specific JS triggers.
+        const menuBtn = document.querySelector('[data-toggle="mobile-menu"]');
+        if(menuBtn) {
+            menuBtn.addEventListener('click', () => {
+                document.body.classList.toggle('mobile-menu-open');
+            });
+        }
+    },
+
+    // Standardize DateTime inputs to not allow past dates
+    setupDateTimeInputs() {
+        const inputs = document.querySelectorAll('input[type="datetime-local"]');
+        if (inputs.length > 0) {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            
+            // Format: YYYY-MM-DDTHH:MM
+            const minDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+            
+            inputs.forEach(input => {
+                if (!input.min) input.min = minDateTime;
+            });
+        }
+    },
+
+    // =========================================
+    // 4. Global Toast Notification System
+    // =========================================
+    showToast(message, type = 'info') {
+        // Check if our container exists, if not create it
+        let container = document.querySelector('.fixed-toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.className = 'fixed-toast-container';
+            container.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 100;';
+            document.body.appendChild(container);
+        }
+
+        // Create the toast element
+        const toast = document.createElement('div');
         
-        // Add change event listener
-        input.addEventListener('change', function() {
-            validateDateTimeInput(this);
+        // Map types to CSS variables or classes
+        const bgColors = {
+            'success': 'var(--color-success)',
+            'error': 'var(--color-danger)',
+            'warning': 'var(--color-warning)',
+            'info': 'var(--color-text-main)'
+        };
+
+        toast.style.cssText = `
+            background-color: ${bgColors[type] || bgColors['info']};
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 0.75rem;
+            box-shadow: var(--shadow-lg);
+            font-weight: 500;
+            opacity: 0;
+            transform: translateX(20px);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        `;
+
+        // Add icon based on type
+        const icon = type === 'success' ? 'check-circle' : 
+                     type === 'error' ? 'exclamation-circle' : 'info-circle';
+        
+        toast.innerHTML = `<i class="fas fa-${icon}"></i> <span>${message}</span>`;
+
+        container.appendChild(toast);
+
+        // Animate In
+        requestAnimationFrame(() => {
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateX(0)';
         });
-    });
-}
 
-// Validate datetime input
-function validateDateTimeInput(input) {
-    const selectedDate = new Date(input.value);
-    const now = new Date();
-    
-    if (selectedDate < now) {
-        alert('Please select a future date and time');
-        input.value = '';
-        input.focus();
-        return false;
-    }
-    return true;
-}
-
-// Initialize AJAX form submissions
-function initAjaxForms() {
-    const ajaxForms = document.querySelectorAll('form.ajax-form');
-    ajaxForms.forEach(form => {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            submitFormViaAjax(this);
-        });
-    });
-}
-
-// Submit form via AJAX
-function submitFormViaAjax(form) {
-    const formData = new FormData(form);
-    const url = form.getAttribute('action');
-    const method = form.getAttribute('method') || 'POST';
-    
-    // Show loading state
-    const submitButton = form.querySelector('button[type="submit"]');
-    const originalText = submitButton.textContent;
-    submitButton.textContent = 'Processing...';
-    submitButton.disabled = true;
-    
-    fetch(url, {
-        method: method,
-        body: formData,
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRFToken': getCookie('csrftoken')
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showNotification('Operation completed successfully!', 'success');
-            if (data.redirect) {
-                setTimeout(() => {
-                    window.location.href = data.redirect;
-                }, 1000);
-            }
-        } else {
-            showNotification(data.error || 'An error occurred', 'error');
-        }
-    })
-    .catch(error => {
-        showNotification('Network error. Please try again.', 'error');
-        console.error('Error:', error);
-    })
-    .finally(() => {
-        // Restore button state
-        submitButton.textContent = originalText;
-        submitButton.disabled = false;
-    });
-}
-
-// Initialize status update buttons
-function initStatusUpdates() {
-    const statusButtons = document.querySelectorAll('.status-update-btn');
-    statusButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const donationId = this.getAttribute('data-donation-id');
-            const newStatus = this.getAttribute('data-new-status');
-            updateDonationStatus(donationId, newStatus);
-        });
-    });
-}
-
-// Update donation status via AJAX
-function updateDonationStatus(donationId, newStatus) {
-    fetch('/donation/update-status/', {
-        method: 'POST',
-        body: JSON.stringify({
-            donation_id: donationId,
-            new_status: newStatus
-        }),
-        headers: {
-            'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRFToken': getCookie('csrftoken')
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showNotification('Status updated successfully!', 'success');
-            // Reload page after a short delay
-            setTimeout(() => {
-                window.location.reload();
-            }, 1000);
-        } else {
-            showNotification(data.error || 'Failed to update status', 'error');
-        }
-    })
-    .catch(error => {
-        showNotification('Network error. Please try again.', 'error');
-        console.error('Error:', error);
-    });
-}
-
-// Initialize notification system
-function initNotifications() {
-    // Create notification container if it doesn't exist
-    if (!document.getElementById('notification-container')) {
-        const container = document.createElement('div');
-        container.id = 'notification-container';
-        container.className = 'fixed top-4 right-4 z-50 space-y-2';
-        document.body.appendChild(container);
-    }
-}
-
-// Show notification
-function showNotification(message, type = 'info') {
-    const container = document.getElementById('notification-container');
-    const notification = document.createElement('div');
-    
-    let bgColor = 'bg-blue-500';
-    if (type === 'success') bgColor = 'bg-green-500';
-    if (type === 'error') bgColor = 'bg-red-500';
-    if (type === 'warning') bgColor = 'bg-yellow-500';
-    
-    notification.className = `${bgColor} text-white px-4 py-2 rounded shadow-lg alert`;
-    notification.textContent = message;
-    
-    container.appendChild(notification);
-    
-    // Auto remove after 5 seconds
-    setTimeout(() => {
-        notification.style.opacity = '0';
-        notification.style.transition = 'opacity 0.5s';
+        // Auto Remove
         setTimeout(() => {
-            container.removeChild(notification);
-        }, 500);
-    }, 5000);
-}
-
-// Get CSRF token from cookies
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(20px)';
+            setTimeout(() => toast.remove(), 300);
+        }, 4000);
     }
-    return cookieValue;
-}
-
-// Search/filter functionality for donations
-function filterDonations(searchTerm) {
-    const donations = document.querySelectorAll('.donation-card');
-    donations.forEach(card => {
-        const text = card.textContent.toLowerCase();
-        if (text.includes(searchTerm.toLowerCase())) {
-            card.style.display = 'block';
-        } else {
-            card.style.display = 'none';
-        }
-    });
-}
-
-// Initialize search if search input exists
-const searchInput = document.getElementById('search-donations');
-if (searchInput) {
-    searchInput.addEventListener('input', function() {
-        filterDonations(this.value);
-    });
-}
-
-// Map integration (placeholder for future functionality)
-function initMap() {
-    // This would be implemented with a mapping library like Leaflet or Google Maps
-    console.log('Map functionality would be initialized here');
-}
-
-// Export functions for potential use in other modules
-window.FoodLoop = {
-    showNotification,
-    filterDonations,
-    initMap
 };
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    FoodLoop.init();
+    // Expose to window for inline scripts if necessary
+    window.FoodLoop = FoodLoop;
+});

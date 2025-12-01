@@ -5,128 +5,115 @@
 {% block title %}Find Food - FoodLoop{% endblock %}
 
 {% block content %}
-<div class="flex flex-col lg:flex-row gap-8 animate-fade-in-up pb-24" x-data="{ mobileFiltersOpen: false }">
+<div class="flex flex-col lg:flex-row gap-8 animate-fade-in-up pb-20" x-data="{ showFilters: false }">
     
-    <div class="lg:hidden mb-4">
-        <button @click="mobileFiltersOpen = !mobileFiltersOpen" class="w-full flex items-center justify-center px-4 py-3 border border-slate-200 shadow-sm text-sm font-bold rounded-xl text-slate-700 bg-white hover:bg-slate-50 transition-colors">
+    <div class="lg:hidden">
+        <button @click="showFilters = true" class="btn bg-white border border-slate-200 text-slate-700 w-full justify-center shadow-sm">
             <i class="fas fa-sliders mr-2"></i> Filters & Sort
         </button>
     </div>
 
     <aside class="shrink-0 lg:w-72 xl:w-80 z-40"
-           :class="mobileFiltersOpen ? 'fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex' : 'hidden lg:block'">
+           :class="showFilters ? 'fixed inset-0 z-50 flex' : 'hidden lg:block'">
         
-        <div class="bg-white w-full max-w-xs h-full lg:h-auto lg:w-full p-6 lg:p-0 lg:bg-transparent lg:rounded-none overflow-y-auto lg:overflow-visible transition-transform duration-300"
-             :class="mobileFiltersOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0 lg:transform-none'"
-             @click.away="mobileFiltersOpen = false">
+        <div class="fixed inset-0 bg-navy-900/60 backdrop-blur-sm lg:hidden" 
+             x-show="showFilters" 
+             @click="showFilters = false"
+             x-transition.opacity></div>
+
+        <div class="bg-white w-full max-w-xs h-full lg:h-auto lg:w-full p-6 lg:p-0 lg:bg-transparent overflow-y-auto lg:overflow-visible transition-transform duration-300 relative z-10 shadow-2xl lg:shadow-none"
+             :class="showFilters ? 'translate-x-0' : '-translate-x-full lg:translate-x-0 lg:transform-none'">
             
             <div class="flex items-center justify-between lg:hidden mb-6">
-                <h2 class="text-xl font-display font-bold text-slate-900">Filters</h2>
-                <button @click="mobileFiltersOpen = false" class="p-2 text-slate-400 hover:text-slate-600 rounded-lg bg-slate-100">
-                    <i class="fas fa-times text-lg"></i>
+                <h2 class="font-display font-bold text-xl text-navy-900">Filters</h2>
+                <button @click="showFilters = false" class="text-slate-400 p-2 hover:bg-slate-100 rounded-lg">
+                    <i class="fas fa-times text-xl"></i>
                 </button>
             </div>
 
-            <div class="lg:sticky lg:top-24 glass bg-white/80 p-6 rounded-3xl border border-white/50 shadow-sm">
+            <div class="lg:sticky lg:top-8 card border-slate-200 shadow-sm p-6 bg-white rounded-2xl">
                 <div class="flex items-center justify-between mb-6 hidden lg:flex">
-                    <h2 class="font-display font-bold text-xl text-slate-900">Filters</h2>
-                    <a href="{% url 'core:search_donations' %}" class="text-xs font-bold text-slate-400 hover:text-brand-600 transition-colors uppercase tracking-wider">Reset</a>
+                    <h2 class="font-display font-bold text-lg text-navy-900">Refine Search</h2>
+                    <a href="{% url 'core:search_donations' %}" class="text-xs font-bold text-slate-400 hover:text-brand-600 uppercase tracking-wide">Reset</a>
                 </div>
 
                 <form method="get" class="space-y-6">
-                    
                     <div class="relative">
-                        <i class="fas fa-search absolute left-4 top-3.5 text-slate-400"></i>
-                        {{ form.q }}
+                        <i class="fas fa-search absolute left-3 top-3.5 text-slate-400 text-sm"></i>
+                        <input type="text" name="q" value="{{ form.q.value|default:'' }}" 
+                               class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-colors text-sm" 
+                               placeholder="Search food...">
                     </div>
 
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Category</label>
+                    <div>
+                        <label class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 block">Category</label>
                         {{ form.food_category }}
                     </div>
 
-                    <div class="space-y-3" x-data="{ score: {{ form.min_nutrition_score.value|default:0 }} }">
-                        <div class="flex justify-between items-center">
-                            <label class="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Min Score</label>
-                            <span class="text-xs font-bold text-brand-600 bg-brand-50 px-2 py-0.5 rounded border border-brand-100" x-text="score"></span>
+                    <div x-data="{ score: {{ form.min_nutrition_score.value|default:0 }} }">
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="text-xs font-bold uppercase tracking-wider text-slate-500">Min Score</label>
+                            <span class="text-xs font-bold text-white bg-brand-500 px-2 py-0.5 rounded" x-text="score"></span>
                         </div>
                         <input type="range" name="min_nutrition_score" min="0" max="100" x-model="score" 
-                               class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-brand-600">
-                        <div class="flex justify-between text-[10px] font-bold text-slate-400 px-1">
-                            <span>0</span>
-                            <span>50</span>
-                            <span>100</span>
-                        </div>
+                               class="w-full accent-brand-500 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer">
                     </div>
 
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Max Calories</label>
-                        {{ form.max_calories }}
-                    </div>
-
-                    <div class="space-y-3">
-                        <label class="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Dietary Needs</label>
-                        <div class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar pr-2">
+                    <div>
+                        <label class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 block">Dietary Needs</label>
+                        <div class="space-y-2 max-h-40 overflow-y-auto custom-scrollbar pr-2">
                             {% for value, label in form.fields.dietary_tags.choices %}
-                            <label class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50/80 cursor-pointer transition-colors group border border-transparent hover:border-slate-200/50">
+                            <label class="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors group">
                                 <input type="checkbox" name="dietary_tags" value="{{ value }}" 
-                                       class="w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 transition-all cursor-pointer"
+                                       class="rounded border-slate-300 text-brand-600 focus:ring-brand-500 w-4 h-4"
                                        {% if value in query_params.dietary_tags %}checked{% endif %}>
-                                <span class="text-sm font-medium text-slate-600 group-hover:text-slate-900">{{ label }}</span>
+                                <span class="text-sm text-slate-600 group-hover:text-navy-900">{{ label }}</span>
                             </label>
                             {% endfor %}
                         </div>
                     </div>
 
-                    <div class="pt-4 flex flex-col gap-3">
-                        <button type="submit" class="w-full py-3.5 bg-slate-900 hover:bg-black text-white font-bold rounded-xl shadow-lg shadow-slate-900/20 transition-all transform hover:-translate-y-0.5">
-                            Apply Filters
-                        </button>
-                        <a href="{% url 'core:search_donations' %}" class="lg:hidden w-full py-3.5 bg-slate-100 text-slate-600 font-bold rounded-xl text-center">
-                            Reset All
-                        </a>
-                    </div>
+                    <button type="submit" class="btn bg-navy-900 hover:bg-navy-800 text-white w-full justify-center shadow-lg shadow-navy-900/10">
+                        Apply Filters
+                    </button>
                 </form>
             </div>
         </div>
     </aside>
 
     <div class="flex-1 min-w-0">
-        
         <div class="flex items-center justify-between mb-6">
-            <p class="text-slate-500 font-medium">
-                Found <strong class="text-slate-900">{{ total_results }}</strong> result{{ total_results|pluralize }}
+            <p class="text-slate-500 font-medium text-sm">
+                Found <strong class="text-navy-900">{{ total_results }}</strong> result{{ total_results|pluralize }}
             </p>
             
-            <div class="flex gap-2">
-                <a href="{% url 'core:map_view' %}" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:border-brand-500 hover:text-brand-600 transition-all shadow-sm">
-                    <i class="fas fa-map-location-dot"></i> <span class="hidden sm:inline">Map View</span>
-                </a>
-            </div>
+            <a href="{% url 'core:map_view' %}" class="btn btn-outline btn-sm bg-white hover:bg-slate-50">
+                <i class="fas fa-map mr-2"></i> <span class="hidden sm:inline">Map View</span>
+            </a>
         </div>
 
         {% if donations %}
             <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                 {% for donation in donations %}
-                <a href="{% url 'core:donation_detail' donation.id %}" class="group bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-brand-900/5 hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col h-full">
+                <a href="{% url 'core:donation_detail' donation.id %}" class="group bg-white rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full flex flex-col overflow-hidden">
                     
                     <div class="relative h-48 bg-slate-100 overflow-hidden">
                         {% if donation.image %}
                             <img src="{{ donation.image.url }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
                         {% else %}
-                            <div class="w-full h-full flex items-center justify-center text-slate-300 bg-slate-50">
+                            <div class="w-full h-full flex items-center justify-center text-slate-300">
                                 <i class="fas fa-utensils text-4xl opacity-50"></i>
                             </div>
                         {% endif %}
                         
                         <div class="absolute top-3 left-3">
-                            <span class="bg-white/95 backdrop-blur-md text-slate-800 text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-sm uppercase tracking-wide">
+                            <span class="bg-white/95 backdrop-blur-md text-navy-900 text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-sm uppercase tracking-wide">
                                 {{ donation.get_food_category_display }}
                             </span>
                         </div>
                         
                         <div class="absolute bottom-3 right-3">
-                            <span class="bg-emerald-500/90 backdrop-blur-md text-white text-xs font-bold px-2.5 py-1 rounded-lg shadow-sm flex items-center gap-1.5">
+                            <span class="bg-brand-500/90 backdrop-blur-md text-white text-xs font-bold px-2 py-1 rounded-lg shadow-sm flex items-center gap-1">
                                 <i class="fas fa-leaf"></i> {{ donation.nutrition_score }}
                             </span>
                         </div>
@@ -134,36 +121,23 @@
 
                     <div class="p-5 flex-1 flex flex-col">
                         <div class="mb-3">
-                            <h3 class="font-display font-bold text-lg text-slate-900 leading-tight line-clamp-1 group-hover:text-brand-600 transition-colors mb-1">{{ donation.title }}</h3>
-                            <p class="text-xs text-slate-400 flex items-center gap-1">
-                                <i class="fas fa-store"></i> {{ donation.pickup_location|truncatechars:30 }}
+                            <h3 class="font-display font-bold text-lg text-navy-900 leading-tight line-clamp-1 group-hover:text-brand-600 transition-colors">{{ donation.title }}</h3>
+                            <p class="text-xs text-slate-400 flex items-center gap-1 mt-1">
+                                <i class="fas fa-location-dot"></i> {{ donation.pickup_location|truncatechars:30 }}
                             </p>
                         </div>
                         
                         <p class="text-sm text-slate-500 line-clamp-2 mb-4 flex-1">{{ donation.description }}</p>
                         
-                        <div class="flex flex-wrap gap-1.5 mb-5">
-                            {% for tag in donation.dietary_tags|slice:":2" %}
-                                <span class="text-[10px] font-bold bg-slate-50 text-slate-600 px-2 py-1 rounded-md border border-slate-100">{{ tag|title }}</span>
-                            {% endfor %}
-                            {% if donation.dietary_tags|length > 2 %}
-                                <span class="text-[10px] font-bold text-slate-400 px-1 py-1">+{{ donation.dietary_tags|length|add:"-2" }} more</span>
-                            {% endif %}
-                        </div>
-
-                        <div class="mt-auto pt-4 border-t border-slate-50 flex items-center justify-between">
+                        <div class="pt-4 border-t border-slate-50 flex items-center justify-between mt-auto">
                             <div class="flex items-center gap-2">
-                                {% if donation.donor.profile.profile_picture %}
-                                    <img src="{{ donation.donor.profile.profile_picture.url }}" class="w-6 h-6 rounded-full object-cover border border-slate-200">
-                                {% else %}
-                                    <div class="w-6 h-6 rounded-full bg-brand-100 flex items-center justify-center text-[10px] font-bold text-brand-700">
-                                        {{ donation.donor.first_name|first }}
-                                    </div>
-                                {% endif %}
+                                <div class="w-6 h-6 rounded-full bg-brand-100 flex items-center justify-center text-[10px] font-bold text-brand-700">
+                                    {{ donation.donor.first_name|first }}
+                                </div>
                                 <span class="text-xs font-medium text-slate-500">{{ donation.donor.first_name }}</span>
                             </div>
                             
-                            <span class="text-xs font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded-lg border border-orange-100">
+                            <span class="text-xs font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded border border-orange-100">
                                 {{ donation.expiry_datetime|timeuntil }} left
                             </span>
                         </div>
@@ -173,20 +147,20 @@
             </div>
 
             {% if donations.has_other_pages %}
-            <div class="flex justify-center mt-12 mb-8">
-                <nav class="glass bg-white/50 rounded-2xl px-2 py-2 flex items-center gap-1 shadow-sm border border-white/50">
+            <div class="flex justify-center mt-12">
+                <nav class="flex items-center gap-2 p-2 bg-white rounded-xl shadow-sm border border-slate-100">
                     {% if donations.has_previous %}
-                        <a href="?page={{ donations.previous_page_number }}&{{ request.GET.urlencode }}" class="w-10 h-10 flex items-center justify-center rounded-xl bg-white text-slate-600 hover:bg-brand-50 hover:text-brand-600 hover:scale-105 transition-all shadow-sm">
+                        <a href="?page={{ donations.previous_page_number }}&{{ request.GET.urlencode }}" class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-slate-50 text-slate-600 transition-colors">
                             <i class="fas fa-chevron-left"></i>
                         </a>
                     {% endif %}
                     
-                    <span class="text-sm font-bold text-slate-600 px-4">
+                    <span class="text-sm font-bold text-navy-900 px-4">
                         Page {{ donations.number }}
                     </span>
 
                     {% if donations.has_next %}
-                        <a href="?page={{ donations.next_page_number }}&{{ request.GET.urlencode }}" class="w-10 h-10 flex items-center justify-center rounded-xl bg-white text-slate-600 hover:bg-brand-50 hover:text-brand-600 hover:scale-105 transition-all shadow-sm">
+                        <a href="?page={{ donations.next_page_number }}&{{ request.GET.urlencode }}" class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-slate-50 text-slate-600 transition-colors">
                             <i class="fas fa-chevron-right"></i>
                         </a>
                     {% endif %}
@@ -195,42 +169,15 @@
             {% endif %}
 
         {% else %}
-            <div class="flex flex-col items-center justify-center py-24 bg-white/60 backdrop-blur-sm rounded-3xl border-2 border-dashed border-slate-200">
-                <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mb-6">
+            <div class="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border-2 border-dashed border-slate-200 text-center">
+                <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mb-4">
                     <i class="fas fa-search text-3xl"></i>
                 </div>
-                <h3 class="text-xl font-display font-bold text-slate-900 mb-2">No donations found</h3>
-                <p class="text-slate-500 text-center max-w-sm mb-8">We couldn't find any food matching your filters. Try adjusting your search criteria.</p>
-                <a href="{% url 'core:search_donations' %}" class="px-8 py-3 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl hover:border-brand-300 hover:text-brand-600 transition-all shadow-sm">
-                    Clear Filters
-                </a>
+                <h3 class="text-xl font-bold text-navy-900 mb-2">No donations found</h3>
+                <p class="text-slate-500 mb-6 max-w-sm">We couldn't find any food matching your filters. Try adjusting your search.</p>
+                <a href="{% url 'core:search_donations' %}" class="btn btn-outline text-navy-700 border-slate-300 hover:bg-navy-50">Clear All Filters</a>
             </div>
         {% endif %}
     </div>
 </div>
-
-<style>
-    /* Ensure the range slider looks good across browsers */
-    input[type=range]::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        height: 16px;
-        width: 16px;
-        border-radius: 50%;
-        background: #059669;
-        cursor: pointer;
-        margin-top: -6px;
-        box-shadow: 0 0 0 4px rgba(255, 255, 255, 1), 0 0 0 5px rgba(5, 150, 105, 0.2);
-        transition: box-shadow 0.2s;
-    }
-    input[type=range]:hover::-webkit-slider-thumb {
-        box-shadow: 0 0 0 4px rgba(255, 255, 255, 1), 0 0 0 6px rgba(5, 150, 105, 0.3);
-    }
-    input[type=range]::-webkit-slider-runnable-track {
-        width: 100%;
-        height: 4px;
-        cursor: pointer;
-        background: #e2e8f0;
-        border-radius: 2px;
-    }
-</style>
 {% endblock %}

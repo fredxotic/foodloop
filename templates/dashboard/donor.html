@@ -5,164 +5,144 @@
 {% block title %}Donor Dashboard - FoodLoop{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto space-y-8 animate-fade-in-up">
+<div class="max-w-7xl mx-auto pt-6 pb-12">
     
-    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-8">
         <div>
-            <span class="text-brand-600 font-bold tracking-wider uppercase text-xs mb-1 block">Donor Portal</span>
-            <h1 class="font-display text-4xl font-extrabold text-slate-900">
-                My Inventory
-            </h1>
+            <span class="text-xs font-extrabold tracking-wider uppercase text-brand-600 block mb-1">Donor Portal</span>
+            <h1 class="text-3xl md:text-4xl font-display font-extrabold text-slate-900 leading-tight">My Inventory</h1>
         </div>
-        <a href="{% url 'core:create_donation' %}" class="group relative inline-flex items-center justify-center px-8 py-3.5 bg-slate-900 text-white font-bold rounded-2xl overflow-hidden transition-all hover:scale-[1.02] shadow-xl hover:shadow-2xl">
-            <span class="absolute inset-0 bg-gradient-to-r from-brand-500 to-brand-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-            <span class="relative flex items-center gap-2">
-                <i class="fas fa-plus-circle"></i> <span>New Donation</span>
-            </span>
+        <a href="{% url 'core:create_donation' %}" class="btn btn-brand shadow-lg w-full md:w-auto justify-center">
+            <i class="fas fa-plus-circle"></i> New Donation
         </a>
     </div>
 
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="glass bg-white/60 p-5 rounded-3xl border border-white/50 shadow-sm relative overflow-hidden group">
-            <div class="absolute top-0 right-0 w-16 h-16 bg-brand-100 rounded-full -mr-6 -mt-6 transition-transform group-hover:scale-150"></div>
-            <p class="text-slate-500 text-xs font-bold uppercase tracking-wider relative z-10">Total Items</p>
-            <p class="text-3xl font-display font-bold text-slate-900 mt-1 relative z-10">{{ stats.donation_stats.total|default:0 }}</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div class="card relative overflow-hidden">
+            <div class="absolute -top-3 -right-3 w-16 h-16 bg-brand-100 rounded-full opacity-50"></div>
+            <p class="text-xs font-bold uppercase text-slate-500 mb-1">Total Items</p>
+            <p class="text-3xl font-display font-bold text-slate-900">
+                {{ stats.donation_stats.total|default:0 }}
+            </p>
         </div>
 
-        <div class="glass bg-white/60 p-5 rounded-3xl border border-white/50 shadow-sm relative overflow-hidden group">
-            <div class="absolute top-0 right-0 w-16 h-16 bg-blue-100 rounded-full -mr-6 -mt-6 transition-transform group-hover:scale-150"></div>
-            <p class="text-slate-500 text-xs font-bold uppercase tracking-wider relative z-10">Active</p>
-            <p class="text-3xl font-display font-bold text-blue-600 mt-1 relative z-10">{{ stats.donation_stats.available|default:0 }}</p>
+        <div class="card relative overflow-hidden">
+            <div class="absolute -top-3 -right-3 w-16 h-16 bg-blue-100 rounded-full opacity-50"></div>
+            <p class="text-xs font-bold uppercase text-slate-500 mb-1">Active</p>
+            <p class="text-3xl font-display font-bold text-blue-600">
+                {{ stats.donation_stats.available|default:0 }}
+            </p>
         </div>
 
-        <div class="glass bg-white/60 p-5 rounded-3xl border border-white/50 shadow-sm relative overflow-hidden group">
-            <div class="absolute top-0 right-0 w-16 h-16 bg-emerald-100 rounded-full -mr-6 -mt-6 transition-transform group-hover:scale-150"></div>
-            <p class="text-slate-500 text-xs font-bold uppercase tracking-wider relative z-10">Completed</p>
-            <p class="text-3xl font-display font-bold text-emerald-600 mt-1 relative z-10">{{ stats.donation_stats.completed|default:0 }}</p>
+        <div class="card relative overflow-hidden">
+            <div class="absolute -top-3 -right-3 w-16 h-16 bg-green-100 rounded-full opacity-50"></div>
+            <p class="text-xs font-bold uppercase text-slate-500 mb-1">Completed</p>
+            <p class="text-3xl font-display font-bold text-brand-600">
+                {{ stats.donation_stats.completed|default:0 }}
+            </p>
         </div>
 
-        <div class="glass bg-white/60 p-5 rounded-3xl border border-white/50 shadow-sm relative overflow-hidden group">
-            <div class="absolute top-0 right-0 w-16 h-16 bg-orange-100 rounded-full -mr-6 -mt-6 transition-transform group-hover:scale-150"></div>
-            <p class="text-slate-500 text-xs font-bold uppercase tracking-wider relative z-10">Calories Saved</p>
-            <p class="text-3xl font-display font-bold text-orange-600 mt-1 relative z-10">{{ stats.nutrition_impact.total_calories|intcomma }}</p>
+        <div class="card relative overflow-hidden">
+            <div class="absolute -top-3 -right-3 w-16 h-16 bg-orange-100 rounded-full opacity-50"></div>
+            <p class="text-xs font-bold uppercase text-slate-500 mb-1">Calories Saved</p>
+            <p class="text-3xl font-display font-bold text-orange-600">
+                {{ stats.nutrition_impact.total_calories|intcomma }}
+            </p>
         </div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        <div class="lg:col-span-2 space-y-6">
-            <div class="flex items-center justify-between">
-                <h3 class="text-xl font-bold text-slate-800">Recent Activity</h3>
-                <a href="{% url 'core:my_donations' %}" class="text-sm font-bold text-brand-600 hover:text-brand-700 hover:underline">View History</a>
+        <div class="lg:col-span-2">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-slate-900">Recent Activity</h3>
+                <a href="{% url 'core:my_donations' %}" class="text-sm font-bold text-brand-600 hover:text-brand-700">View All</a>
             </div>
 
             {% if recent_donations %}
-                <div class="space-y-4">
+                <div class="flex flex-col gap-4">
                     {% for donation in recent_donations %}
-                    <div class="group bg-white p-4 rounded-3xl border border-slate-100 hover:border-brand-200 shadow-sm hover:shadow-md transition-all flex flex-col sm:flex-row gap-5">
-                        
-                        <div class="w-full sm:w-32 h-32 rounded-2xl bg-slate-100 overflow-hidden shrink-0 relative">
+                    <div class="card p-4 flex flex-col sm:flex-row gap-4 sm:items-center hover:scale-[1.01] transition-transform">
+                        <div class="w-full sm:w-20 h-32 sm:h-20 rounded-xl bg-slate-100 overflow-hidden shrink-0">
                             {% if donation.image %}
-                                <img src="{{ donation.image.url }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                                <img src="{{ donation.image.url }}" class="w-full h-full object-cover">
                             {% else %}
-                                <div class="w-full h-full flex items-center justify-center text-slate-300"><i class="fas fa-image text-3xl"></i></div>
+                                <div class="w-full h-full flex items-center justify-center text-slate-300">
+                                    <i class="fas fa-image text-2xl"></i>
+                                </div>
                             {% endif %}
-                            
-                            <div class="absolute top-2 left-2">
+                        </div>
+
+                        <div class="flex-1">
+                            <div class="flex justify-between items-start mb-1">
+                                <h4 class="font-bold text-lg text-slate-900 line-clamp-1">{{ donation.title }}</h4>
                                 {% if donation.status == 'available' %}
-                                    <span class="bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm">Active</span>
+                                    <span class="text-[10px] font-bold uppercase text-green-700 bg-green-50 px-2 py-1 rounded">Active</span>
                                 {% elif donation.status == 'claimed' %}
-                                    <span class="bg-yellow-400 text-yellow-900 text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm">Claimed</span>
-                                {% elif donation.status == 'completed' %}
-                                    <span class="bg-blue-500 text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm">Done</span>
+                                    <span class="text-[10px] font-bold uppercase text-yellow-700 bg-yellow-50 px-2 py-1 rounded">Claimed</span>
                                 {% else %}
-                                    <span class="bg-slate-500 text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm">{{ donation.get_status_display }}</span>
+                                    <span class="text-[10px] font-bold uppercase text-slate-500 bg-slate-100 px-2 py-1 rounded">{{ donation.get_status_display }}</span>
                                 {% endif %}
+                            </div>
+                            <div class="flex flex-wrap gap-3 text-sm text-slate-500">
+                                <span class="flex items-center"><i class="far fa-clock mr-1"></i> {{ donation.created_at|timesince }} ago</span>
+                                <span class="flex items-center"><i class="fas fa-box mr-1"></i> {{ donation.quantity }} items</span>
                             </div>
                         </div>
 
-                        <div class="flex-1 flex flex-col">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <h4 class="font-bold text-lg text-slate-900 line-clamp-1">{{ donation.title }}</h4>
-                                    <p class="text-sm text-slate-500 mt-1 flex items-center gap-2">
-                                        <i class="far fa-clock"></i> Posted {{ donation.created_at|timesince }} ago
-                                    </p>
-                                </div>
-                                <div class="text-right">
-                                    <span class="text-2xl font-display font-bold text-slate-700">{{ donation.quantity }}</span>
-                                    <span class="block text-[10px] font-bold uppercase text-slate-400">Qty</span>
-                                </div>
-                            </div>
-
-                            <div class="mt-auto pt-4 flex gap-3">
-                                <a href="{% url 'core:donation_detail' donation.id %}" class="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-700 py-2 rounded-xl text-sm font-bold text-center transition-colors">
-                                    Manage
-                                </a>
-                                {% if donation.status == 'claimed' %}
-                                <form action="{% url 'core:complete_donation' donation.id %}" method="post" class="flex-1">
-                                    {% csrf_token %}
-                                    <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white py-2 rounded-xl text-sm font-bold shadow-md shadow-brand-500/20 transition-colors">
-                                        Confirm Pickup
-                                    </button>
-                                </form>
-                                {% endif %}
-                            </div>
+                        <div class="sm:self-center w-full sm:w-auto">
+                            <a href="{% url 'core:donation_detail' donation.id %}" class="btn btn-outline btn-sm w-full justify-center">Manage</a>
                         </div>
                     </div>
                     {% endfor %}
                 </div>
             {% else %}
-                <div class="text-center py-16 bg-white rounded-3xl border-2 border-dashed border-slate-200">
+                <div class="card py-16 text-center border-dashed border-2 border-slate-200">
                     <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
-                        <i class="fas fa-box-open text-3xl"></i>
+                        <i class="fas fa-box-open text-2xl"></i>
                     </div>
-                    <h3 class="text-lg font-bold text-slate-900">Your inventory is empty</h3>
-                    <p class="text-slate-500 mt-2 mb-6">Start helping your community by sharing surplus food.</p>
-                    <a href="{% url 'core:create_donation' %}" class="text-brand-600 font-bold hover:underline">Create your first donation</a>
+                    <h3 class="text-lg font-bold text-slate-900 mb-1">Your inventory is empty</h3>
+                    <p class="text-slate-500 mb-6">Start helping your community by sharing surplus food.</p>
+                    <a href="{% url 'core:create_donation' %}" class="btn btn-brand">Create Donation</a>
                 </div>
             {% endif %}
         </div>
 
-        <div class="space-y-6">
-            
-            <div class="bg-gradient-to-b from-slate-900 to-slate-800 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden">
-                <div class="absolute top-0 right-0 w-64 h-64 bg-brand-500 rounded-full blur-3xl opacity-20 -mr-16 -mt-16"></div>
-                
-                <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+        <div class="flex flex-col gap-6">
+            <div class="card bg-gradient-to-br from-white to-slate-50">
+                <h4 class="text-xs font-bold uppercase text-slate-400 mb-4">Reputation</h4>
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="text-4xl font-display font-extrabold text-slate-900">
+                        {{ profile.average_rating }}
+                    </div>
+                    <div>
+                        <div class="text-yellow-400 text-sm mb-1">
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        </div>
+                        <span class="text-xs font-bold text-slate-500">{{ profile.total_ratings }} Reviews</span>
+                    </div>
+                </div>
+                <div class="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                    <div class="h-full bg-yellow-400" style="width: {% widthratio profile.average_rating 5 100 %}%;"></div>
+                </div>
+            </div>
+
+            <div class="card bg-navy-900 text-white border-none">
+                <h4 class="text-xs font-bold uppercase text-slate-400 mb-4 flex items-center gap-2">
                     <i class="fas fa-lightbulb text-yellow-400"></i> Local Demand
-                </h3>
-                
-                <div class="space-y-3 relative z-10">
+                </h4>
+                <div class="flex flex-col gap-3">
                     {% for rec in recommendations %}
-                    <div class="flex gap-3 items-start bg-white/10 p-3 rounded-xl border border-white/5">
-                        <i class="fas fa-arrow-trend-up text-brand-300 mt-1 shrink-0"></i>
-                        <p class="text-sm text-slate-200 leading-snug">{{ rec }}</p>
+                    <div class="bg-white/10 p-3 rounded-lg text-sm leading-relaxed">
+                        {{ rec }}
                     </div>
                     {% empty %}
                     <p class="text-slate-400 text-sm italic">Gathering local insights...</p>
                     {% endfor %}
                 </div>
             </div>
-
-            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-                <h3 class="font-bold text-slate-900 mb-4">Your Reputation</h3>
-                <div class="flex items-center gap-4 mb-4">
-                    <div class="text-4xl font-display font-extrabold text-slate-900">{{ profile.average_rating }}</div>
-                    <div class="flex flex-col">
-                        <div class="flex text-yellow-400 text-sm">
-                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                        </div>
-                        <span class="text-xs text-slate-500 font-bold uppercase tracking-wider">{{ profile.total_ratings }} Verified Reviews</span>
-                    </div>
-                </div>
-                <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                    <div class="bg-yellow-400 h-full rounded-full" style="width: {% widthratio profile.average_rating 5 100 %}%"></div>
-                </div>
-                <p class="text-xs text-slate-400 mt-3 text-center">High ratings increase pickup priority</p>
-            </div>
-
         </div>
+
     </div>
 </div>
 {% endblock %}

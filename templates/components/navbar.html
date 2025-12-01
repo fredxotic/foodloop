@@ -1,87 +1,81 @@
 {% load static %}
 
-<header class="h-20 glass sticky top-0 z-30 flex items-center justify-between px-6 lg:px-10 transition-all border-b border-slate-200/50">
+<header class="h-20 glass sticky top-0 z-30 flex items-center justify-between px-4 lg:px-8 border-b border-slate-200/50 backdrop-blur-md bg-white/80">
     
-    <div class="flex items-center gap-4">
+    <div class="flex items-center gap-4 lg:hidden">
         {% if user.is_authenticated %}
-        <button @click="sidebarOpen = !sidebarOpen" class="lg:hidden p-2 -ml-2 text-slate-500 hover:text-brand-700 transition-colors rounded-lg hover:bg-slate-100">
+        <button @click="sidebarOpen = !sidebarOpen" class="p-2 -ml-2 text-slate-500 hover:text-emerald-600 transition-colors rounded-lg hover:bg-slate-100">
             <i class="fas fa-bars text-xl"></i>
         </button>
         {% endif %}
         
-        <a href="/" class="flex lg:hidden items-center gap-2 group">
-            <div class="w-8 h-8 bg-gradient-to-tr from-brand-600 to-brand-400 rounded-lg flex items-center justify-center text-white shadow-md">
+        <a href="/" class="flex items-center gap-2">
+            <div class="w-8 h-8 bg-gradient-to-tr from-emerald-600 to-emerald-400 rounded-lg flex items-center justify-center text-white shadow-sm">
                 <i class="fas fa-leaf text-sm"></i>
             </div>
-            <span class="font-display font-bold text-xl text-slate-800 tracking-tight">FoodLoop</span>
+            <span class="font-display font-bold text-lg text-slate-800">FoodLoop</span>
         </a>
     </div>
 
-    <div class="flex items-center gap-3 md:gap-6">
+    <div class="flex items-center gap-4 ml-auto">
         
         {% if user.is_authenticated %}
-            <div class="hidden md:flex items-center gap-3">
-                {% if user.profile.user_type == 'donor' %}
-                    <a href="{% url 'core:create_donation' %}" class="flex items-center gap-2 bg-slate-900 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-slate-900/20 hover:bg-black hover:-translate-y-0.5 transition-all text-sm">
-                        <i class="fas fa-plus"></i> <span>Donate</span>
-                    </a>
-                {% else %}
-                    <a href="{% url 'core:search_donations' %}" class="flex items-center gap-2 bg-white text-slate-700 border border-slate-200 px-5 py-2.5 rounded-xl font-bold shadow-sm hover:border-brand-300 hover:text-brand-600 transition-all text-sm">
-                        <i class="fas fa-search"></i> <span>Find Food</span>
-                    </a>
-                {% endif %}
-            </div>
-            
-            <div class="h-8 w-px bg-slate-200 hidden md:block"></div>
-            
             {% include 'components/notifications_dropdown.html' %}
             
-            <div class="relative group ml-1" x-data="{ open: false }">
-                <button @click="open = !open" @click.away="open = false" class="flex items-center gap-3 focus:outline-none">
+            <div class="relative" x-data="{ open: false }" @click.away="open = false">
+                <button @click="open = !open" class="flex items-center gap-2 focus:outline-none group">
+                    <div class="hidden md:block text-right">
+                        <p class="text-sm font-bold text-slate-700 leading-none">{{ user.first_name }}</p>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{{ user.profile.user_type }}</p>
+                    </div>
+                    
                     {% if user.profile.profile_picture %}
-                        <img src="{{ user.profile.profile_picture.url }}" class="w-9 h-9 rounded-full object-cover border-2 border-white shadow-sm ring-2 ring-transparent group-hover:ring-brand-100 transition-all">
+                        <img src="{{ user.profile.profile_picture.url }}" class="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm ring-2 ring-transparent group-hover:ring-emerald-100 transition-all">
                     {% else %}
-                        <div class="w-9 h-9 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center font-display font-bold border-2 border-white shadow-sm">
+                        <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold border-2 border-white shadow-sm">
                             {{ user.first_name|first }}
                         </div>
                     {% endif %}
-                    <div class="hidden md:block text-left">
-                        <p class="text-sm font-bold text-slate-700 leading-none">{{ user.first_name }}</p>
-                    </div>
-                    <i class="fas fa-chevron-down text-[10px] text-slate-400 group-hover:text-brand-500 transition-colors hidden md:block"></i>
+                    <i class="fas fa-chevron-down text-[10px] text-slate-400 ml-1 transition-transform duration-200" :class="open ? 'rotate-180' : ''"></i>
                 </button>
                 
                 <div x-show="open" 
                      x-transition:enter="transition ease-out duration-200"
                      x-transition:enter-start="opacity-0 translate-y-2"
                      x-transition:enter-end="opacity-100 translate-y-0"
-                     class="absolute right-0 top-full mt-3 w-56 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden py-1 z-50 origin-top-right"
+                     class="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden py-1 z-50 origin-top-right"
                      style="display: none;">
                     
-                    <div class="px-4 py-3 border-b border-slate-50">
+                    <div class="px-4 py-3 border-b border-slate-50 bg-slate-50/50">
                         <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Signed in as</p>
                         <p class="text-sm font-bold text-slate-900 truncate">{{ user.email }}</p>
                     </div>
 
-                    <a href="{% url 'core:profile' %}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 hover:text-brand-700 transition-colors">
-                        <i class="fas fa-user-circle w-5 text-center text-slate-400"></i> My Profile
-                    </a>
-                    
-                    <a href="{% url 'core:public_profile' user.id %}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 hover:text-brand-700 transition-colors">
-                        <i class="fas fa-id-card w-5 text-center text-slate-400"></i> Public Page
-                    </a>
+                    <div class="py-1">
+                        <a href="{% url 'core:profile' %}" class="flex items-center gap-3 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-emerald-700 transition-colors">
+                            <i class="fas fa-user-circle w-5 text-center text-slate-400"></i> My Profile
+                        </a>
+                        <a href="{% url 'core:public_profile' user.id %}" class="flex items-center gap-3 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-emerald-700 transition-colors">
+                            <i class="fas fa-id-card w-5 text-center text-slate-400"></i> Public Page
+                        </a>
+                    </div>
 
-                    <div class="h-px bg-slate-100 my-1"></div>
-                    
-                    <a href="{% url 'core:logout' %}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors">
-                        <i class="fas fa-sign-out-alt w-5 text-center"></i> Sign Out
-                    </a>
+                    <div class="border-t border-slate-100 py-1">
+                        <a href="{% url 'core:logout' %}" class="flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors">
+                            <i class="fas fa-sign-out-alt w-5 text-center"></i> Sign Out
+                        </a>
+                    </div>
                 </div>
             </div>
 
         {% else %}
-            <a href="{% url 'core:login' %}" class="text-sm font-bold text-slate-600 hover:text-brand-700">Log In</a>
-            <a href="{% url 'core:signup' %}" class="bg-slate-900 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg hover:bg-black hover:-translate-y-0.5 transition-all">Sign Up</a>
+            <div class="hidden md:flex items-center gap-6 mr-4 text-sm font-medium text-slate-600">
+                <a href="{% url 'core:about' %}" class="hover:text-emerald-600 transition-colors">About</a>
+                <a href="{% url 'core:login' %}" class="hover:text-emerald-600 transition-colors">Log In</a>
+            </div>
+            <a href="{% url 'core:signup' %}" class="bg-slate-900 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-slate-900/20 hover:bg-black hover:-translate-y-0.5 transition-all">
+                Get Started
+            </a>
         {% endif %}
     </div>
 </header>

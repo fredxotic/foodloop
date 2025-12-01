@@ -1,57 +1,115 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en" class="h-full">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>{% block title %}FoodLoop{% endblock %}</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
+    
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { 
-                        sans: ['Inter', 'sans-serif'],
-                        display: ['Outfit', 'sans-serif'],
-                    },
-                    colors: {
-                        brand: { 
-                            50: '#f2fcf5', 100: '#e1f8e8', 200: '#c3eed2', 
-                            300: '#94e0b3', 400: '#5ac990', 500: '#34d399', 
-                            600: '#059669', 700: '#047857', 800: '#065f46', 900: '#064e3b' 
-                        }
-                    },
-                    backgroundImage: {
-                        'mesh': "radial-gradient(at 0% 0%, hsla(152,100%,93%,1) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(128,100%,96%,1) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(152,100%,93%,1) 0, transparent 50%)",
-                    }
-                }
-            }
-        }
-    </script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
-    
-</head>
-<body class="h-full bg-mesh text-slate-800 font-sans selection:bg-brand-500 selection:text-white">
 
-    <div id="toast-container" class="fixed top-6 right-6 z-50 flex flex-col gap-3 pointer-events-none">
+    <style>
+        /* Auth Specific Styles - Scoped here to keep main CSS clean */
+        body {
+            background-color: var(--color-background);
+            display: flex;
+            min-height: 100vh;
+            flex-direction: column;
+        }
+
+        .auth-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* The Mesh Gradient Background */
+        .auth-background {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: 
+                radial-gradient(at 0% 0%, hsla(152,100%,93%,1) 0, transparent 50%), 
+                radial-gradient(at 50% 0%, hsla(128,100%,96%,1) 0, transparent 50%), 
+                radial-gradient(at 100% 0%, hsla(152,100%,93%,1) 0, transparent 50%);
+            z-index: -1;
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 480px; /* Optimal reading width for forms */
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg);
+            padding: 2.5rem;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .auth-logo {
+            font-family: var(--font-display);
+            font-size: 1.75rem;
+            color: var(--color-primary-dark);
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            text-decoration: none;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="fixed-toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 100;">
         {% if messages %}
             {% for message in messages %}
-                <div class="pointer-events-auto glass bg-white/90 p-4 rounded-2xl shadow-xl border-l-4 {% if message.tags == 'error' %}border-red-500 text-red-600{% else %}border-brand-500 text-brand-800{% endif %} flex items-center gap-3 transform transition-all duration-300 animate-slide-in-right">
-                    <i class="fas {% if message.tags == 'error' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %}"></i>
-                    <span class="font-medium text-sm">{{ message }}</span>
+                <div class="toast toast-{{ message.tags }}" x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 4000)">
+                    {{ message }}
                 </div>
             {% endfor %}
         {% endif %}
     </div>
 
-    {% block content %}{% endblock %}
+    <div class="auth-container">
+        <div class="auth-background"></div>
+        
+        <div class="auth-card">
+            <div class="auth-header">
+                <a href="/" class="auth-logo">
+                    <i class="fas fa-leaf"></i> FoodLoop
+                </a>
+                <p style="color: var(--color-text-muted); font-size: 0.9rem;">
+                    {% block auth_heading %}Welcome Back{% endblock %}
+                </p>
+            </div>
+
+            {% block content %}{% endblock %}
+        </div>
+    </div>
 
 </body>
 </html>

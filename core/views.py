@@ -12,8 +12,10 @@ from django.contrib import messages
 from django.db.models import Q, Prefetch, Sum
 from django.core.paginator import Paginator
 from django.views.decorators.cache import cache_page
+from django.core.serializers.json import DjangoJSONEncoder
 from datetime import datetime, timedelta
 import logging
+import json
 
 # Import models
 from .models import UserProfile, Donation, EmailVerification, Notification, Rating
@@ -680,20 +682,30 @@ def mark_all_notifications_read_view(request):
 @login_required
 @profile_required
 def map_view(request):
-    """Interactive map of donations"""
+    """Interactive map of donations - Optimized for Frontend"""
     try:
+        # Fetch donations (unchanged logic)
         donations = Donation.objects.filter(
             status=Donation.AVAILABLE,
             latitude__isnull=False,
             longitude__isnull=False,
-            expiry_datetime__gt=timezone.now()  # Only non-expired
-        ).select_related('donor', 'donor__profile').values(
-            'id', 'title', 'food_category', 'latitude', 
-            'longitude', 'nutrition_score', 'expiry_datetime'
-        )[:100]
+            expiry_datetime__gt=timezone.now()
+        ).select_related('donor', 'donor__profile')
         
-        donations_list = list(donations)
-        
+        # Serialization Logic - MOVED FROM TEMPLATE TO VIEW
+        map_data = []
+        for d in donations:
+            map_data.append({
+                'id': d.id,
+                'title': d.title,
+                'category': d.get_food_category_display(), # Get display name
+                'lat': float(d.latitude),
+                'lng': float(d.longitude),
+                'score': d.nutrition_score,
+                'expiry': d.expiry_datetime.isoformat(), # Standard ISO format for JS
+                'url': f"/donation/{d.id}/" # Pre-build the URL
+            })
+
         profile = request.user.profile
         user_location = None
         if profile.has_valid_coordinates:
@@ -703,8 +715,9 @@ def map_view(request):
             }
         
         context = {
-            'donations': donations_list,
-            'user_location': user_location,
+            # Pass as JSON string directly
+            'map_data_json': json.dumps(map_data, cls=DjangoJSONEncoder), 
+            'user_location_json': json.dumps(user_location, cls=DjangoJSONEncoder),
         }
         
         return render(request, 'map/map_view.html', context)

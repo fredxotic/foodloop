@@ -4,154 +4,171 @@
 {% block title %}Publish Donation - FoodLoop{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto py-8 animate-fade-in-up">
+<div class="container" style="max-width: 800px; padding-top: 2rem; padding-bottom: 4rem;">
     
-    <div class="mb-8">
-        <a href="{% url 'core:dashboard' %}" class="inline-flex items-center text-sm font-bold text-slate-400 hover:text-slate-600 mb-4 transition-colors">
-            <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
+    <div style="margin-bottom: 2rem;">
+        <a href="{% url 'core:dashboard' %}" style="display: inline-flex; align-items: center; gap: 0.5rem; color: var(--color-text-muted); font-size: 0.9rem; font-weight: 600; margin-bottom: 1rem;">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
         </a>
-        <h1 class="text-3xl lg:text-4xl font-display font-extrabold text-slate-900">Publish Donation</h1>
-        <p class="text-slate-500 mt-2">Fill in the details to help recipients find your food.</p>
+        <h1 style="font-size: 2.5rem; font-weight: 800; color: var(--color-text-main);">Publish Donation</h1>
     </div>
 
-    <form method="post" enctype="multipart/form-data" class="space-y-8" x-data="{ imagePreview: null }">
-        {% csrf_token %}
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
-            <div class="lg:col-span-2 space-y-8">
-                
-                <div class="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100">
-                    <h2 class="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
-                        <i class="fas fa-info-circle text-brand-500"></i> Basic Information
-                    </h2>
-                    
-                    <div class="space-y-5">
-                        <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2">Title</label>
-                            {{ form.title }}
-                            <p class="text-xs text-slate-400 mt-1">e.g., "Fresh Sourdough Bread", "Box of Mixed Veggies"</p>
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2">Description</label>
-                            {{ form.description }}
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                            <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-2">Category</label>
-                                {{ form.food_category }}
-                            </div>
-                            <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-2">Quantity</label>
-                                {{ form.quantity }}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100">
-                    <h2 class="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
-                        <i class="fas fa-truck-fast text-blue-500"></i> Logistics
-                    </h2>
-                    
-                    <div class="space-y-5">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                            <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-2">Pickup Starts</label>
-                                {{ form.pickup_start }}
-                            </div>
-                            <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-2">Pickup Ends</label>
-                                {{ form.pickup_end }}
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2">Expiry Date</label>
-                            {{ form.expiry_datetime }}
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2">Pickup Location</label>
-                            <div class="relative">
-                                <i class="fas fa-location-dot absolute left-4 top-3.5 text-slate-400"></i>
-                                {{ form.pickup_location }}
-                            </div>
-                            {{ form.latitude }}
-                            {{ form.longitude }}
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-
-            <div class="space-y-8">
-                
-                <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-                    <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">Food Photo</h2>
-                    
-                    <div class="relative w-full aspect-square bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 overflow-hidden group hover:border-brand-400 transition-colors cursor-pointer">
-                        <input type="file" name="image" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer z-10" 
-                               @change="imagePreview = URL.createObjectURL($event.target.files[0])">
-                        
-                        <div class="absolute inset-0 flex flex-col items-center justify-center text-slate-400" x-show="!imagePreview">
-                            <i class="fas fa-camera text-3xl mb-2 group-hover:scale-110 transition-transform"></i>
-                            <span class="text-xs font-bold">Tap to upload</span>
-                        </div>
-                        
-                        <img x-bind:src="imagePreview" class="absolute inset-0 w-full h-full object-cover" x-show="imagePreview">
-                    </div>
-                    <p class="text-xs text-slate-400 mt-2 text-center">Clear photos increase claim rates by 40%.</p>
-                </div>
-
-                <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-                    <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">Nutrition (Optional)</h2>
-                    
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 mb-1">Calories (Approx)</label>
-                            {{ form.estimated_calories }}
-                        </div>
-                        
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 mb-2">Dietary Tags</label>
-                            <div class="flex flex-wrap gap-2">
-                                {% for value, label in form.fields.dietary_tags.choices %}
-                                <label class="cursor-pointer">
-                                    <input type="checkbox" name="dietary_tags" value="{{ value }}" class="peer sr-only">
-                                    <span class="inline-block px-3 py-1.5 bg-slate-50 text-slate-600 text-xs font-bold rounded-lg border border-slate-200 peer-checked:bg-brand-500 peer-checked:text-white peer-checked:border-brand-500 transition-all">
-                                        {{ label }}
-                                    </span>
-                                </label>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="sticky top-24">
-                    <button type="submit" class="w-full py-4 bg-slate-900 hover:bg-black text-white rounded-2xl font-bold shadow-xl shadow-slate-900/20 hover:-translate-y-1 transition-all flex items-center justify-center gap-2">
-                        <span>Publish Donation</span>
-                        <i class="fas fa-arrow-right"></i>
-                    </button>
-                    <p class="text-[10px] text-center text-slate-400 mt-3 px-4">
-                        By publishing, you agree to our Food Safety Guidelines.
-                    </p>
-                </div>
-
-            </div>
+    <div class="card" x-data="{ step: 1, totalSteps: 3 }">
+        
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 2rem;">
+            <div style="flex: 1; height: 4px; border-radius: 2px;" :style="step >= 1 ? 'background: var(--color-primary);' : 'background: #e2e8f0;'"></div>
+            <div style="flex: 1; height: 4px; border-radius: 2px;" :style="step >= 2 ? 'background: var(--color-primary);' : 'background: #e2e8f0;'"></div>
+            <div style="flex: 1; height: 4px; border-radius: 2px;" :style="step >= 3 ? 'background: var(--color-primary);' : 'background: #e2e8f0;'"></div>
         </div>
-    </form>
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div x-show="step === 1" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0">
+                <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem;">What are you donating?</h3>
+                
+                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    <div>
+                        <label class="form-label" style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem;">Title</label>
+                        {{ form.title }}
+                        <p style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 0.25rem;">e.g., 'Fresh Sourdough Bread', 'Box of Mixed Veggies'</p>
+                    </div>
+
+                    <div>
+                        <label class="form-label" style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem;">Description</label>
+                        {{ form.description }}
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                        <div>
+                            <label class="form-label" style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem;">Category</label>
+                            {{ form.food_category }}
+                        </div>
+                        <div>
+                            <label class="form-label" style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem;">Quantity</label>
+                            {{ form.quantity }}
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
+                    <button type="button" @click="step = 2" class="btn btn-primary">
+                        Next: Logistics <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div x-show="step === 2" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" style="display: none;">
+                <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem;">When & Where?</h3>
+                
+                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                        <div>
+                            <label class="form-label" style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem;">Pickup Starts</label>
+                            {{ form.pickup_start }}
+                        </div>
+                        <div>
+                            <label class="form-label" style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem;">Pickup Ends</label>
+                            {{ form.pickup_end }}
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="form-label" style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem;">Expiry Date</label>
+                        {{ form.expiry_datetime }}
+                    </div>
+
+                    <div>
+                        <label class="form-label" style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem;">Pickup Location</label>
+                        <div style="position: relative;">
+                            <i class="fas fa-location-dot" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--color-text-muted);"></i>
+                            <div style="/* Targeting widget input specifically */">
+                                {{ form.pickup_location }} 
+                            </div>
+                        </div>
+                        {{ form.latitude }}
+                        {{ form.longitude }}
+                    </div>
+                </div>
+
+                <div style="margin-top: 2rem; display: flex; justify-content: space-between;">
+                    <button type="button" @click="step = 1" class="btn btn-outline">Back</button>
+                    <button type="button" @click="step = 3" class="btn btn-primary">
+                        Next: Details <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div x-show="step === 3" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" style="display: none;">
+                <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem;">Final Details</h3>
+                
+                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    
+                    <div x-data="{ preview: null }">
+                        <label class="form-label" style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem;">Food Photo</label>
+                        <div style="border: 2px dashed #e2e8f0; border-radius: 12px; padding: 2rem; text-align: center; cursor: pointer; position: relative; overflow: hidden; background: #f8fafc;"
+                             @click="$refs.fileInput.click()">
+                            
+                            <div x-show="!preview">
+                                <i class="fas fa-camera" style="font-size: 2rem; color: #cbd5e1; margin-bottom: 0.5rem;"></i>
+                                <p style="font-size: 0.9rem; font-weight: 600; color: var(--color-text-muted);">Click to upload photo</p>
+                            </div>
+                            
+                            <img x-show="preview" :src="preview" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
+                            
+                            <input type="file" name="image" x-ref="fileInput" class="hidden" accept="image/*"
+                                   @change="preview = URL.createObjectURL($event.target.files[0])" style="display: none;">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="form-label" style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem;">Estimated Calories</label>
+                        {{ form.estimated_calories }}
+                    </div>
+
+                    <div>
+                        <label class="form-label" style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem;">Dietary Tags</label>
+                        <div style="display: flex; flex-wrap: gap; gap: 0.5rem;">
+                            {% for checkbox in form.dietary_tags %}
+                                <div style="display: inline-flex; align-items: center; background: #f1f5f9; padding: 0.25rem 0.75rem; border-radius: 99px; font-size: 0.85rem;">
+                                    {{ checkbox.tag }}
+                                    <span style="margin-left: 0.5rem;">{{ checkbox.choice_label }}</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 2rem; display: flex; justify-content: space-between;">
+                    <button type="button" @click="step = 2" class="btn btn-outline">Back</button>
+                    <button type="submit" class="btn btn-brand" style="padding-left: 3rem; padding-right: 3rem;">
+                        Publish Donation
+                    </button>
+                </div>
+            </div>
+
+        </form>
+    </div>
 </div>
 
 <style>
-    /* Styling Django widgets via CSS */
+    /* Ensure form inputs inside the wizard look good */
     input[type="text"], input[type="number"], input[type="datetime-local"], select, textarea {
-        @apply w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none transition-all font-medium text-slate-800 placeholder:text-slate-400;
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border-radius: var(--radius-md);
+        border: 1px solid #e2e8f0;
+        background-color: white;
+        font-family: inherit;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+        outline: none;
     }
-    textarea { resize: vertical; }
-    input[type="text"]#id_pickup_location { padding-left: 2.5rem; }
+    input:focus, select:focus, textarea:focus {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px var(--color-primary-light);
+    }
+    /* Specific adjustment for location icon */
+    #id_pickup_location { padding-left: 2.5rem; }
 </style>
 {% endblock %}

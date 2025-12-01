@@ -2,108 +2,99 @@
 {% load static %}
 {% load humanize %}
 
-{% block title %}{{ viewed_user.first_name }}'s Profile - FoodLoop{% endblock %}
+{% block title %}{{ viewed_user.first_name }} - FoodLoop{% endblock %}
 
 {% block content %}
-<div class="max-w-5xl mx-auto py-8 lg:py-12 px-4 animate-fade-in-up">
+<div class="max-w-4xl mx-auto pt-6 pb-16">
     
-    <div class="glass bg-white/80 rounded-3xl border border-white/50 shadow-xl overflow-hidden mb-10 relative">
-        <div class="h-48 bg-gradient-to-r from-slate-900 to-brand-900 relative">
-            <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20"></div>
-            <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+    <div class="card p-0 overflow-hidden mb-8 shadow-lg">
+        <div class="h-32 md:h-48 bg-gradient-to-r from-navy-900 to-navy-800 relative">
+            <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 20px 20px;"></div>
         </div>
         
-        <div class="px-8 pb-8">
-            <div class="relative flex flex-col md:flex-row justify-between items-end -mt-16 mb-6">
-                
-                <div class="flex flex-col md:flex-row items-center md:items-end gap-6">
-                    <div class="relative">
-                        <div class="h-32 w-32 rounded-3xl border-4 border-white shadow-2xl overflow-hidden bg-white">
-                            {% if profile.profile_picture %}
-                                <img class="h-full w-full object-cover" src="{{ profile.profile_picture.url }}" alt="{{ viewed_user.first_name }}">
-                            {% else %}
-                                <div class="h-full w-full bg-brand-50 flex items-center justify-center text-brand-600 text-4xl font-display font-bold">
-                                    {{ viewed_user.first_name|first|upper }}
-                                </div>
-                            {% endif %}
-                        </div>
+        <div class="px-6 pb-8 relative">
+            <div class="absolute -top-16 left-1/2 -translate-x-1/2 md:left-8 md:translate-x-0 w-32 h-32 rounded-3xl bg-white p-1.5 shadow-xl">
+                {% if profile.profile_picture %}
+                    <img src="{{ profile.profile_picture.url }}" class="w-full h-full object-cover rounded-2xl">
+                {% else %}
+                    <div class="w-full h-full bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center text-4xl font-bold">
+                        {{ viewed_user.first_name|first }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="pt-20 md:pt-4 md:pl-40 flex flex-col md:flex-row justify-between items-center md:items-start gap-6 text-center md:text-left">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-bold text-slate-900 flex items-center gap-2 justify-center md:justify-start mb-1">
+                        {{ viewed_user.get_full_name|default:viewed_user.username }}
                         {% if profile.email_verified %}
-                            <div class="absolute -bottom-2 -right-2 bg-blue-500 text-white p-1.5 rounded-full border-4 border-white shadow-sm" title="Verified User">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                            </div>
+                            <i class="fas fa-check-circle text-blue-500 text-lg" title="Verified Account"></i>
                         {% endif %}
-                    </div>
-                    
-                    <div class="text-center md:text-left mb-2">
-                        <h1 class="text-3xl font-display font-extrabold text-slate-900">{{ viewed_user.get_full_name|default:viewed_user.username }}</h1>
-                        <div class="flex items-center justify-center md:justify-start gap-3 mt-1 text-slate-500 text-sm font-medium">
-                            <span class="px-2.5 py-0.5 rounded-md bg-slate-100 uppercase tracking-wide text-xs">{{ profile.user_type }}</span>
-                            <span>•</span>
-                            <span>Joined {{ viewed_user.date_joined|date:"F Y" }}</span>
-                        </div>
-                    </div>
+                    </h1>
+                    <p class="text-slate-500 font-medium text-sm">
+                        {{ profile.get_user_type_display }} • Joined {{ viewed_user.date_joined|date:"F Y" }}
+                    </p>
                 </div>
                 
-                <div class="hidden md:flex gap-4 mb-2">
-                    <div class="bg-brand-50 px-5 py-3 rounded-2xl border border-brand-100 text-center">
-                        <span class="block text-2xl font-bold text-brand-700 leading-none">{{ profile.average_rating }}</span>
-                        <div class="flex text-yellow-400 text-xs mt-1">
-                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                        </div>
+                <div class="flex gap-8 border-t md:border-t-0 border-slate-100 pt-4 md:pt-0 w-full md:w-auto justify-center">
+                    <div class="text-center">
+                        <div class="text-2xl font-extrabold text-slate-900">{{ donation_count }}</div>
+                        <div class="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Donations</div>
                     </div>
-                    <div class="bg-slate-50 px-5 py-3 rounded-2xl border border-slate-100 text-center">
-                        <span class="block text-2xl font-bold text-slate-700 leading-none">{{ donation_count }}</span>
-                        <span class="block text-[10px] font-bold uppercase text-slate-400 mt-1">Donations</span>
+                    <div class="text-center">
+                        <div class="text-2xl font-extrabold text-slate-900">{{ profile.average_rating }}</div>
+                        <div class="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Rating</div>
                     </div>
                 </div>
             </div>
 
             {% if profile.bio %}
-            <div class="max-w-2xl mx-auto md:mx-0">
-                <p class="text-slate-600 leading-relaxed italic">"{{ profile.bio }}"</p>
+            <div class="mt-8 md:pl-40 text-center md:text-left">
+                <p class="text-slate-600 italic leading-relaxed max-w-2xl">"{{ profile.bio }}"</p>
             </div>
             {% endif %}
         </div>
     </div>
 
-    <div class="space-y-6">
-        <h3 class="font-display font-bold text-xl text-slate-900 flex items-center gap-2">
-            <i class="fas fa-star text-yellow-400"></i> Community Reviews
-            <span class="text-sm font-normal text-slate-400 ml-2">({{ ratings|length }})</span>
-        </h3>
+    <div>
+        <div class="flex items-center gap-3 mb-6">
+            <h3 class="text-xl font-bold text-slate-900">Community Reviews</h3>
+            <span class="bg-slate-100 text-slate-500 text-xs font-bold px-2 py-1 rounded-full">{{ ratings|length }}</span>
+        </div>
 
         {% if ratings %}
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {% for review in ratings %}
-                <div class="bg-white p-6 rounded-3xl border border-slate-100 hover:border-brand-200 hover:shadow-md transition-all group">
-                    <div class="flex justify-between items-start mb-4">
+                <div class="card p-5 hover:border-brand-200 transition-colors">
+                    <div class="flex justify-between items-start mb-3">
                         <div class="flex items-center gap-3">
-                            <div class="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-sm">
+                            <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-500 text-sm">
                                 {{ review.rating_user.first_name|first }}
                             </div>
                             <div>
-                                <h4 class="font-bold text-slate-900 text-sm">{{ review.rating_user.first_name }}</h4>
-                                <p class="text-xs text-slate-400">{{ review.created_at|date:"M d, Y" }}</p>
+                                <div class="font-bold text-sm text-slate-900">{{ review.rating_user.first_name }}</div>
+                                <div class="text-xs text-slate-400">{{ review.created_at|date:"M d, Y" }}</div>
                             </div>
                         </div>
                         <div class="flex gap-0.5 text-yellow-400 text-xs">
-                            {% for i in "12345"|make_list %}
+                            {% for i in "12345" %}
                                 <i class="fas fa-star {% if forloop.counter > review.rating %}text-slate-200{% endif %}"></i>
                             {% endfor %}
                         </div>
                     </div>
                     
-                    <p class="text-slate-600 text-sm leading-relaxed mb-4">"{{ review.comment|default:"No written feedback." }}"</p>
+                    <p class="text-slate-600 text-sm leading-relaxed mb-3">
+                        "{{ review.comment|default:"No written feedback." }}"
+                    </p>
                     
-                    <div class="pt-4 border-t border-slate-50 flex items-center gap-2 text-xs text-slate-400">
-                        <i class="fas fa-box-open"></i>
-                        <span>Re: <span class="font-medium text-slate-600">{{ review.donation.title }}</span></span>
+                    <div class="text-xs text-slate-400 pt-3 border-t border-slate-50 flex items-center gap-1.5">
+                        <i class="fas fa-box-open"></i> Re: <span class="font-medium text-slate-500">{{ review.donation.title }}</span>
                     </div>
                 </div>
                 {% endfor %}
             </div>
         {% else %}
-            <div class="text-center py-16 bg-white/50 rounded-3xl border-2 border-dashed border-slate-200">
+            <div class="card py-16 text-center border-dashed border-2 border-slate-200">
                 <i class="far fa-comment-dots text-4xl text-slate-300 mb-3"></i>
                 <p class="text-slate-500">No reviews yet.</p>
             </div>

@@ -1,39 +1,43 @@
 {% extends 'base/base.html' %}
+{% load static %}
 
 {% block title %}Privacy Policy - FoodLoop{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8 animate-fade-in-up">
-    
-    <div class="text-center mb-12">
-        <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight mb-4">Privacy Policy</h1>
-        <p class="text-gray-500">Last updated: November 29, 2025</p>
+<div style="background: var(--color-text-main); color: white; padding: 6rem 0; text-align: center; border-radius: var(--radius-xl); margin-bottom: 4rem;">
+    <div class="container" style="max-width: 800px;">
+        <h1 style="font-size: 3rem; margin-bottom: 1.5rem;">Privacy Policy</h1>
+        <p style="font-size: 1.25rem; color: #94a3b8; line-height: 1.7;">
+            Last updated: November 29, 2025
+        </p>
     </div>
+</div>
 
-    <div class="bg-white rounded-3xl shadow-soft border border-gray-100 p-8 md:p-12">
-        <article class="prose prose-lg prose-green max-w-none text-gray-600">
-            <h3 class="text-gray-900 font-bold">1. Introduction</h3>
-            <p>Welcome to FoodLoop. We respect your privacy and are committed to protecting your personal data. This privacy policy will inform you as to how we look after your personal data when you visit our website and tell you about your privacy rights and how the law protects you.</p>
+<div class="container" style="max-width: 900px;">
+    <div class="card" style="padding: 3rem;">
+        <article style="color: var(--color-text-muted); line-height: 1.8;">
+            <h3 style="color: var(--color-text-main); font-size: 1.5rem; margin-bottom: 1rem;">1. Introduction</h3>
+            <p style="margin-bottom: 2rem;">Welcome to FoodLoop. We respect your privacy and are committed to protecting your personal data. This privacy policy will inform you as to how we look after your personal data when you visit our website and tell you about your privacy rights and how the law protects you.</p>
 
-            <h3 class="text-gray-900 font-bold mt-8">2. Data We Collect</h3>
-            <p>We may collect, use, store and transfer different kinds of personal data about you which we have grouped together follows:</p>
-            <ul class="list-disc pl-5 space-y-2">
-                <li><strong>Identity Data:</strong> includes first name, last name, username or similar identifier.</li>
-                <li><strong>Contact Data:</strong> includes email address and telephone numbers.</li>
-                <li><strong>Location Data:</strong> includes GPS coordinates for donation pickup/delivery.</li>
+            <h3 style="color: var(--color-text-main); font-size: 1.5rem; margin-bottom: 1rem; margin-top: 3rem;">2. Data We Collect</h3>
+            <p style="margin-bottom: 1rem;">We may collect, use, store and transfer different kinds of personal data about you which we have grouped together follows:</p>
+            <ul style="list-style: disc; padding-left: 2rem; margin-bottom: 2rem;">
+                <li style="margin-bottom: 0.5rem;"><strong>Identity Data:</strong> includes first name, last name, username or similar identifier.</li>
+                <li style="margin-bottom: 0.5rem;"><strong>Contact Data:</strong> includes email address and telephone numbers.</li>
+                <li style="margin-bottom: 0.5rem;"><strong>Location Data:</strong> includes GPS coordinates for donation pickup/delivery.</li>
             </ul>
 
-            <h3 class="text-gray-900 font-bold mt-8">3. How We Use Your Data</h3>
-            <p>We will only use your personal data when the law allows us to. Most commonly, we will use your personal data in the following circumstances:</p>
-            <ul class="list-disc pl-5 space-y-2">
-                <li>To facilitate food donations and pickups between users.</li>
-                <li>To manage your account and registration.</li>
-                <li>To improve our website and services via aggregated analytics.</li>
+            <h3 style="color: var(--color-text-main); font-size: 1.5rem; margin-bottom: 1rem; margin-top: 3rem;">3. How We Use Your Data</h3>
+            <p style="margin-bottom: 1rem;">We will only use your personal data when the law allows us to. Most commonly, we will use your personal data in the following circumstances:</p>
+            <ul style="list-style: disc; padding-left: 2rem; margin-bottom: 2rem;">
+                <li style="margin-bottom: 0.5rem;">To facilitate food donations and pickups between users.</li>
+                <li style="margin-bottom: 0.5rem;">To manage your account and registration.</li>
+                <li style="margin-bottom: 0.5rem;">To improve our website and services via aggregated analytics.</li>
             </ul>
             
-            <div class="mt-10 p-6 bg-gray-50 rounded-2xl border border-gray-100">
-                <h4 class="text-sm font-bold text-gray-900 uppercase mb-2">Contact Us</h4>
-                <p class="text-sm">If you have questions about this policy, please email us at <a href="mailto:privacy@foodloop.com" class="text-primary-600 hover:underline">privacy@foodloop.com</a>.</p>
+            <div style="margin-top: 3rem; padding: 2rem; background: var(--color-background); border-radius: var(--radius-lg); border: 1px solid #e2e8f0;">
+                <h4 style="font-size: 0.875rem; font-weight: bold; color: var(--color-text-main); text-transform: uppercase; margin-bottom: 0.5rem;">Contact Us</h4>
+                <p style="font-size: 0.875rem; margin: 0;">If you have questions about this policy, please email us at <a href="mailto:privacy@foodloop.com" style="color: var(--color-primary); text-decoration: underline;">privacy@foodloop.com</a>.</p>
             </div>
         </article>
     </div>

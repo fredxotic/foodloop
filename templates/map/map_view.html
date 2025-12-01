@@ -1,278 +1,146 @@
 {% extends 'base/base.html' %}
 {% load static %}
 
-{% block title %}Food Map - FoodLoop{% endblock %}
+{% block title %}Live Map - FoodLoop{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
-    /* 1. FORCE RESET LEAFLET IMAGES (Fixes grid lines/gaps) */
-    .leaflet-pane img, 
-    .leaflet-tile, 
-    .leaflet-marker-icon, 
-    .leaflet-marker-shadow {
+    /* CRITICAL MAP FIXES */
+    .leaflet-pane img, .leaflet-marker-icon, .leaflet-marker-shadow {
         max-width: none !important;
         max-height: none !important;
-        width: auto !important;
-        height: auto !important;
+    }
+    .leaflet-tile {
+        width: inherit !important;
+        height: inherit !important;
         padding: 0 !important;
         border: none !important;
     }
 
-    /* 2. MAP WRAPPER - The Container Logic */
-    .map-wrapper {
-        position: relative;
+    #map-container {
+        height: 85vh;
         width: 100%;
-        /* Fixed height relative to viewport - Safest for mobile browsers */
-        height: 85vh; 
-        border-radius: 24px;
+        border-radius: var(--radius-xl);
         overflow: hidden;
-        background: #e2e8f0; /* Slate-200 loading color */
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-        isolation: isolate; /* Creates new stacking context */
+        background: #e2e8f0;
         z-index: 1;
+        isolation: isolate;
     }
 
+    /* Mobile Height Adjustment */
     @media (max-width: 768px) {
-        .map-wrapper {
-            height: 75vh; /* Slightly smaller on mobile to fit address bar */
-            border-radius: 16px;
-            /* Negative margin to break out of container padding on mobile */
-            margin-left: -1rem;
-            margin-right: -1rem;
-            width: calc(100% + 2rem);
+        #map-container {
+            height: calc(100vh - 140px); /* Fill screen minus header/nav */
+            border-radius: var(--radius-lg);
+        }
+        .map-controls {
+            bottom: 20px;
+            top: auto !important;
+            left: 50% !important;
+            transform: translateX(-50%);
+            width: 90%;
         }
     }
 
-    /* 3. THE MAP ITSELF */
-    #map-container { 
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        z-index: 0; 
+    /* Desktop Controls */
+    @media (min-width: 769px) {
+        .map-controls {
+            top: 20px;
+            left: 20px;
+            width: 320px;
+        }
     }
 
-    /* 4. POPUP STYLING */
-    .leaflet-popup-content-wrapper { 
-        background: rgba(255, 255, 255, 0.95) !important;
-        backdrop-filter: blur(12px);
-        border-radius: 16px !important;
-        padding: 0 !important;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1) !important;
-        border: 1px solid rgba(255, 255, 255, 0.5);
+    .map-controls {
+        position: absolute;
+        z-index: 1000;
+        pointer-events: none;
     }
-    .leaflet-popup-content { margin: 0 !important; width: 260px !important; }
-    .leaflet-popup-tip { background: rgba(255, 255, 255, 0.95) !important; }
-    
-    /* Custom Pins */
-    .custom-pin {
-        background-color: #059669;
+
+    .map-panel {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(12px);
+        padding: 1.25rem;
+        border-radius: var(--radius-lg);
+        border: 1px solid rgba(203, 213, 225, 0.5); /* Slate-300 */
+        box-shadow: var(--shadow-lg);
+        pointer-events: auto;
+    }
+
+    /* ... Custom Pin CSS from Phase 4 (Keep unchanged) ... */
+    .custom-map-pin .pin-inner {
+        background-color: var(--color-primary);
         width: 36px; height: 36px;
         border-radius: 50% 50% 50% 0;
         transform: rotate(-45deg);
         display: flex; align-items: center; justify-content: center;
-        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2);
         border: 3px solid white;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2);
         transition: transform 0.2s ease;
     }
-    .custom-pin i { transform: rotate(45deg); color: white; font-size: 16px; }
-    .custom-pin:hover { transform: rotate(-45deg) scale(1.1); background-color: #047857; }
+    .custom-map-pin i { transform: rotate(45deg); color: white; font-size: 14px; }
+    .custom-map-pin:hover .pin-inner { background-color: var(--color-primary-dark); transform: rotate(-45deg) scale(1.1); }
     
-    .user-pin {
-        width: 16px; height: 16px;
-        background-color: #2563eb;
-        border-radius: 50%;
-        border: 3px solid white;
-        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.3);
-        animation: pulse-blue 2s infinite;
-    }
-    
-    @keyframes pulse-blue {
-        0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4); }
-        70% { box-shadow: 0 0 0 10px rgba(37, 99, 235, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
-    }
+    .user-location-pin .center-dot { width: 16px; height: 16px; background-color: #2563eb; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.3); position: relative; z-index: 2; }
+    .user-location-pin .pulse-ring { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 40px; height: 40px; background: rgba(37, 99, 235, 0.2); border-radius: 50%; animation: mapPulse 2s infinite; z-index: 1; }
+    @keyframes mapPulse { 0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; } }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="flex flex-col w-full pb-12 animate-fade-in-up">
+<div class="relative w-full h-full animate-fade-in-up">
     
-    <div class="map-wrapper">
-        
-        <div class="absolute top-4 left-4 z-[1000] w-full max-w-xs px-2 md:px-0 pointer-events-none">
-            <div class="glass bg-white/90 p-5 rounded-2xl border border-white/60 shadow-xl backdrop-blur-md pointer-events-auto">
-                
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-brand-100 text-brand-600 flex items-center justify-center shadow-sm shrink-0">
-                            <i class="fas fa-map-location-dot"></i>
-                        </div>
-                        <div>
-                            <h1 class="font-display font-bold text-slate-900 text-lg leading-none">Live Map</h1>
-                            <div class="flex items-center gap-2 mt-1">
-                                <span class="relative flex h-2 w-2">
-                                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                  <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                                </span>
-                                <p class="text-[10px] font-bold text-brand-600 uppercase tracking-wide">
-                                    {{ donations|length }} Active
-                                </p>
-                            </div>
+    <div class="map-controls">
+        <div class="map-panel">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-brand-100 text-brand-600 flex items-center justify-center shadow-sm shrink-0">
+                        <i class="fas fa-map-location-dot"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-display font-bold text-slate-900 text-lg leading-none">Live Map</h1>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="relative flex h-2 w-2">
+                              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
+                              <span class="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
+                            </span>
+                            <p class="text-[10px] font-bold text-brand-600 uppercase tracking-wide">
+                                {{ donations|length }} Active
+                            </p>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="grid grid-cols-2 gap-2">
-                    <button onclick="centerMap()" class="bg-brand-600 hover:bg-brand-700 text-white py-2.5 px-3 rounded-xl text-xs font-bold shadow-lg shadow-brand-500/20 transition-all flex items-center justify-center gap-2 active:scale-95">
-                        <i class="fas fa-crosshairs"></i> Find Me
-                    </button>
-                    <a href="{% url 'core:search_donations' %}" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 active:scale-95">
-                        <i class="fas fa-list"></i> List View
-                    </a>
-                </div>
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="FoodLoopMap.centerOnUser(window.userLocation)" 
+                        class="btn btn-brand btn-sm w-full justify-center">
+                    <i class="fas fa-crosshairs mr-2"></i> Find Me
+                </button>
+                <a href="{% url 'core:search_donations' %}" 
+                   class="btn btn-outline btn-sm w-full justify-center bg-white">
+                    <i class="fas fa-list mr-2"></i> List View
+                </a>
             </div>
         </div>
-
-        <div id="map-container"></div>
-        
     </div>
-</div>
 
-<script id="map-data" type="application/json">
-{
-    "userLocation": {% if user_location and user_location.lat %}{"lat": {{ user_location.lat }}, "lng": {{ user_location.lng }}}{% else %}null{% endif %},
-    "donations": [
-        {% for d in donations %}
-        {
-            "id": {{ d.id }},
-            "title": "{{ d.title|escapejs }}",
-            "category": "{{ d.food_category|title }}",
-            "lat": {{ d.latitude }},
-            "lng": {{ d.longitude }},
-            "score": {{ d.nutrition_score }},
-            "expiry": "{{ d.expiry_datetime|timeuntil }}",
-            "url": "{% url 'core:donation_detail' d.id %}"
-        }{% if not forloop.last %},{% endif %}
-        {% endfor %}
-    ]
-}
-</script>
+    <div id="map-container"></div>
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="{% static 'js/map_logic.js' %}"></script>
 <script>
-    let map;
-    let mapData;
-    
     document.addEventListener('DOMContentLoaded', function() {
-        try {
-            mapData = JSON.parse(document.getElementById('map-data').textContent);
-        } catch (e) {
-            console.error("Error parsing map data", e);
-            return;
-        }
-        
-        const defaultLat = -1.2921;
-        const defaultLng = 36.8219;
-        const startLat = mapData.userLocation ? mapData.userLocation.lat : defaultLat;
-        const startLng = mapData.userLocation ? mapData.userLocation.lng : defaultLng;
-
-        // Initialize Map
-        map = L.map('map-container', {
-            zoomControl: false,
-            attributionControl: false
-        }).setView([startLat, startLng], 13);
-
-        // Use Standard OSM Tiles (Most reliable)
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '© OpenStreetMap'
-        }).addTo(map);
-
-        L.control.zoom({ position: 'bottomright' }).addTo(map);
-
-        // User Marker
-        if (mapData.userLocation) {
-            const userIcon = L.divIcon({
-                className: 'bg-transparent',
-                html: `<div class="user-pin"></div>`,
-                iconSize: [20, 20],
-                iconAnchor: [10, 10]
-            });
-            L.marker([startLat, startLng], {icon: userIcon, zIndexOffset: 1000})
-             .addTo(map)
-             .bindPopup('<div class="text-center font-bold text-xs p-2 text-slate-700">You are here</div>');
-        }
-
-        // Donation Markers
-        mapData.donations.forEach(d => {
-            if (d.lat && d.lng) {
-                const iconHtml = `<div class='custom-pin'><i class='fas fa-utensils'></i></div>`;
-                const customIcon = L.divIcon({
-                    className: 'bg-transparent',
-                    html: iconHtml,
-                    iconSize: [40, 40],
-                    iconAnchor: [20, 34],
-                    popupAnchor: [0, -35]
-                });
-
-                const popupContent = `
-                    <div class="flex flex-col font-sans overflow-hidden rounded-xl">
-                        <div class="h-20 bg-slate-100 relative overflow-hidden bg-[url('{% static 'images/default-donation.png' %}')] bg-cover bg-center">
-                            <div class="absolute inset-0 bg-slate-900/10"></div>
-                            <div class="absolute top-2 left-2 bg-white/95 backdrop-blur-md px-2 py-0.5 rounded-md text-[10px] font-bold text-slate-800 shadow-sm uppercase tracking-wide">
-                                ${d.category}
-                            </div>
-                        </div>
-                        <div class="p-3 bg-white">
-                            <h3 class="font-bold text-slate-900 text-sm mb-1 leading-tight line-clamp-1">${d.title}</h3>
-                            <div class="flex items-center gap-2 mb-3 text-[10px] text-slate-500 font-medium">
-                                <span class="flex items-center gap-1 text-green-600 bg-green-50 px-1.5 py-0.5 rounded border border-green-100">
-                                    <i class="fas fa-leaf"></i> ${d.score}
-                                </span>
-                                <span class="flex items-center gap-1 text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded border border-orange-100">
-                                    <i class="far fa-clock"></i> ${d.expiry} left
-                                </span>
-                            </div>
-                            <a href="${d.url}" class="block w-full py-2 bg-slate-900 hover:bg-black text-white text-center rounded-lg font-bold text-xs transition-colors">
-                                View & Claim
-                            </a>
-                        </div>
-                    </div>
-                `;
-
-                L.marker([d.lat, d.lng], {icon: customIcon})
-                 .addTo(map)
-                 .bindPopup(popupContent, { minWidth: 220, maxWidth: 220, closeButton: false });
-            }
-        });
-        
-        // CRITICAL: Force map redraw after load to fix gray tiles
-        setTimeout(() => { 
-            map.invalidateSize(); 
-        }, 200);
+        const mapData = {
+            userLocation: {{ user_location_json|safe|default:"null" }},
+            donations: {{ map_data_json|safe|default:"[]" }}
+        };
+        window.userLocation = mapData.userLocation;
+        FoodLoopMap.init('map-container', mapData);
     });
-
-    function centerMap() {
-        if (mapData && mapData.userLocation) {
-            map.flyTo([mapData.userLocation.lat, mapData.userLocation.lng], 15, {
-                animate: true,
-                duration: 1.5
-            });
-        } else if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(position => {
-                const lat = position.coords.latitude;
-                const lng = position.coords.longitude;
-                map.flyTo([lat, lng], 15);
-                L.marker([lat, lng]).addTo(map).bindPopup("Current Location").openPopup();
-            });
-        } else {
-            alert("Geolocation not available");
-        }
-    }
 </script>
 {% endblock %}
