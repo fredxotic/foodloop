@@ -51,7 +51,9 @@ THIRD_PARTY_APPS = [
     'rest_framework.authtoken',  # Token authentication
     'corsheaders',  # CORS headers for mobile/web apps
     'django_filters',  # Advanced filtering
-    'drf_spectacular',  # API documentation
+    'drf_spectacular',  # API 
+    'cloudinary_storage',
+    'cloudinary',
 ]
 
 LOCAL_APPS = [
@@ -255,9 +257,6 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
 
-# If developing on Windows without a Redis service, you might use this temporarily:
-# CELERY_TASK_ALWAYS_EAGER = DEBUG
-
 # =============================================================================
 # EMAIL CONFIGURATION
 # =============================================================================
@@ -439,6 +438,20 @@ LOGGING = {
 
 # Create logs directory
 (BASE_DIR / 'logs').mkdir(exist_ok=True)
+
+# =============================================================================
+# MEDIA CONFIGURATION (Cloudinary)
+# =============================================================================
+
+# Configuration for Cloudinary Storage
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME', default=''),
+    'API_KEY': config('CLOUDINARY_API_KEY', default=''),
+    'API_SECRET': config('CLOUDINARY_API_SECRET', default=''),
+}
+
+# Tell Django to use Cloudinary for all media (uploaded) files
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 # =============================================================================
 # DEFAULT PRIMARY KEY
