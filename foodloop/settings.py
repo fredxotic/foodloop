@@ -282,25 +282,29 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Static files storage
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
 # =============================================================================
-# MEDIA CONFIGURATION (Cloudinary)
+# STORAGE CONFIGURATION (Django 5+)
 # =============================================================================
 
-# Configuration for Cloudinary Storage
+STORAGES = {
+    # 1. Manage Media (Uploaded) Files via Cloudinary
+    "default": {
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+    },
+    # 2. Manage Static (CSS/JS) Files via WhiteNoise
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME', default=''),
     'API_KEY': config('CLOUDINARY_API_KEY', default=''),
     'API_SECRET': config('CLOUDINARY_API_SECRET', default=''),
 }
 
-# Tell Django to use Cloudinary for all media (uploaded) files
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-
-# IMPORTANT: This tells Django to use Cloudinary for serving the files
-MEDIA_URL = '/media/'  
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'  
 
 # =============================================================================
 # PASSWORD VALIDATION
