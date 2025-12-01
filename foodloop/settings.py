@@ -6,6 +6,7 @@ Clean, production-ready configuration with proper environment separation.
 import os
 from pathlib import Path
 from decouple import config, Csv
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -205,7 +206,7 @@ ASGI_APPLICATION = 'foodloop.asgi.application'
 # =============================================================================
 
 if DEBUG:
-    # SQLite for development
+    # SQLite for development (local)
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -213,19 +214,14 @@ if DEBUG:
         }
     }
 else:
-    # Production database
+    # PostgreSQL for production (Render)
     DATABASES = {
-        'default': {
-            'ENGINE': config('DB_ENGINE', default='django.db.backends.postgresql'),
-            'NAME': config('DB_NAME'),
-            'USER': config('DB_USER'),
-            'PASSWORD': config('DB_PASSWORD'),
-            'HOST': config('DB_HOST', default='localhost'),
-            'PORT': config('DB_PORT', default='5432'),
-            'OPTIONS': {
-                'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-            } if 'mysql' in config('DB_ENGINE', default='') else {}
-        }
+        'default': dj_database_url.config(
+            # This looks for the DATABASE_URL environment variable automatically
+            default=config('DATABASE_URL', default=''),
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
     }
 
 # =============================================================================
