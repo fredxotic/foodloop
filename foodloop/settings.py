@@ -299,6 +299,9 @@ CLOUDINARY_STORAGE = {
 # Tell Django to use Cloudinary for all media (uploaded) files
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
+# IMPORTANT: This tells Django to use Cloudinary for serving the files
+MEDIA_URL = '/media/'  
+
 # =============================================================================
 # PASSWORD VALIDATION
 # =============================================================================

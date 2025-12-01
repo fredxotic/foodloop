@@ -9,6 +9,7 @@ logs/
 
 staticfiles/
 media/
+profiles/
 
 .DS_Store
 Thumbs.db
