@@ -1,17 +1,24 @@
 {% load static %}
 
+<!-- Mobile Overlay -->
 <div x-show="sidebarOpen" 
      @click="sidebarOpen = false"
      class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
-     style="transition: opacity 0.3s ease;"
-     x-transition.opacity
+     x-transition:enter="transition ease-out duration-300"
+     x-transition:enter-start="opacity-0"
+     x-transition:enter-end="opacity-100"
+     x-transition:leave="transition ease-in duration-200"
+     x-transition:leave-start="opacity-100"
+     x-transition:leave-end="opacity-0"
      x-cloak></div>
 
-<aside class="fixed inset-y-0 left-0 z-50 w-72 bg-navy-900 border-r border-navy-800 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:h-full flex flex-col shadow-2xl lg:shadow-none"
+<!-- Sidebar -->
+<aside class="fixed inset-y-0 left-0 z-50 w-72 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 border-r border-slate-800 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:h-full flex flex-col shadow-2xl lg:shadow-none"
        :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
        x-cloak>
     
-    <div class="h-20 flex items-center px-6 border-b border-navy-800 shrink-0">
+    <!-- Logo Header -->
+    <div class="h-16 sm:h-20 flex items-center px-6 border-b border-slate-800 shrink-0">
         <a href="{% url 'core:home' %}" class="flex items-center gap-3 group">
             <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-lg shadow-brand-500/20 group-hover:scale-110 transition-transform duration-300 text-white">
                 <i class="fas fa-leaf text-lg"></i>
@@ -19,92 +26,191 @@
             <span class="font-display font-bold text-2xl tracking-tight text-white group-hover:text-brand-400 transition-colors">FoodLoop</span>
         </a>
         
-        <button @click="sidebarOpen = false" class="ml-auto lg:hidden text-slate-400 hover:text-white p-2 rounded-lg transition-colors">
+        <!-- Mobile Close Button -->
+        <button @click="sidebarOpen = false" 
+                class="ml-auto lg:hidden text-slate-400 hover:text-white p-2 rounded-lg hover:bg-slate-800 transition-colors">
             <i class="fas fa-times text-xl"></i>
         </button>
     </div>
 
+    <!-- Navigation Menu -->
     <nav class="flex-1 px-4 py-6 space-y-8 overflow-y-auto custom-scrollbar">
         
+        <!-- Main Menu -->
         <div class="space-y-1">
-            <p class="px-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-2">Main Menu</p>
+            <p class="px-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Main Menu</p>
             
             <a href="{% url 'core:dashboard' %}" 
-               class="flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 {% if '/dashboard/' in request.path %}bg-navy-800 text-brand-400 font-bold border-l-4 border-brand-500{% else %}text-slate-400 hover:bg-navy-800 hover:text-white{% endif %}">
-                <i class="fas fa-grid-2 w-6 text-center mr-3 {% if '/dashboard/' in request.path %}text-brand-400{% else %}text-slate-500{% endif %}"></i>
-                Dashboard
+               class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
             </a>
             
-            <a href="{% url 'core:map_view' %}" 
-               class="flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 {% if '/map/' in request.path %}bg-navy-800 text-brand-400 font-bold border-l-4 border-brand-500{% else %}text-slate-400 hover:bg-navy-800 hover:text-white{% endif %}">
-                <i class="fas fa-map-location-dot w-6 text-center mr-3 {% if '/map/' in request.path %}text-brand-400{% else %}text-slate-500{% endif %}"></i>
-                Live Map
+            <!-- ✅ ONLY SHOW FOR RECIPIENTS -->
+            {% if user.profile.user_type == 'recipient' %}
+            <a href="{% url 'core:search_donations' %}" 
+               class="nav-link {% if 'search' in request.path %}active{% endif %}">
+                <i class="fas fa-search"></i>
+                <span>Browse Donations</span>
             </a>
+            {% endif %}
 
-            <a href="{% url 'core:analytics' %}" 
-               class="flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 {% if '/analytics/' in request.path %}bg-navy-800 text-brand-400 font-bold border-l-4 border-brand-500{% else %}text-slate-400 hover:bg-navy-800 hover:text-white{% endif %}">
-                <i class="fas fa-chart-pie w-6 text-center mr-3 {% if '/analytics/' in request.path %}text-brand-400{% else %}text-slate-500{% endif %}"></i>
-                Impact Reports
+            {% if user.profile.user_type == 'recipient' %}
+            <a href="{% url 'core:map_view' %}" 
+               class="nav-link {% if 'map' in request.path %}active{% endif %}">
+                <i class="fas fa-map-marked-alt"></i>
+                <span>View by Location</span>
             </a>
+            {% endif %}
         </div>
 
+        <!-- User Type Specific -->
         <div class="space-y-1">
-            <p class="px-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-2">
-                {% if user.profile.user_type == 'donor' %}Inventory{% else %}Discovery{% endif %}
+            <p class="px-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">
+                {% if user.profile.user_type == 'donor' %}Donor Actions{% else %}Recipient Actions{% endif %}
             </p>
             
             {% if user.profile.user_type == 'donor' %}
-                <a href="{% url 'core:create_donation' %}" class="flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all {% if 'create' in request.path %}bg-navy-800 text-brand-400 font-bold border-l-4 border-brand-500{% else %}text-slate-400 hover:bg-navy-800 hover:text-white{% endif %}">
-                    <i class="fas fa-plus-circle w-6 text-center mr-3 text-brand-500"></i> 
-                    Donate Food
+                <!-- ✅ DONOR MENU -->
+                <a href="{% url 'core:create_donation' %}" 
+                   class="nav-link {% if 'create' in request.path %}active{% endif %} border-l-2 border-brand-500">
+                    <i class="fas fa-plus-circle text-brand-400"></i>
+                    <span class="font-semibold">Create Donation</span>
                 </a>
-                <a href="{% url 'core:my_donations' %}" class="flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all {% if 'my-donations' in request.path %}bg-navy-800 text-brand-400 font-bold border-l-4 border-brand-500{% else %}text-slate-400 hover:bg-navy-800 hover:text-white{% endif %}">
-                    <i class="fas fa-boxes-stacked w-6 text-center mr-3"></i> 
-                    My Items
+                <a href="{% url 'core:my_donations' %}" 
+                   class="nav-link {% if 'my-donations' in request.path %}active{% endif %}">
+                    <i class="fas fa-boxes-stacked"></i>
+                    <span>My Donations</span>
                 </a>
             {% else %}
-                <a href="{% url 'core:search_donations' %}" class="flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all {% if 'search' in request.path %}bg-navy-800 text-brand-400 font-bold border-l-4 border-brand-500{% else %}text-slate-400 hover:bg-navy-800 hover:text-white{% endif %}">
-                    <i class="fas fa-search w-6 text-center mr-3 text-brand-500"></i> 
-                    Find Food
+                <!-- ✅ RECIPIENT MENU -->
+                <a href="{% url 'core:my_claims' %}" 
+                   class="nav-link {% if 'my-claims' in request.path %}active{% endif %}">
+                    <i class="fas fa-shopping-basket"></i>
+                    <span>My Claims</span>
                 </a>
-                <a href="{% url 'core:my_donations' %}" class="flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all {% if 'my-donations' in request.path %}bg-navy-800 text-brand-400 font-bold border-l-4 border-brand-500{% else %}text-slate-400 hover:bg-navy-800 hover:text-white{% endif %}">
-                    <i class="fas fa-basket-shopping w-6 text-center mr-3"></i> 
-                    My Basket
-                </a>
-                <a href="{% url 'core:dietary_preferences' %}" class="flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all {% if 'dietary' in request.path %}bg-navy-800 text-brand-400 font-bold border-l-4 border-brand-500{% else %}text-slate-400 hover:bg-navy-800 hover:text-white{% endif %}">
-                    <i class="fas fa-sliders w-6 text-center mr-3"></i> 
-                    Preferences
+                <a href="{% url 'core:dietary_preferences' %}" 
+                   class="nav-link {% if 'dietary' in request.path %}active{% endif %}">
+                    <i class="fas fa-sliders"></i>
+                    <span>Dietary Preferences</span>
                 </a>
             {% endif %}
         </div>
 
+        <!-- Account Settings -->
         <div class="space-y-1">
-            <p class="px-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-2">Settings</p>
+            <p class="px-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Account</p>
             <a href="{% url 'core:profile' %}" 
-               class="flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 {% if '/profile/' in request.path and 'public' not in request.path %}bg-navy-800 text-brand-400 font-bold border-l-4 border-brand-500{% else %}text-slate-400 hover:bg-navy-800 hover:text-white{% endif %}">
-                <i class="fas fa-user-gear w-6 text-center mr-3"></i>
-                Account
+               class="nav-link {% if '/profile/' in request.path and 'public' not in request.path %}active{% endif %}">
+                <i class="fas fa-user-gear"></i>
+                <span>Settings</span>
+            </a>
+            <a href="{% url 'core:public_profile' user.username %}" 
+               class="nav-link">
+                <i class="fas fa-id-card"></i>
+                <span>Public Profile</span>
+            </a>
+        </div>
+
+        <!-- Help & Support -->
+        <div class="space-y-1">
+            <p class="px-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Support</p>
+            <a href="{% url 'core:contact' %}" class="nav-link">
+                <i class="fas fa-envelope"></i>
+                <span>Contact Us</span>
             </a>
         </div>
     </nav>
 
-    <div class="p-4 border-t border-navy-800 bg-navy-950/50">
-        <a href="{% url 'core:logout' %}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-navy-800 transition-all group w-full border border-transparent hover:border-navy-700">
+    <!-- User Profile Footer -->
+    <div class="p-4 border-t border-slate-800 bg-slate-950/50 shrink-0">
+        <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-800/50 border border-slate-700">
+            <!-- Profile Picture -->
             <div class="relative shrink-0">
                 {% if user.profile.profile_picture %}
-                    <img src="{{ user.profile.profile_picture.url }}" class="w-10 h-10 rounded-full object-cover border border-navy-700">
+                    <img src="{{ user.profile.profile_picture.url }}" 
+                         class="w-10 h-10 rounded-full object-cover border-2 border-slate-700" 
+                         alt="{{ user.get_full_name }}">
                 {% else %}
-                    <div class="w-10 h-10 rounded-full bg-navy-800 flex items-center justify-center text-sm font-bold text-slate-400">
-                        {{ user.first_name|first|default:"U" }}
+                    <div class="w-10 h-10 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-sm font-bold border-2 border-slate-700">
+                        {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
                     </div>
                 {% endif %}
-                <span class="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-brand-500 ring-2 ring-navy-900"></span>
+                <span class="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-slate-900"></span>
             </div>
-            <div class="flex-1 min-w-0 text-left">
-                <p class="text-sm font-bold text-white truncate">{{ user.first_name }}</p>
-                <p class="text-xs text-slate-500 truncate">Log Out</p>
+            
+            <!-- User Info -->
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-bold text-white truncate">{{ user.get_full_name }}</p>
+                <p class="text-xs text-slate-400 truncate">{{ user.email }}</p>
             </div>
-            <i class="fas fa-arrow-right-from-bracket text-slate-500 group-hover:text-red-400 transition-colors"></i>
-        </a>
+            
+            <!-- Logout Button -->
+            <a href="{% url 'core:logout' %}" 
+               class="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-700 transition-colors text-slate-400 hover:text-red-400"
+               title="Sign Out">
+                <i class="fas fa-sign-out-alt text-sm"></i>
+            </a>
+        </div>
     </div>
 </aside>
+
+<style>
+/* Sidebar Navigation Link Styles */
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: rgb(148 163 184);
+    border-radius: 0.75rem;
+    transition: all 0.2s;
+}
+
+.nav-link i {
+    width: 1.25rem;
+    text-align: center;
+    color: rgb(100 116 139);
+}
+
+.nav-link:hover {
+    background-color: rgba(30, 41, 59, 0.5);
+    color: white;
+}
+
+.nav-link:hover i {
+    color: rgb(74 222 128);
+}
+
+.nav-link.active {
+    background-color: rgba(74, 222, 128, 0.1);
+    color: rgb(74 222 128);
+    font-weight: 600;
+    border-left: 3px solid rgb(74 222 128);
+}
+
+.nav-link.active i {
+    color: rgb(74 222 128);
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(30, 41, 59, 0.3);
+    border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(100, 116, 139, 0.5);
+    border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.7);
+}
+</style>

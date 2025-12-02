@@ -5,153 +5,267 @@
 {% block title %}{{ donation.title }} - FoodLoop{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto pt-6 pb-16">
+<div class="max-w-7xl mx-auto pt-4 sm:pt-6 pb-12 sm:pb-16 px-4 sm:px-6">
     
-    <nav class="text-sm text-slate-500 mb-8 flex items-center gap-2">
-        <a href="{% url 'core:dashboard' %}" class="hover:text-brand-600">Dashboard</a>
+    <!-- Breadcrumb Navigation - Mobile Optimized -->
+    <nav class="text-xs sm:text-sm text-slate-500 mb-4 sm:mb-8 flex items-center gap-2">
+        <a href="{% url 'core:dashboard' %}" class="hover:text-brand-600 transition-colors">Dashboard</a>
         <span>/</span>
-        <span class="text-slate-900 font-semibold truncate">{{ donation.title }}</span>
+        <span class="text-slate-900 font-semibold truncate">{{ donation.title|truncatewords:5 }}</span>
     </nav>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 items-start">
         
-        <div>
-            <div class="w-full aspect-[16/10] rounded-3xl overflow-hidden bg-slate-100 mb-8 shadow-md relative">
+        <!-- Left Column - Images & Description -->
+        <div class="space-y-4 sm:space-y-6">
+            <!-- Main Image -->
+            <div class="w-full aspect-[16/10] sm:aspect-[4/3] rounded-2xl sm:rounded-3xl overflow-hidden bg-slate-100 shadow-md relative">
                 {% if donation.image %}
-                    <img src="{{ donation.image.url }}" class="w-full h-full object-cover">
+                    <img src="{{ donation.image.url }}" class="w-full h-full object-cover" alt="{{ donation.title }}">
                 {% else %}
-                    <div class="w-full h-full flex items-center justify-center text-slate-300">
-                        <i class="fas fa-image text-6xl"></i>
+                    <div class="w-full h-full flex flex-col items-center justify-center text-slate-300">
+                        <i class="fas fa-image text-4xl sm:text-6xl mb-2"></i>
+                        <span class="text-xs sm:text-sm">No image available</span>
                     </div>
                 {% endif %}
                 
-                <div class="absolute top-4 left-4">
-                    <span class="bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider text-slate-900 shadow-sm">
+                <!-- Category Badge -->
+                <div class="absolute top-3 sm:top-4 left-3 sm:left-4">
+                    <span class="bg-white/90 backdrop-blur-md px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-900 shadow-sm">
                         {{ donation.get_food_category_display }}
                     </span>
                 </div>
+
+                <!-- Nutrition Score Badge (if available) -->
+                {% if donation.nutrition_score %}
+                <div class="absolute top-3 sm:top-4 right-3 sm:right-4">
+                    <div class="bg-brand-600 text-white px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold shadow-lg">
+                        Score: {{ donation.nutrition_score }}/100
+                    </div>
+                </div>
+                {% endif %}
             </div>
 
-            <div class="card p-6 md:p-8">
-                <h3 class="text-lg font-bold mb-4 text-slate-900">Description</h3>
-                <p class="text-slate-600 leading-relaxed">{{ donation.description|linebreaksbr }}</p>
+            <!-- Description Card -->
+            <div class="card p-4 sm:p-6 md:p-8">
+                <h3 class="text-base sm:text-lg font-bold mb-3 sm:mb-4 text-slate-900">Description</h3>
+                <p class="text-sm sm:text-base text-slate-600 leading-relaxed whitespace-pre-line">{{ donation.description }}</p>
                 
-                <hr class="my-6 border-slate-100">
+                {% if donation.ingredients_list %}
+                <hr class="my-4 sm:my-6 border-slate-100">
+                <h3 class="text-base sm:text-lg font-bold mb-3 text-slate-900">Ingredients</h3>
+                <p class="text-sm text-slate-600 leading-relaxed">{{ donation.ingredients_list }}</p>
+                {% endif %}
+
+                {% if donation.allergen_info %}
+                <hr class="my-4 sm:my-6 border-slate-100">
+                <div class="flex items-start gap-3 p-3 bg-red-50 border border-red-200 rounded-xl">
+                    <i class="fas fa-exclamation-triangle text-red-600 mt-0.5 shrink-0"></i>
+                    <div>
+                        <h4 class="text-sm font-bold text-red-900 mb-1">Allergen Warning</h4>
+                        <p class="text-xs text-red-700">{{ donation.allergen_info }}</p>
+                    </div>
+                </div>
+                {% endif %}
                 
-                <h3 class="text-lg font-bold mb-4 text-slate-900">Dietary Info</h3>
+                <hr class="my-4 sm:my-6 border-slate-100">
+                
+                <h3 class="text-base sm:text-lg font-bold mb-3 sm:mb-4 text-slate-900">Dietary Information</h3>
                 <div class="flex flex-wrap gap-2">
                     {% for tag in donation.dietary_tags %}
-                        <span class="px-3 py-1.5 bg-slate-100 rounded-lg text-sm font-semibold text-slate-600">
-                            {{ tag }}
+                        <span class="px-2.5 sm:px-3 py-1 sm:py-1.5 bg-green-50 border border-green-200 rounded-lg text-xs sm:text-sm font-semibold text-green-700">
+                            <i class="fas fa-check-circle text-[10px] mr-1"></i>{{ tag|title }}
                         </span>
                     {% empty %}
-                        <span class="text-slate-400 italic text-sm">No specific dietary tags listed.</span>
+                        <span class="text-slate-400 italic text-xs sm:text-sm">No specific dietary tags listed.</span>
                     {% endfor %}
                 </div>
+
+                {% if donation.estimated_calories %}
+                <div class="mt-4 flex items-center gap-2 text-sm text-slate-600">
+                    <i class="fas fa-fire text-orange-500"></i>
+                    <span>Estimated: <strong>{{ donation.estimated_calories }}</strong> calories</span>
+                </div>
+                {% endif %}
             </div>
         </div>
 
+        <!-- Right Column - Action Card (Sticky on Desktop) -->
         <div class="lg:sticky lg:top-24">
-            <div class="card p-6 md:p-8 shadow-xl border-slate-200">
+            <div class="card p-4 sm:p-6 md:p-8 shadow-xl border-slate-200">
                 
-                <div class="mb-4">
+                <!-- Status Badge -->
+                <div class="mb-3 sm:mb-4">
                     {% if donation.status == 'available' %}
-                        <span class="bg-green-100 text-green-700 text-xs font-bold uppercase px-3 py-1 rounded-full">Available</span>
+                        <span class="bg-green-100 text-green-700 text-[10px] sm:text-xs font-bold uppercase px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full inline-flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 bg-green-600 rounded-full animate-pulse"></span> Available
+                        </span>
                     {% elif donation.status == 'claimed' %}
-                        <span class="bg-yellow-100 text-yellow-700 text-xs font-bold uppercase px-3 py-1 rounded-full">Claimed</span>
+                        <span class="bg-yellow-100 text-yellow-700 text-[10px] sm:text-xs font-bold uppercase px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full">Claimed</span>
+                    {% elif donation.status == 'completed' %}
+                        <span class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold uppercase px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full">Completed</span>
                     {% else %}
-                        <span class="bg-slate-100 text-slate-500 text-xs font-bold uppercase px-3 py-1 rounded-full">{{ donation.get_status_display }}</span>
+                        <span class="bg-slate-100 text-slate-500 text-[10px] sm:text-xs font-bold uppercase px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full">{{ donation.get_status_display }}</span>
                     {% endif %}
                 </div>
 
-                <h1 class="text-3xl md:text-4xl font-display font-extrabold text-slate-900 leading-tight mb-2">{{ donation.title }}</h1>
-                <div class="text-xl font-bold text-brand-600 mb-8">
-                    {{ donation.quantity }} items
+                <!-- Title & Quantity -->
+                <h1 class="text-2xl sm:text-3xl md:text-4xl font-display font-extrabold text-slate-900 leading-tight mb-2">{{ donation.title }}</h1>
+                <div class="text-lg sm:text-xl font-bold text-brand-600 mb-6 sm:mb-8">
+                    <i class="fas fa-box text-base sm:text-lg"></i> {{ donation.quantity }}
                 </div>
 
-                <div class="grid gap-4 mb-8">
-                    <div class="flex gap-4 items-center p-3 rounded-xl bg-slate-50 border border-slate-100">
-                        <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-slate-400 shadow-sm shrink-0">
-                            <i class="fas fa-location-dot"></i>
+                <!-- Info Grid - Mobile Optimized -->
+                <div class="grid gap-3 sm:gap-4 mb-6 sm:mb-8">
+                    <!-- Pickup Location -->
+                    <div class="flex gap-3 sm:gap-4 items-start p-3 rounded-xl bg-slate-50 border border-slate-100">
+                        <div class="w-9 h-9 sm:w-10 sm:h-10 bg-white rounded-lg flex items-center justify-center text-slate-400 shadow-sm shrink-0">
+                            <i class="fas fa-location-dot text-sm sm:text-base"></i>
                         </div>
-                        <div class="min-w-0">
-                            <p class="text-xs font-bold uppercase text-slate-400 mb-0.5">Pickup Location</p>
-                            <p class="font-semibold text-slate-900 truncate">{{ donation.pickup_location }}</p>
-                        </div>
-                    </div>
-
-                    <div class="flex gap-4 items-center p-3 rounded-xl bg-slate-50 border border-slate-100">
-                        <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-slate-400 shadow-sm shrink-0">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                        <div class="min-w-0">
-                            <p class="text-xs font-bold uppercase text-slate-400 mb-0.5">Pickup Window</p>
-                            <p class="font-semibold text-slate-900">{{ donation.pickup_start|date:"M d, H:i" }} - {{ donation.pickup_end|date:"H:i" }}</p>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-[10px] sm:text-xs font-bold uppercase text-slate-400 mb-0.5">Pickup Location</p>
+                            <p class="font-semibold text-sm sm:text-base text-slate-900 break-words">{{ donation.pickup_location }}</p>
                         </div>
                     </div>
 
-                    <div class="flex gap-4 items-center p-3 rounded-xl bg-red-50 border border-red-100">
-                        <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-red-500 shadow-sm shrink-0">
-                            <i class="fas fa-hourglass-half"></i>
+                    <!-- Pickup Window -->
+                    <div class="flex gap-3 sm:gap-4 items-start p-3 rounded-xl bg-slate-50 border border-slate-100">
+                        <div class="w-9 h-9 sm:w-10 sm:h-10 bg-white rounded-lg flex items-center justify-center text-slate-400 shadow-sm shrink-0">
+                            <i class="fas fa-clock text-sm sm:text-base"></i>
                         </div>
-                        <div class="min-w-0">
-                            <p class="text-xs font-bold uppercase text-red-400 mb-0.5">Expires</p>
-                            <p class="font-bold text-red-600">{{ donation.expiry_datetime|timeuntil }} remaining</p>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-[10px] sm:text-xs font-bold uppercase text-slate-400 mb-0.5">Pickup Window</p>
+                            <p class="font-semibold text-sm sm:text-base text-slate-900">
+                                {{ donation.pickup_start|date:"M d, H:i" }} - {{ donation.pickup_end|date:"H:i" }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Expiry Info -->
+                    <div class="flex gap-3 sm:gap-4 items-start p-3 rounded-xl bg-red-50 border border-red-100">
+                        <div class="w-9 h-9 sm:w-10 sm:h-10 bg-white rounded-lg flex items-center justify-center text-red-500 shadow-sm shrink-0">
+                            <i class="fas fa-hourglass-half text-sm sm:text-base"></i>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-[10px] sm:text-xs font-bold uppercase text-red-400 mb-0.5">Expires In</p>
+                            <p class="font-bold text-sm sm:text-base text-red-600">{{ donation.expiry_datetime|timeuntil }}</p>
                         </div>
                     </div>
                 </div>
 
+                <!-- Action Buttons - Context Aware -->
                 <div class="space-y-3">
-                    {% if is_owner %}
+                    {% if user == donation.donor %}
+                        <!-- Donor Controls -->
                         {% if donation.status == 'available' %}
-                            <form action="{% url 'core:cancel_donation' donation.id %}" method="post" onsubmit="return confirm('Cancel this listing?');">
+                            <form action="{% url 'core:cancel_donation' donation.id %}" method="post" onsubmit="return confirm('Are you sure you want to cancel this listing?');">
                                 {% csrf_token %}
-                                <button type="submit" class="btn w-full border-2 border-red-100 text-red-600 hover:bg-red-50">Cancel Listing</button>
+                                <button type="submit" class="btn w-full border-2 border-red-200 text-red-600 hover:bg-red-50 justify-center text-sm sm:text-base py-3">
+                                    <i class="fas fa-times-circle"></i> Cancel Listing
+                                </button>
                             </form>
                         {% elif donation.status == 'claimed' %}
-                            <div class="bg-blue-50 p-4 rounded-xl text-blue-800 text-sm font-medium mb-2 border border-blue-100">
-                                Claimed by <strong>{{ donation.recipient.first_name }}</strong>. Verify ID upon pickup.
+                            <div class="bg-blue-50 p-3 sm:p-4 rounded-xl text-blue-800 text-xs sm:text-sm font-medium mb-3 border border-blue-100">
+                                <i class="fas fa-info-circle mr-1"></i> Claimed by <strong>{{ donation.recipient.get_full_name|default:donation.recipient.username }}</strong>. Please verify recipient ID upon pickup.
                             </div>
                             <form action="{% url 'core:complete_donation' donation.id %}" method="post">
                                 {% csrf_token %}
-                                <button type="submit" class="btn btn-brand w-full py-4 text-lg">Confirm Handover</button>
+                                <button type="submit" class="btn btn-brand w-full py-3 sm:py-4 text-base sm:text-lg justify-center shadow-lg">
+                                    <i class="fas fa-check-circle"></i> Confirm Handover
+                                </button>
                             </form>
+                        {% elif donation.status == 'completed' %}
+                            <div class="text-center py-4 text-green-600">
+                                <i class="fas fa-check-circle text-3xl mb-2"></i>
+                                <p class="font-bold">Transaction Completed</p>
+                            </div>
                         {% endif %}
 
-                    {% elif user_is_recipient %}
+                    {% elif user == donation.recipient %}
+                        <!-- Recipient Controls -->
+                        {% if donation.status == 'claimed' %}
+                            <div class="bg-green-50 border border-green-200 p-3 sm:p-4 rounded-xl text-green-700 text-center font-bold text-sm sm:text-base">
+                                <i class="fas fa-check-circle mr-2"></i> You've Claimed This Item
+                            </div>
+                            <p class="text-xs sm:text-sm text-slate-500 text-center">
+                                Please pickup during the scheduled window.
+                            </p>
+                        {% elif donation.status == 'completed' %}
+                            {% if needs_rating %}
+                            <a href="{% url 'core:rate_user' donation.id %}" class="btn btn-brand w-full justify-center py-3 text-sm sm:text-base">
+                                <i class="fas fa-star"></i> Rate This Donor
+                            </a>
+                            {% else %}
+                            <div class="text-center py-4 text-slate-600">
+                                <i class="fas fa-check-circle text-3xl mb-2 text-green-600"></i>
+                                <p class="font-bold">Completed & Rated</p>
+                            </div>
+                            {% endif %}
+                        {% endif %}
+
+                    {% else %}
+                        <!-- Public Viewer / Other Recipients -->
                         {% if donation.status == 'available' %}
                             {% if can_claim %}
                                 <form action="{% url 'core:claim_donation' donation.id %}" method="post">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn btn-brand w-full py-4 text-lg shadow-xl shadow-brand-500/20">Claim Donation</button>
+                                    <button type="submit" class="btn btn-brand w-full py-3 sm:py-4 text-base sm:text-lg justify-center shadow-xl shadow-brand-500/20">
+                                        <i class="fas fa-hand-holding-heart"></i> Claim Donation
+                                    </button>
                                 </form>
-                                <p class="text-xs text-slate-400 text-center mt-3">
-                                    By claiming, you agree to pick up within the window.
+                                <p class="text-[10px] sm:text-xs text-slate-400 text-center mt-2 sm:mt-3">
+                                    By claiming, you agree to pick up within the scheduled window.
                                 </p>
                             {% else %}
-                                <button class="btn btn-outline w-full opacity-50 cursor-not-allowed" disabled>Unavailable</button>
+                                <button class="btn btn-outline w-full opacity-50 cursor-not-allowed py-3 text-sm sm:text-base" disabled>
+                                    <i class="fas fa-lock"></i> Unavailable
+                                </button>
+                                <p class="text-xs text-slate-500 text-center mt-2">
+                                    {% if not user.is_authenticated %}
+                                        Please <a href="{% url 'core:login' %}" class="text-brand-600 font-bold">login</a> to claim.
+                                    {% elif not user.profile.email_verified %}
+                                        Verify your email to claim donations.
+                                    {% else %}
+                                        You cannot claim this donation.
+                                    {% endif %}
+                                </p>
                             {% endif %}
-                        {% elif is_assignee %}
-                            <div class="bg-green-50 border border-green-200 p-4 rounded-xl text-green-700 text-center font-bold">
-                                <i class="fas fa-check-circle mr-2"></i> Claim Successful!
+                        {% elif donation.status == 'claimed' %}
+                            <div class="text-center py-4 text-slate-500">
+                                <i class="fas fa-lock text-2xl sm:text-3xl mb-2"></i>
+                                <p class="font-bold text-sm sm:text-base">This donation has been claimed</p>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4 text-slate-500">
+                                <i class="fas fa-check-circle text-2xl sm:text-3xl mb-2"></i>
+                                <p class="font-bold text-sm sm:text-base">No longer available</p>
                             </div>
                         {% endif %}
                     {% endif %}
                 </div>
 
-                <div class="mt-8 pt-6 border-t border-slate-100 flex items-center gap-4">
-                    {% if donation.donor.profile.profile_picture %}
-                        <img src="{{ donation.donor.profile.profile_picture.url }}" class="w-12 h-12 rounded-full object-cover border border-slate-200">
-                    {% else %}
-                        <div class="w-12 h-12 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center font-bold text-xl">
-                            {{ donation.donor.first_name|first }}
-                        </div>
-                    {% endif %}
-                    <div>
-                        <p class="text-xs font-bold uppercase text-slate-400">Donated by</p>
-                        <a href="{% url 'core:public_profile' donation.donor.id %}" class="font-bold text-slate-900 hover:text-brand-600 transition-colors">{{ donation.donor.get_full_name }}</a>
-                        <div class="text-xs text-yellow-500 mt-0.5">
-                            <i class="fas fa-star"></i> {{ donation.donor.profile.average_rating }}
+                <!-- Donor Info Card -->
+                <div class="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-slate-100">
+                    <p class="text-[10px] sm:text-xs font-bold uppercase text-slate-400 mb-2 sm:mb-3">Donated By</p>
+                    <div class="flex items-center gap-3 sm:gap-4">
+                        {% if donation.donor.profile.profile_picture %}
+                            <img src="{{ donation.donor.profile.profile_picture.url }}" class="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-slate-200 shrink-0" alt="{{ donation.donor.get_full_name }}">
+                        {% else %}
+                            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center font-bold text-lg sm:text-xl shrink-0">
+                                {{ donation.donor.first_name|first|upper }}
+                            </div>
+                        {% endif %}
+                        <div class="min-w-0 flex-1">
+                            <a href="{% url 'core:public_profile' donation.donor.username %}" class="font-bold text-sm sm:text-base text-slate-900 hover:text-brand-600 transition-colors block truncate">
+                                {{ donation.donor.get_full_name|default:donation.donor.username }}
+                            </a>
+                            <div class="flex items-center gap-2 mt-0.5">
+                                <div class="text-xs sm:text-sm text-yellow-500 flex items-center gap-1">
+                                    <i class="fas fa-star text-[10px] sm:text-xs"></i>
+                                    <span class="font-semibold">{{ donation.donor.profile.average_rating|floatformat:1 }}</span>
+                                </div>
+                                <span class="text-[10px] sm:text-xs text-slate-400">({{ donation.donor.profile.total_ratings }} reviews)</span>
+                            </div>
                         </div>
                     </div>
                 </div>

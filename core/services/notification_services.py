@@ -164,13 +164,6 @@ class NotificationService(BaseService):
                 email_verified=True
             ).select_related('user')
             
-            # Filter by location if available
-            if donation.has_valid_coordinates:
-                recipients = recipients.filter(
-                    latitude__isnull=False,
-                    longitude__isnull=False
-                )
-            
             # Convert to list for Python-side filtering
             recipients_list = list(recipients[:50])  # Reasonable limit
             

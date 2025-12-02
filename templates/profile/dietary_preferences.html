@@ -4,50 +4,132 @@
 {% block title %}Dietary Preferences - FoodLoop{% endblock %}
 
 {% block content %}
-<div class="max-w-3xl mx-auto py-12 px-4 animate-fade-in-up">
+<div class="max-w-3xl mx-auto pt-4 sm:pt-6 pb-12 sm:pb-16 px-4 sm:px-6">
     
-    <div class="text-center mb-10">
-        <h1 class="font-display text-3xl font-extrabold text-slate-900">Dietary Preferences</h1>
-        <p class="text-slate-500 mt-2 text-lg">Help our AI find the best food for you.</p>
+    <!-- Header -->
+    <div class="mb-6 sm:mb-8">
+        <a href="{% url 'core:profile' %}" class="inline-flex items-center gap-2 text-slate-500 hover:text-brand-600 font-semibold text-sm sm:text-base mb-3 sm:mb-4 transition-colors">
+            <i class="fas fa-arrow-left"></i> Back to Profile
+        </a>
+        <h1 class="text-2xl sm:text-3xl md:text-4xl font-display font-extrabold text-slate-900">Dietary Preferences</h1>
+        <p class="text-sm sm:text-base text-slate-500 mt-2">Help us match you with suitable food donations</p>
     </div>
 
-    <form method="post" class="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
-        {% csrf_token %}
-        
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-            {% for choice in form.dietary_restrictions %}
-            <div class="relative">
-                {{ choice.tag }}
-                <label for="{{ choice.id_for_label }}" 
-                       class="flex items-center p-4 rounded-2xl border-2 border-slate-100 cursor-pointer hover:border-brand-200 hover:bg-brand-50/50 transition-all select-none group h-full">
-                    <div class="w-6 h-6 rounded-full border-2 border-slate-200 flex items-center justify-center mr-3 group-hover:border-brand-400 bg-white transition-colors">
-                        <div class="w-3 h-3 rounded-full bg-brand-500 opacity-0 transform scale-0 transition-all"></div>
-                    </div>
-                    <span class="font-bold text-slate-700 group-hover:text-brand-800">{{ choice.choice_label }}</span>
-                </label>
+    <!-- Info Card -->
+    <div class="card bg-blue-50 border-blue-200 p-4 sm:p-6 mb-6 sm:mb-8">
+        <div class="flex gap-3 sm:gap-4">
+            <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center shrink-0">
+                <i class="fas fa-info text-white"></i>
             </div>
-            {% endfor %}
+            <div class="flex-1">
+                <h4 class="text-sm sm:text-base font-bold text-slate-900 mb-1">Why set preferences?</h4>
+                <p class="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                    Setting your dietary preferences helps us show you donations that match your needs and restrictions.
+                </p>
+            </div>
         </div>
-
-        <div class="flex justify-end pt-6 border-t border-slate-100 gap-4">
-            <a href="{% url 'core:profile' %}" class="px-6 py-3 text-slate-500 font-bold hover:text-slate-900 transition-colors">Cancel</a>
-            <button type="submit" class="px-8 py-3 bg-slate-900 hover:bg-black text-white font-bold rounded-xl shadow-lg hover:-translate-y-0.5 transition-all">
-                Save Preferences
-            </button>
-        </div>
-    </form>
-    
-    <div class="mt-6 bg-blue-50 p-4 rounded-xl border border-blue-100 flex gap-3 text-blue-800 text-sm">
-        <i class="fas fa-info-circle mt-0.5"></i>
-        <p><strong>Note:</strong> Donors self-report ingredients. Always verify with the donor directly upon pickup if you have severe allergies.</p>
     </div>
+
+    <!-- Preferences Form -->
+    <div class="card p-4 sm:p-6 md:p-8">
+        <form method="post" class="space-y-6 sm:space-y-8">
+            {% csrf_token %}
+
+            <!-- Dietary Tags Selection -->
+            <div>
+                <h3 class="text-lg font-bold text-slate-900 mb-3 sm:mb-4">Select Your Dietary Tags</h3>
+                <p class="text-sm text-slate-600 mb-4">Choose all that apply to your diet</p>
+                
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
+                    {% for value, label in dietary_choices %}
+                    <label class="relative flex items-center gap-2 sm:gap-3 p-3 sm:p-4 border-2 border-slate-200 rounded-xl cursor-pointer hover:border-brand-500 transition-all group has-[:checked]:border-brand-500 has-[:checked]:bg-brand-50">
+                        <input type="checkbox" 
+                               name="dietary_tags" 
+                               value="{{ value }}"
+                               {% if value in user.profile.dietary_tags %}checked{% endif %}
+                               class="w-5 h-5 text-brand-600 border-slate-300 rounded focus:ring-brand-500">
+                        <div class="flex-1 min-w-0">
+                            <span class="font-semibold text-sm sm:text-base text-slate-700 group-hover:text-brand-700 transition-colors block">
+                                {{ label }}
+                            </span>
+                        </div>
+                        <!-- Checkmark indicator -->
+                        <i class="fas fa-check absolute top-2 right-2 text-brand-600 text-xs opacity-0 group-has-[:checked]:opacity-100 transition-opacity"></i>
+                    </label>
+                    {% empty %}
+                        <div class="col-span-full text-center py-8 text-slate-400">
+                            <i class="fas fa-exclamation-circle text-3xl mb-2"></i>
+                            <p>No dietary options available</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Allergen Information -->
+            <div>
+                <h3 class="text-lg font-bold text-slate-900 mb-2">Allergen Information</h3>
+                <p class="text-sm text-slate-600 mb-3">List any food allergies (optional)</p>
+                {{ form.allergen_info }}
+                <p class="text-xs text-slate-500 mt-2">Example: peanuts, shellfish, dairy</p>
+                {% if form.allergen_info.errors %}
+                    <p class="text-xs text-red-600 mt-1">{{ form.allergen_info.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Submit Buttons -->
+            <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4 border-t border-slate-200">
+                <a href="{% url 'core:profile' %}" class="btn btn-outline w-full sm:w-auto justify-center">
+                    Cancel
+                </a>
+                <button type="submit" class="btn btn-brand w-full sm:w-auto justify-center px-8">
+                    <i class="fas fa-save"></i> Save Preferences
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tips Card -->
+    <div class="card border-dashed border-2 border-slate-200 p-6 sm:p-8 mt-6 sm:mt-8">
+        <h4 class="text-base sm:text-lg font-bold text-slate-900 mb-3">Tips for Better Matches</h4>
+        <ul class="space-y-2 text-sm text-slate-600">
+            <li class="flex gap-2">
+                <i class="fas fa-check text-brand-600 mt-0.5 shrink-0"></i>
+                <span>Be specific about your allergies to avoid unsuitable donations</span>
+            </li>
+            <li class="flex gap-2">
+                <i class="fas fa-check text-brand-600 mt-0.5 shrink-0"></i>
+                <span>Update preferences as your dietary needs change</span>
+            </li>
+            <li class="flex gap-2">
+                <i class="fas fa-check text-brand-600 mt-0.5 shrink-0"></i>
+                <span>Always check donation details before claiming</span>
+            </li>
+        </ul>
+    </div>
+
 </div>
 
 <style>
-    /* Custom Checkbox Logic */
-    input[type="checkbox"] { @apply sr-only; }
-    input[type="checkbox"]:checked + label { @apply border-brand-500 bg-brand-50 ring-1 ring-brand-500; }
-    input[type="checkbox"]:checked + label .w-3 { @apply opacity-100 scale-100; }
-    input[type="checkbox"]:checked + label .w-6 { @apply border-brand-500; }
+textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    border: 1px solid #e2e8f0;
+    font-size: 0.95rem;
+    resize: vertical;
+}
+
+textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.1);
+}
+
+@media (max-width: 640px) {
+    textarea {
+        font-size: 16px; /* Prevent iOS zoom */
+    }
+}
 </style>
 {% endblock %}

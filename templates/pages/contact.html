@@ -4,60 +4,168 @@
 {% block title %}Contact Us - FoodLoop{% endblock %}
 
 {% block content %}
-<div class="container" style="padding-top: 4rem; padding-bottom: 4rem;">
-    <div style="text-align: center; max-width: 800px; margin: 0 auto 4rem auto;">
-        <span style="background: var(--color-primary-light); color: var(--color-primary-dark); padding: 0.25rem 0.75rem; border-radius: 99px; font-weight: 700; font-size: 0.75rem; text-transform: uppercase;">Support</span>
-        <h1 style="font-size: 3.5rem; margin: 1rem 0;">We're here to help.</h1>
-        <p style="font-size: 1.25rem; color: var(--color-text-muted);">Whether you're a donor looking to partner or a community member in need, our team is ready.</p>
+<div class="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12 md:py-16">
+    
+    <!-- Header -->
+    <div class="text-center mb-8 sm:mb-12">
+        <h1 class="text-3xl sm:text-4xl md:text-5xl font-display font-extrabold text-slate-900 mb-4">Get in Touch</h1>
+        <p class="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto">
+            Have questions or feedback? We'd love to hear from you.
+        </p>
     </div>
 
-    <div class="grid-cols-2" style="gap: 4rem; align-items: start;">
-        <div style="background: var(--color-text-main); color: white; padding: 3rem; border-radius: var(--radius-xl); position: relative; overflow: hidden;">
-            <h3 style="font-size: 1.5rem; margin-bottom: 2rem;">Contact Info</h3>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12">
+        
+        <!-- Contact Form -->
+        <div class="card p-6 sm:p-8">
+            <h2 class="text-xl sm:text-2xl font-bold text-slate-900 mb-6">Send us a Message</h2>
             
-            <div style="display: flex; flex-direction: column; gap: 2rem;">
-                <div style="display: flex; gap: 1rem; align-items: flex-start;">
-                    <i class="fas fa-envelope" style="color: var(--color-primary); margin-top: 4px;"></i>
-                    <div>
-                        <p style="font-weight: 700; font-size: 0.85rem; opacity: 0.7; text-transform: uppercase; margin-bottom: 0.25rem;">Email</p>
-                        <a href="mailto:hello@foodloop.com" style="font-size: 1.1rem; color: white;">hello@foodloop.com</a>
-                    </div>
-                </div>
+            <form method="post" class="space-y-4 sm:space-y-6">
+                {% csrf_token %}
                 
-                <div style="display: flex; gap: 1rem; align-items: flex-start;">
-                    <i class="fas fa-phone" style="color: var(--color-primary); margin-top: 4px;"></i>
-                    <div>
-                        <p style="font-weight: 700; font-size: 0.85rem; opacity: 0.7; text-transform: uppercase; margin-bottom: 0.25rem;">Phone</p>
-                        <p style="font-size: 1.1rem;">+254 700 000 000</p>
+                <!-- Name -->
+                <div>
+                    <label for="name" class="block text-sm font-bold text-slate-700 mb-2">
+                        Full Name <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" 
+                           id="name" 
+                           name="name" 
+                           required
+                           class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-sm sm:text-base"
+                           placeholder="John Doe">
+                </div>
+
+                <!-- Email -->
+                <div>
+                    <label for="email" class="block text-sm font-bold text-slate-700 mb-2">
+                        Email Address <span class="text-red-500">*</span>
+                    </label>
+                    <input type="email" 
+                           id="email" 
+                           name="email" 
+                           required
+                           class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-sm sm:text-base"
+                           placeholder="john@example.com">
+                </div>
+
+                <!-- Subject -->
+                <div>
+                    <label for="subject" class="block text-sm font-bold text-slate-700 mb-2">
+                        Subject <span class="text-red-500">*</span>
+                    </label>
+                    <select id="subject" 
+                            name="subject" 
+                            required
+                            class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-sm sm:text-base">
+                        <option value="">Select a topic...</option>
+                        <option value="general">General Inquiry</option>
+                        <option value="support">Technical Support</option>
+                        <option value="feedback">Feedback</option>
+                        <option value="partnership">Partnership Opportunity</option>
+                        <option value="report">Report an Issue</option>
+                    </select>
+                </div>
+
+                <!-- Message -->
+                <div>
+                    <label for="message" class="block text-sm font-bold text-slate-700 mb-2">
+                        Message <span class="text-red-500">*</span>
+                    </label>
+                    <textarea id="message" 
+                              name="message" 
+                              rows="6" 
+                              required
+                              class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-sm sm:text-base resize-vertical"
+                              placeholder="Tell us how we can help..."></textarea>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="btn btn-brand w-full py-3 text-base sm:text-lg justify-center shadow-lg">
+                    <i class="fas fa-paper-plane"></i> Send Message
+                </button>
+            </form>
+        </div>
+
+        <!-- Contact Info & FAQ -->
+        <div class="space-y-6 sm:space-y-8">
+            
+            <!-- Contact Methods -->
+            <div class="card p-6 sm:p-8">
+                <h3 class="text-lg sm:text-xl font-bold text-slate-900 mb-6">Other Ways to Reach Us</h3>
+                
+                <div class="space-y-4">
+                    <!-- Email -->
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 bg-brand-100 rounded-lg flex items-center justify-center text-brand-600 shrink-0">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-slate-900 mb-1">Email</h4>
+                            <a href="mailto:charlesfred285@gmail.com" class="text-sm text-brand-600 hover:text-brand-700 font-medium">
+                                support@foodloop.com
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Response Time -->
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 shrink-0">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-slate-900 mb-1">Response Time</h4>
+                            <p class="text-sm text-slate-600">We typically respond within 24-48 hours</p>
+                        </div>
+                    </div>
+
+                    <!-- Social Media -->
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 shrink-0">
+                            <i class="fas fa-share-nodes"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-slate-900 mb-2">Follow Us</h4>
+                            <div class="flex gap-3">
+                                <a href="https://github.com/fredxotic" class="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center text-slate-600 hover:bg-brand-100 hover:text-brand-600 transition-colors">
+                                    <i class="fab fa-github"></i>
+                                </a>
+                                <a href="https://linkedin.com/in/fred-kaloki" class="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center text-slate-600 hover:bg-brand-100 hover:text-brand-600 transition-colors">
+                                    <i class="fab fa-linkedin"></i>
+                                </a>
+                                <a href="https://instagram.com/xotic.py"" class="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center text-slate-600 hover:bg-brand-100 hover:text-brand-600 transition-colors">
+                                    <i class="fab fa-instagram"></i>
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="card">
-            <h3 style="margin-bottom: 1.5rem;">Send us a message</h3>
-            <form style="display: flex; flex-direction: column; gap: 1.5rem;">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                    <div>
-                        <label class="form-label" style="display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.9rem;">First Name</label>
-                        <input type="text" class="form-control" placeholder="John">
-                    </div>
-                    <div>
-                        <label class="form-label" style="display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.9rem;">Last Name</label>
-                        <input type="text" class="form-control" placeholder="Doe">
-                    </div>
+            <!-- Quick Links -->
+            <div class="card p-6 sm:p-8 bg-slate-50 border-slate-200">
+                <h3 class="text-lg sm:text-xl font-bold text-slate-900 mb-4">Quick Links</h3>
+                <div class="space-y-2">
+                    <a href="{% url 'core:about' %}" class="block text-sm text-slate-600 hover:text-brand-600 font-medium transition-colors">
+                        <i class="fas fa-arrow-right text-xs mr-2"></i> About FoodLoop
+                    </a>
+                    <a href="{% url 'core:terms' %}" class="block text-sm text-slate-600 hover:text-brand-600 font-medium transition-colors">
+                        <i class="fas fa-arrow-right text-xs mr-2"></i> Terms of Service
+                    </a>
+                    <a href="{% url 'core:privacy' %}" class="block text-sm text-slate-600 hover:text-brand-600 font-medium transition-colors">
+                        <i class="fas fa-arrow-right text-xs mr-2"></i> Privacy Policy
+                    </a>
                 </div>
-                <div>
-                    <label class="form-label" style="display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.9rem;">Email</label>
-                    <input type="email" class="form-control" placeholder="john@example.com">
-                </div>
-                <div>
-                    <label class="form-label" style="display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.9rem;">Message</label>
-                    <textarea class="form-control" rows="4" placeholder="How can we help?"></textarea>
-                </div>
-                <button class="btn btn-brand">Send Message</button>
-            </form>
+            </div>
+
         </div>
     </div>
+
 </div>
+
+<style>
+input, select, textarea {
+    font-size: 16px; /* Prevent iOS zoom */
+}
+</style>
 {% endblock %}

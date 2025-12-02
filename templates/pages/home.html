@@ -2,109 +2,240 @@
 {% load static %}
 {% load humanize %}
 
-{% block title %}FoodLoop - Fight Waste, Feed Communities{% endblock %}
+{% block title %}FoodLoop - Share Food, Fight Waste{% endblock %}
 
 {% block content %}
-<div class="relative overflow-hidden py-24 lg:py-32">
-    <div class="absolute -top-20 -right-20 w-96 h-96 bg-brand-200 rounded-full blur-[100px] opacity-50 -z-10"></div>
-    <div class="absolute top-40 -left-20 w-72 h-72 bg-blue-200 rounded-full blur-[100px] opacity-50 -z-10"></div>
+<!-- Hero Section -->
+<div class="relative bg-gradient-to-br from-brand-600 via-brand-700 to-navy-900 text-white overflow-hidden">
+    <div class="absolute inset-0 bg-[url('/static/images/pattern.svg')] opacity-10"></div>
+    
+    <!-- Mobile Login Bar (only for guests) -->
+    {% if not user.is_authenticated %}
+    <div class="relative flex justify-end gap-2 p-4 sm:hidden">
+        <a href="{% url 'core:login' %}" class="text-white/90 hover:text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-white/10 transition-colors">
+            Login
+        </a>
+        <a href="{% url 'core:signup' %}" class="bg-white text-brand-700 hover:bg-brand-50 text-sm font-bold px-4 py-2 rounded-lg transition-colors shadow-lg">
+            Sign Up
+        </a>
+    </div>
+    {% endif %}
+    
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-20 md:py-28">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+            
+            <!-- Hero Text -->
+            <div class="text-center lg:text-left">
+                <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-display font-extrabold leading-tight mb-4 sm:mb-6">
+                    Share Food.<br>Fight Waste.
+                </h1>
+                <p class="text-base sm:text-lg md:text-xl text-brand-100 mb-6 sm:mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
+                    Connect surplus food with those who need it. Join our community of donors and recipients making a difference.
+                </p>
+                
+                <!-- CTA Buttons -->
+                <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
+                    <a href="{% url 'core:signup' %}" class="btn bg-white text-brand-700 hover:bg-brand-50 shadow-xl text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 justify-center">
+                        <i class="fas fa-user-plus"></i> Get Started
+                    </a>
+                    <a href="#how-it-works" class="btn border-2 border-white text-white hover:bg-white/10 text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 justify-center">
+                        <i class="fas fa-play-circle"></i> How It Works
+                    </a>
+                </div>
+                
+                <!-- ✅ NEW: Desktop Login Link (subtle) -->
+                {% if not user.is_authenticated %}
+                <p class="hidden sm:block text-brand-100 text-sm mt-6">
+                    Already have an account? 
+                    <a href="{% url 'core:login' %}" class="text-white font-bold underline hover:text-brand-50">
+                        Login here
+                    </a>
+                </p>
+                {% endif %}
+            </div>
 
-    <div class="container mx-auto px-4 text-center max-w-4xl relative z-10">
-        
-        <div class="inline-flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm border border-slate-200 rounded-full mb-8 shadow-sm animate-fade-in-up">
-            <span class="w-2 h-2 bg-brand-500 rounded-full animate-pulse"></span>
-            <span class="text-sm font-bold text-slate-600">
-                {{ stats.total_donations|default:"2,500"|intcomma }} meals rescued this month
-            </span>
+            <!-- Hero Stats -->
+            <div class="grid grid-cols-3 gap-3 sm:gap-4">
+                <div class="bg-white/10 backdrop-blur-lg rounded-2xl p-4 sm:p-6 text-center border border-white/20">
+                    <p class="text-2xl sm:text-3xl md:text-4xl font-display font-bold mb-1">{{ stats.total_donations|intcomma }}</p>
+                    <p class="text-xs sm:text-sm text-brand-100">Donations</p>
+                </div>
+                <div class="bg-white/10 backdrop-blur-lg rounded-2xl p-4 sm:p-6 text-center border border-white/20">
+                    <p class="text-2xl sm:text-3xl md:text-4xl font-display font-bold mb-1">{{ stats.completed_donations|intcomma }}</p>
+                    <p class="text-xs sm:text-sm text-brand-100">Completed</p>
+                </div>
+                <div class="bg-white/10 backdrop-blur-lg rounded-2xl p-4 sm:p-6 text-center border border-white/20">
+                    <p class="text-2xl sm:text-3xl md:text-4xl font-display font-bold mb-1">{{ stats.active_users|intcomma }}</p>
+                    <p class="text-xs sm:text-sm text-brand-100">Members</p>
+                </div>
+            </div>
+
         </div>
-        
-        <h1 class="text-5xl md:text-7xl font-display font-extrabold tracking-tight text-slate-900 leading-[1.1] mb-6">
-            Fight Waste. <br>
-            <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-brand-400">Share Hope.</span>
-        </h1>
-        
-        <p class="text-lg md:text-xl text-slate-600 mb-10 leading-relaxed max-w-2xl mx-auto">
-            The hyper-local platform connecting surplus food with communities in need. Join the movement to close the loop on food waste today.
+    </div>
+</div>
+
+<!-- How It Works Section -->
+<div id="how-it-works" class="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16 md:py-20">
+    <div class="text-center mb-10 sm:mb-16">
+        <h2 class="text-2xl sm:text-3xl md:text-4xl font-display font-extrabold text-slate-900 mb-3 sm:mb-4">How FoodLoop Works</h2>
+        <p class="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto">Three simple steps to share or receive food</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 lg:gap-12">
+        <!-- Step 1 -->
+        <div class="text-center">
+            <div class="w-16 h-16 sm:w-20 sm:h-20 bg-brand-100 rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6 text-brand-600 text-2xl sm:text-3xl">
+                <i class="fas fa-user-plus"></i>
+            </div>
+            <h3 class="text-lg sm:text-xl font-bold text-slate-900 mb-2 sm:mb-3">1. Sign Up</h3>
+            <p class="text-sm sm:text-base text-slate-600 leading-relaxed">Create your free account as a donor or recipient in minutes.</p>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="text-center">
+            <div class="w-16 h-16 sm:w-20 sm:h-20 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6 text-green-600 text-2xl sm:text-3xl">
+                <i class="fas fa-hand-holding-heart"></i>
+            </div>
+            <h3 class="text-lg sm:text-xl font-bold text-slate-900 mb-2 sm:mb-3">2. Share or Browse</h3>
+            <p class="text-sm sm:text-base text-slate-600 leading-relaxed">Donors post surplus food. Recipients browse available donations.</p>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="text-center">
+            <div class="w-16 h-16 sm:w-20 sm:h-20 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6 text-blue-600 text-2xl sm:text-3xl">
+                <i class="fas fa-handshake"></i>
+            </div>
+            <h3 class="text-lg sm:text-xl font-bold text-slate-900 mb-2 sm:mb-3">3. Connect</h3>
+            <p class="text-sm sm:text-base text-slate-600 leading-relaxed">Coordinate pickup and complete the exchange. It's that simple!</p>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="bg-slate-50 py-12 sm:py-16 md:py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+        <div class="text-center mb-10 sm:mb-16">
+            <h2 class="text-2xl sm:text-3xl md:text-4xl font-display font-extrabold text-slate-900 mb-3 sm:mb-4">Why Choose FoodLoop?</h2>
+            <p class="text-base sm:text-lg text-slate-600">Built with care for our community</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            <!-- Feature 1 -->
+            <div class="card p-4 sm:p-6 hover:scale-[1.02] transition-transform">
+                <div class="w-12 h-12 bg-brand-100 rounded-xl flex items-center justify-center mb-4 text-brand-600 text-xl">
+                    <i class="fas fa-leaf"></i>
+                </div>
+                <h3 class="text-base sm:text-lg font-bold text-slate-900 mb-2">Reduce Food Waste</h3>
+                <p class="text-sm text-slate-600 leading-relaxed">Prevent perfectly good food from ending up in landfills.</p>
+            </div>
+
+            <!-- Feature 2 -->
+            <div class="card p-4 sm:p-6 hover:scale-[1.02] transition-transform">
+                <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mb-4 text-green-600 text-xl">
+                    <i class="fas fa-heart"></i>
+                </div>
+                <h3 class="text-base sm:text-lg font-bold text-slate-900 mb-2">Help Your Community</h3>
+                <p class="text-sm text-slate-600 leading-relaxed">Support neighbors in need with nutritious meals.</p>
+            </div>
+
+            <!-- Feature 3 -->
+            <div class="card p-4 sm:p-6 hover:scale-[1.02] transition-transform">
+                <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4 text-blue-600 text-xl">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3 class="text-base sm:text-lg font-bold text-slate-900 mb-2">Safe & Verified</h3>
+                <p class="text-sm text-slate-600 leading-relaxed">Email verification and user ratings ensure trust.</p>
+            </div>
+
+            <!-- Feature 4 -->
+            <div class="card p-4 sm:p-6 hover:scale-[1.02] transition-transform">
+                <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-4 text-purple-600 text-xl">
+                    <i class="fas fa-mobile-alt"></i>
+                </div>
+                <h3 class="text-base sm:text-lg font-bold text-slate-900 mb-2">Mobile Friendly</h3>
+                <p class="text-sm text-slate-600 leading-relaxed">Access FoodLoop on any device, anytime.</p>
+            </div>
+
+            <!-- Feature 5 -->
+            <div class="card p-4 sm:p-6 hover:scale-[1.02] transition-transform">
+                <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center mb-4 text-yellow-600 text-xl">
+                    <i class="fas fa-utensils"></i>
+                </div>
+                <h3 class="text-base sm:text-lg font-bold text-slate-900 mb-2">Dietary Filters</h3>
+                <p class="text-sm text-slate-600 leading-relaxed">Find food that matches your dietary needs.</p>
+            </div>
+
+            <!-- Feature 6 -->
+            <div class="card p-4 sm:p-6 hover:scale-[1.02] transition-transform">
+                <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center mb-4 text-red-600 text-xl">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <h3 class="text-base sm:text-lg font-bold text-slate-900 mb-2">Instant Notifications</h3>
+                <p class="text-sm text-slate-600 leading-relaxed">Get real-time updates on donations and claims.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Donations Preview -->
+{% if recent_donations %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16 md:py-20">
+    <div class="flex justify-between items-center mb-6 sm:mb-8">
+        <h2 class="text-2xl sm:text-3xl md:text-4xl font-display font-extrabold text-slate-900">Available Now</h2>
+        <a href="{% if user.is_authenticated %}{% url 'core:search_donations' %}{% else %}{% url 'core:signup' %}{% endif %}" class="text-sm sm:text-base font-bold text-brand-600 hover:text-brand-700">
+            View All <i class="fas fa-arrow-right ml-1"></i>
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        {% for donation in recent_donations %}
+        <a href="{% if user.is_authenticated %}{% url 'core:donation_detail' donation.id %}{% else %}{% url 'core:signup' %}{% endif %}" class="card p-0 overflow-hidden hover:scale-[1.02] transition-transform group">
+            <div class="relative w-full h-40 sm:h-48 bg-slate-100">
+                {% if donation.image %}
+                    <img src="{{ donation.image.url }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" alt="{{ donation.title }}">
+                {% else %}
+                    <div class="w-full h-full flex items-center justify-center text-slate-300">
+                        <i class="fas fa-image text-4xl"></i>
+                    </div>
+                {% endif %}
+                <div class="absolute top-2 left-2">
+                    <span class="bg-green-100 text-green-700 text-[10px] font-bold uppercase px-2 py-1 rounded-full">Available</span>
+                </div>
+            </div>
+            <div class="p-4">
+                <h3 class="font-bold text-base text-slate-900 mb-2 line-clamp-1">{{ donation.title }}</h3>
+                <p class="text-xs text-slate-600 mb-3 line-clamp-2">{{ donation.description|truncatewords:10 }}</p>
+                <div class="flex items-center justify-between text-xs text-slate-500">
+                    <span><i class="fas fa-box mr-1"></i>{{ donation.quantity }}</span>
+                    <span><i class="fas fa-clock mr-1"></i>{{ donation.created_at|timesince }} ago</span>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- CTA Section -->
+<div class="bg-brand-600 text-white py-12 sm:py-16 md:py-20">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 text-center">
+        <h2 class="text-2xl sm:text-3xl md:text-4xl font-display font-extrabold mb-4 sm:mb-6">Ready to Make a Difference?</h2>
+        <p class="text-base sm:text-lg text-brand-100 mb-6 sm:mb-8 leading-relaxed">
+            Join thousands of community members fighting food waste and hunger.
         </p>
+        <a href="{% url 'core:signup' %}" class="btn bg-white text-brand-700 hover:bg-brand-50 shadow-xl text-base sm:text-lg px-8 py-4 inline-flex items-center justify-center">
+            <i class="fas fa-rocket mr-2"></i> Join FoodLoop Today
+        </a>
         
-        <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            {% if user.is_authenticated %}
-                <a href="{% url 'core:dashboard' %}" class="btn btn-brand text-lg px-8 py-4 shadow-xl shadow-brand-500/20">
-                    Go to Dashboard
-                </a>
-            {% else %}
-                <a href="{% url 'core:signup' %}" class="btn btn-brand text-lg px-8 py-4 shadow-xl shadow-brand-500/20">
-                    Get Started Free
-                </a>
-                <a href="{% url 'core:about' %}" class="btn btn-outline text-lg px-8 py-4 bg-white">
-                    How it Works
-                </a>
-            {% endif %}
-        </div>
-    </div>
-</div>
-
-<div class="container mx-auto px-4 -mt-8 mb-24 relative z-20">
-    <div class="glass bg-white/90 p-8 rounded-3xl shadow-2xl border border-white/50 grid grid-cols-2 md:grid-cols-4 gap-8 text-center divide-y md:divide-y-0 md:divide-x divide-slate-100">
-        <div class="pt-4 md:pt-0">
-            <div class="text-3xl md:text-4xl font-display font-extrabold text-slate-900 mb-2">
-                {{ stats.total_donations|default:"100" }}+
-            </div>
-            <div class="text-xs font-bold uppercase tracking-widest text-slate-400">Donations</div>
-        </div>
-        <div class="pt-4 md:pt-0 border-t md:border-t-0 border-slate-100"> 
-            <div class="text-3xl md:text-4xl font-display font-extrabold text-brand-600 mb-2">
-                {{ stats.active_users|default:"50" }}
-            </div>
-            <div class="text-xs font-bold uppercase tracking-widest text-slate-400">Local Heroes</div>
-        </div>
-        <div class="pt-4 md:pt-0 border-t md:border-t-0 border-slate-100">
-            <div class="text-3xl md:text-4xl font-display font-extrabold text-slate-900 mb-2">
-                {{ stats.calories_saved|default:"10k"|intcomma }}
-            </div>
-            <div class="text-xs font-bold uppercase tracking-widest text-slate-400">Calories Saved</div>
-        </div>
-        <div class="pt-4 md:pt-0 border-t md:border-t-0 border-slate-100">
-            <div class="text-3xl md:text-4xl font-display font-extrabold text-blue-600 mb-2">
-                100%
-            </div>
-            <div class="text-xs font-bold uppercase tracking-widest text-slate-400">Non-Profit</div>
-        </div>
-    </div>
-</div>
-
-<div class="bg-white py-24">
-    <div class="container mx-auto px-4">
-        <div class="text-center max-w-2xl mx-auto mb-16">
-            <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Why FoodLoop?</h2>
-            <p class="text-slate-500 text-lg">We use technology to solve the logistics of food rescue, making it faster, safer, and dignified.</p>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div class="card p-8 hover:-translate-y-1 transition-transform border border-slate-100 shadow-lg">
-                <div class="w-12 h-12 bg-brand-100 text-brand-600 rounded-xl flex items-center justify-center text-xl mb-6">
-                    <i class="fas fa-robot"></i>
-                </div>
-                <h3 class="text-xl font-bold text-slate-900 mb-3">AI Matching</h3>
-                <p class="text-slate-500 leading-relaxed">Our smart algorithm matches donations to the right recipients instantly based on dietary needs and location.</p>
-            </div>
-
-            <div class="card p-8 hover:-translate-y-1 transition-transform border border-slate-100 shadow-lg">
-                <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center text-xl mb-6">
-                    <i class="fas fa-map-location-dot"></i>
-                </div>
-                <h3 class="text-xl font-bold text-slate-900 mb-3">Real-Time Map</h3>
-                <p class="text-slate-500 leading-relaxed">See live donations in your neighborhood. Coordinate pickups efficiently with built-in location services.</p>
-            </div>
-
-            <div class="card p-8 hover:-translate-y-1 transition-transform border border-slate-100 shadow-lg">
-                <div class="w-12 h-12 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center text-xl mb-6">
-                    <i class="fas fa-shield-halved"></i>
-                </div>
-                <h3 class="text-xl font-bold text-slate-900 mb-3">Trust System</h3>
-                <p class="text-slate-500 leading-relaxed">Build reputation through verified ratings. Secure profiles ensure safety and reliability for every exchange.</p>
-            </div>
-        </div>
+        <!-- ✅ NEW: Mobile Login Link in CTA -->
+        {% if not user.is_authenticated %}
+        <p class="text-brand-100 text-sm mt-6">
+            Already have an account? 
+            <a href="{% url 'core:login' %}" class="text-white font-bold underline hover:text-brand-50">
+                Login
+            </a>
+        </p>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

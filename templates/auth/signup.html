@@ -1,93 +1,254 @@
 {% extends 'base/base_auth.html' %}
+{% load static %}
 
-{% block auth_heading %}Join the movement today{% endblock %}
+{% block title %}Sign Up - FoodLoop{% endblock %}
+{% block auth_heading %}Join the FoodLoop community{% endblock %}
 
 {% block content %}
-<form method="post" style="display: flex; flex-direction: column; gap: 1.25rem;" x-data="{ role: 'donor' }">
+<form method="post" class="space-y-5" x-data="{ userType: 'donor', showPassword: false, showConfirm: false }">
     {% csrf_token %}
 
-    {% if form.non_field_errors %}
-        <div style="background: #fef2f2; border: 1px solid #fee2e2; color: #991b1b; padding: 1rem; border-radius: var(--radius-md); font-size: 0.9rem;">
-            {{ form.non_field_errors }}
+    <!-- Error Messages -->
+    {% if form.non_field_errors or form.errors %}
+        <div class="bg-red-50 border-l-4 border-red-500 rounded-lg p-4 flex gap-3 items-start">
+            <i class="fas fa-circle-exclamation text-red-500 mt-0.5"></i>
+            <div class="flex-1">
+                <p class="font-bold text-sm text-red-800 mb-1">Please fix the following errors:</p>
+                {% if form.non_field_errors %}
+                    <ul class="text-sm text-red-700 space-y-1">
+                        {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+                {% for field in form %}
+                    {% if field.errors %}
+                        <ul class="text-sm text-red-700 space-y-1">
+                            {% for error in field.errors %}
+                                <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                {% endfor %}
+            </div>
         </div>
     {% endif %}
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 0.5rem;">
-        <label style="cursor: pointer; position: relative;">
-            <input type="radio" name="user_type" value="donor" class="sr-only" x-model="role" style="display: none;">
-            <div class="role-card" 
-                 :style="role === 'donor' ? 'border-color: var(--color-primary); background: var(--color-primary-light);' : 'border-color: #e2e8f0;'"
-                 style="padding: 1rem; border: 2px solid; border-radius: var(--radius-md); text-align: center; transition: all 0.2s;">
-                <div style="font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--color-primary);">
-                    <i class="fas fa-hand-holding-heart"></i>
+    <!-- User Type Selection -->
+    <div>
+        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-3">I want to...</label>
+        <div class="grid grid-cols-2 gap-3">
+            <!-- Donor Option -->
+            <label class="relative cursor-pointer group">
+                <input type="radio" name="user_type" value="donor" x-model="userType" class="sr-only peer" required>
+                <div class="border-2 rounded-xl p-4 text-center transition-all peer-checked:border-brand-500 peer-checked:bg-brand-50 peer-checked:shadow-md hover:border-brand-300 group-hover:scale-[1.02]">
+                    <div class="w-12 h-12 mx-auto mb-2 rounded-full bg-brand-100 flex items-center justify-center transition-colors peer-checked:bg-brand-500">
+                        <i class="fas fa-hand-holding-heart text-xl peer-checked:text-white text-brand-600"></i>
+                    </div>
+                    <p class="font-bold text-sm text-slate-900 mb-1">Donate Food</p>
+                    <p class="text-xs text-slate-500">Share surplus food</p>
                 </div>
-                <span style="font-weight: 700; font-size: 0.9rem; display: block;">I want to Donate</span>
-            </div>
-        </label>
+                <!-- Checkmark Badge -->
+                <div class="absolute -top-2 -right-2 w-6 h-6 bg-brand-500 rounded-full flex items-center justify-center opacity-0 peer-checked:opacity-100 transition-opacity shadow-lg">
+                    <i class="fas fa-check text-white text-xs"></i>
+                </div>
+            </label>
 
-        <label style="cursor: pointer; position: relative;">
-            <input type="radio" name="user_type" value="recipient" class="sr-only" x-model="role" style="display: none;">
-            <div class="role-card" 
-                 :style="role === 'recipient' ? 'border-color: var(--color-warning); background: #fffbeb;' : 'border-color: #e2e8f0;'"
-                 style="padding: 1rem; border: 2px solid; border-radius: var(--radius-md); text-align: center; transition: all 0.2s;">
-                <div style="font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--color-warning);">
-                    <i class="fas fa-utensils"></i>
+            <!-- Recipient Option -->
+            <label class="relative cursor-pointer group">
+                <input type="radio" name="user_type" value="recipient" x-model="userType" class="sr-only peer" required>
+                <div class="border-2 rounded-xl p-4 text-center transition-all peer-checked:border-amber-500 peer-checked:bg-amber-50 peer-checked:shadow-md hover:border-amber-300 group-hover:scale-[1.02]">
+                    <div class="w-12 h-12 mx-auto mb-2 rounded-full bg-amber-100 flex items-center justify-center transition-colors peer-checked:bg-amber-500">
+                        <i class="fas fa-utensils text-xl peer-checked:text-white text-amber-600"></i>
+                    </div>
+                    <p class="font-bold text-sm text-slate-900 mb-1">Receive Food</p>
+                    <p class="text-xs text-slate-500">Find food in need</p>
                 </div>
-                <span style="font-weight: 700; font-size: 0.9rem; display: block;">I want Food</span>
-            </div>
-        </label>
+                <!-- Checkmark Badge -->
+                <div class="absolute -top-2 -right-2 w-6 h-6 bg-amber-500 rounded-full flex items-center justify-center opacity-0 peer-checked:opacity-100 transition-opacity shadow-lg">
+                    <i class="fas fa-check text-white text-xs"></i>
+                </div>
+            </label>
+        </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+    <!-- Name Fields -->
+    <div class="grid grid-cols-2 gap-4">
         <div>
-            <label class="label-muted">First Name</label>
-            {{ form.first_name }}
+            <label for="id_first_name" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
+                First Name <span class="text-red-500">*</span>
+            </label>
+            <input type="text" 
+                   id="id_first_name" 
+                   name="first_name" 
+                   required
+                   value="{{ form.first_name.value|default:'' }}"
+                   class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all text-sm"
+                   placeholder="John">
         </div>
         <div>
-            <label class="label-muted">Last Name</label>
-            {{ form.last_name }}
+            <label for="id_last_name" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
+                Last Name <span class="text-red-500">*</span>
+            </label>
+            <input type="text" 
+                   id="id_last_name" 
+                   name="last_name" 
+                   required
+                   value="{{ form.last_name.value|default:'' }}"
+                   class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all text-sm"
+                   placeholder="Doe">
         </div>
     </div>
 
+    <!-- Username -->
     <div>
-        <label class="label-muted">Username</label>
-        {{ form.username }}
+        <label for="id_username" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
+            Username <span class="text-red-500">*</span>
+        </label>
+        <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <i class="fas fa-at text-sm"></i>
+            </div>
+            <input type="text" 
+                   id="id_username" 
+                   name="username" 
+                   required
+                   value="{{ form.username.value|default:'' }}"
+                   class="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all text-sm"
+                   placeholder="johndoe">
+        </div>
     </div>
 
+    <!-- Email -->
     <div>
-        <label class="label-muted">Email Address</label>
-        {{ form.email }}
+        <label for="id_email" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
+            Email Address <span class="text-red-500">*</span>
+        </label>
+        <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <i class="fas fa-envelope text-sm"></i>
+            </div>
+            <input type="email" 
+                   id="id_email" 
+                   name="email" 
+                   required
+                   value="{{ form.email.value|default:'' }}"
+                   class="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all text-sm"
+                   placeholder="john@example.com">
+        </div>
     </div>
 
+    <!-- Password -->
     <div>
-        <label class="label-muted">Password</label>
-        <input type="password" name="password1" class="form-control" placeholder="••••••••">
+        <label for="id_password1" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
+            Password <span class="text-red-500">*</span>
+        </label>
+        <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <i class="fas fa-lock text-sm"></i>
+            </div>
+            <input :type="showPassword ? 'text' : 'password'" 
+                   id="id_password1" 
+                   name="password1" 
+                   required
+                   class="w-full pl-10 pr-12 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all text-sm"
+                   placeholder="••••••••">
+            <button type="button" 
+                    @click="showPassword = !showPassword"
+                    class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
+                <i class="fas" :class="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+            </button>
+        </div>
+        <p class="text-xs text-slate-500 mt-1.5 flex items-center gap-1">
+            <i class="fas fa-info-circle"></i> At least 8 characters
+        </p>
     </div>
 
+    <!-- Confirm Password -->
     <div>
-        <label class="label-muted">Confirm Password</label>
-        <input type="password" name="password2" class="form-control" placeholder="••••••••">
+        <label for="id_password2" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
+            Confirm Password <span class="text-red-500">*</span>
+        </label>
+        <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <i class="fas fa-lock text-sm"></i>
+            </div>
+            <input :type="showConfirm ? 'text' : 'password'" 
+                   id="id_password2" 
+                   name="password2" 
+                   required
+                   class="w-full pl-10 pr-12 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all text-sm"
+                   placeholder="••••••••">
+            <button type="button" 
+                    @click="showConfirm = !showConfirm"
+                    class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
+                <i class="fas" :class="showConfirm ? 'fa-eye-slash' : 'fa-eye'"></i>
+            </button>
+        </div>
     </div>
 
-    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; margin-top: 0.5rem;">
+    <!-- Terms Checkbox -->
+    <div class="flex items-start gap-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
+        <input type="checkbox" 
+               id="terms" 
+               required
+               class="mt-1 w-4 h-4 text-brand-600 border-slate-300 rounded focus:ring-brand-500">
+        <label for="terms" class="text-xs text-slate-600 leading-relaxed">
+            I agree to FoodLoop's <a href="{% url 'core:terms' %}" class="text-brand-600 font-semibold hover:underline">Terms of Service</a> and <a href="{% url 'core:privacy' %}" class="text-brand-600 font-semibold hover:underline">Privacy Policy</a>
+        </label>
+    </div>
+
+    <!-- Submit Button -->
+    <button type="submit" 
+            class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3.5 rounded-xl transition-all hover:shadow-lg hover:-translate-y-0.5 flex items-center justify-center gap-2 text-sm uppercase tracking-wide">
+        <i class="fas fa-rocket"></i>
         Create Account
     </button>
 </form>
 
-<div style="text-align: center; margin-top: 2rem; font-size: 0.9rem; color: var(--color-text-muted);">
-    Already have an account? 
-    <a href="{% url 'core:login' %}" style="color: var(--color-primary); font-weight: 600;">Log in</a>
+<!-- Login Link -->
+<div class="mt-6 text-center">
+    <p class="text-sm text-slate-600">
+        Already have an account? 
+        <a href="{% url 'core:login' %}" class="font-bold text-brand-600 hover:text-brand-700 hover:underline">
+            Sign in here
+        </a>
+    </p>
+</div>
+
+<!-- Features Footer -->
+<div class="mt-8 pt-6 border-t border-slate-200">
+    <div class="grid grid-cols-3 gap-4 text-center">
+        <div>
+            <div class="w-8 h-8 bg-brand-100 rounded-full mx-auto mb-2 flex items-center justify-center">
+                <i class="fas fa-shield text-brand-600 text-sm"></i>
+            </div>
+            <p class="text-xs text-slate-600 font-medium">Secure</p>
+        </div>
+        <div>
+            <div class="w-8 h-8 bg-blue-100 rounded-full mx-auto mb-2 flex items-center justify-center">
+                <i class="fas fa-bolt text-blue-600 text-sm"></i>
+            </div>
+            <p class="text-xs text-slate-600 font-medium">Fast Setup</p>
+        </div>
+        <div>
+            <div class="w-8 h-8 bg-purple-100 rounded-full mx-auto mb-2 flex items-center justify-center">
+                <i class="fas fa-users text-purple-600 text-sm"></i>
+            </div>
+            <p class="text-xs text-slate-600 font-medium">Join 1000+</p>
+        </div>
+    </div>
 </div>
 
 <style>
-    .label-muted {
-        display: block; 
-        font-size: 0.75rem; 
-        font-weight: 700; 
-        text-transform: uppercase; 
-        color: var(--color-text-muted); 
-        margin-bottom: 0.4rem;
-        letter-spacing: 0.05em;
-    }
+/* Prevent iOS zoom on input focus */
+input, select, textarea {
+    font-size: 16px !important;
+}
+
+/* Smooth transitions */
+input:focus, button:hover {
+    transition: all 0.2s ease;
+}
 </style>
 {% endblock %}

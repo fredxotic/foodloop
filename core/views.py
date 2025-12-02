@@ -1,47 +1,80 @@
 """
-Optimized Views for FoodLoop - FIXED VERSION WITH CORRECT TEMPLATE PATHS
+Optimized Views for FoodLoop - Simplified & Synchronous
+Phase 1: Complete implementation with all logic filled in
 """
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse, HttpResponse
-from django.views.decorators.http import require_POST, require_http_methods
-from django.utils import timezone
-from django.contrib.auth.models import User
 from django.contrib import messages
-from django.db.models import Q, Prefetch, Sum
+from django.db.models import Q, Prefetch, Count
+from django.http import JsonResponse, HttpResponseForbidden
+from django.views.decorators.http import require_http_methods, require_POST
+from django.utils import timezone
 from django.core.paginator import Paginator
-from django.views.decorators.cache import cache_page
-from django.core.serializers.json import DjangoJSONEncoder
-from datetime import datetime, timedelta
+from datetime import timedelta
+from functools import wraps
 import logging
-import json
 
-# Import models
-from .models import UserProfile, Donation, EmailVerification, Notification, Rating
-
-# Import forms
+from .models import (
+    User, UserProfile, Donation, Rating, 
+    Notification, EmailVerification
+)
 from .forms import (
-    SignUpForm, DonationForm, ProfileUpdateForm, 
-    DietaryPreferencesForm, RatingForm, NutritionSearchForm
+    SignUpForm, ProfileUpdateForm, DonationForm, 
+    RatingForm, NutritionSearchForm, DietaryPreferencesForm
 )
-
-# Import services
-from .services import (
-    DonationService, NotificationService, EmailService,
-    AIService, AnalyticsService
-)
-
-# Import decorators
-from .decorators import (
-    donor_required, recipient_required, email_verified_required,
-    profile_required, ajax_required
-)
-
-# Import cache
-from .cache import CacheManager, CacheWarmupManager
+from .services.donation_services import DonationService
+from .services.notification_services import NotificationService
+from .services.email_services import EmailService
 
 logger = logging.getLogger(__name__)
+
+
+# ============================================================================
+# DECORATORS
+# ============================================================================
+
+def profile_required(view_func):
+    """Ensure user has a profile before accessing view"""
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect('core:login')
+        
+        try:
+            request.user.profile
+        except UserProfile.DoesNotExist:
+            messages.error(request, "Please complete your profile setup.")
+            return redirect('core:profile')
+        
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+
+def donor_required(view_func):
+    """Restrict access to donors only"""
+    @wraps(view_func)
+    @login_required
+    @profile_required
+    def wrapper(request, *args, **kwargs):
+        if request.user.profile.user_type != UserProfile.DONOR:
+            messages.error(request, "This page is only accessible to donors.")
+            return redirect('core:dashboard')
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+
+def recipient_required(view_func):
+    """Restrict access to recipients only"""
+    @wraps(view_func)
+    @login_required
+    @profile_required
+    def wrapper(request, *args, **kwargs):
+        if request.user.profile.user_type != UserProfile.RECIPIENT:
+            messages.error(request, "This page is only accessible to recipients.")
+            return redirect('core:dashboard')
+        return view_func(request, *args, **kwargs)
+    return wrapper
 
 
 # ============================================================================
@@ -49,46 +82,48 @@ logger = logging.getLogger(__name__)
 # ============================================================================
 
 def signup_view(request):
-    """User registration with automatic profile creation"""
+    """User registration with profile creation"""
     if request.user.is_authenticated:
         return redirect('core:dashboard')
     
     if request.method == 'POST':
         form = SignUpForm(request.POST)
+        
         if form.is_valid():
             try:
+                # Create user
                 user = form.save(commit=False)
+                user.email = form.cleaned_data['email']
                 user.save()
                 
-                UserProfile.objects.update_or_create(
+                # Create profile
+                UserProfile.objects.create(
                     user=user,
-                    defaults={
-                        'user_type': form.cleaned_data['user_type'],
-                        'phone_number': form.cleaned_data.get('phone_number', ''),
-                        'location': form.cleaned_data.get('address', ''),
-                        'latitude': form.cleaned_data.get('latitude'),
-                        'longitude': form.cleaned_data.get('longitude'),
-                    }
+                    user_type=form.cleaned_data['user_type'],
+                    phone_number=form.cleaned_data['phone_number'],
+                    location=form.cleaned_data['location'],
                 )
                 
+                # Send verification email
                 EmailService.send_verification_email(user)
+                
+                # Log user in
                 login(request, user)
                 
                 messages.success(
-                    request,
-                    'Welcome to FoodLoop! Please check your email to verify your account.'
+                    request, 
+                    "Welcome to FoodLoop! Please check your email to verify your account."
                 )
-                
-                CacheWarmupManager.warmup_user_data(user.id)
                 return redirect('core:dashboard')
                 
             except Exception as e:
                 logger.error(f"Signup error: {e}")
-                messages.error(request, 'An error occurred during registration. Please try again.')
+                messages.error(request, "An error occurred during signup. Please try again.")
         else:
+            # Form has validation errors
             for field, errors in form.errors.items():
                 for error in errors:
-                    messages.error(request, f"{field}: {error}")
+                    messages.error(request, f"{field.title()}: {error}")
     else:
         form = SignUpForm()
     
@@ -96,7 +131,7 @@ def signup_view(request):
 
 
 def login_view(request):
-    """User login with cache warmup"""
+    """User authentication"""
     if request.user.is_authenticated:
         return redirect('core:dashboard')
     
@@ -108,14 +143,13 @@ def login_view(request):
         
         if user is not None:
             login(request, user)
-            CacheWarmupManager.warmup_user_data(user.id)
             
-            messages.success(request, f'Welcome back, {user.get_full_name() or user.username}!')
-            
+            # Redirect to next parameter or dashboard
             next_url = request.GET.get('next', 'core:dashboard')
+            messages.success(request, f"Welcome back, {user.get_full_name() or user.username}!")
             return redirect(next_url)
         else:
-            messages.error(request, 'Invalid username or password.')
+            messages.error(request, "Invalid username or password.")
     
     return render(request, 'auth/login.html')
 
@@ -123,34 +157,78 @@ def login_view(request):
 @login_required
 def logout_view(request):
     """User logout"""
+    username = request.user.username
     logout(request)
-    messages.success(request, 'You have been logged out successfully.')
+    messages.success(request, f"Goodbye, {username}! You've been logged out.")
     return redirect('core:home')
 
 
 def verify_email_view(request, token):
-    """Email verification handler"""
-    response = EmailService.verify_email_token(token)
-    
-    if response.success:
-        messages.success(request, response.message)
-        return redirect('core:dashboard')
-    else:
-        messages.error(request, response.message)
-        return redirect('core:profile')
+    """Handle email verification"""
+    try:
+        # Token is now a string, not UUID
+        verification = EmailVerification.objects.get(token=token)
+        
+        if verification.is_valid():
+            # Mark email as verified
+            profile = verification.user.profile
+            profile.email_verified = True
+            profile.save()
+            
+            # Mark token as used
+            verification.is_used = True
+            verification.save()
+            
+            messages.success(request, "Email verified successfully! You can now access all features.")
+            return redirect('core:dashboard')
+        else:
+            messages.error(request, "This verification link has expired or been used.")
+            return redirect('core:profile')
+            
+    except EmailVerification.DoesNotExist:
+        messages.error(request, "Invalid verification link.")
+        return redirect('core:home')
 
 
 @login_required
 def resend_verification_view(request):
-    """Resend verification email"""
-    response = EmailService.send_verification_email(request.user)
-    
-    if response.success:
-        messages.success(request, 'Verification email sent! Please check your inbox.')
-    else:
-        messages.error(request, 'Failed to send verification email. Please try again.')
-    
-    return redirect('core:profile')
+    """Resend email verification link"""
+    try:
+        profile = request.user.profile
+        
+        if profile.email_verified:
+            messages.info(request, "Your email is already verified.")
+            return redirect('core:dashboard')
+        
+        # Check if there's a recent verification email (prevent spam)
+        recent_verification = EmailVerification.objects.filter(
+            user=request.user,
+            created_at__gte=timezone.now() - timedelta(minutes=5)
+        ).first()
+        
+        if recent_verification:
+            messages.warning(
+                request,
+                "A verification email was recently sent. Please check your inbox or wait a few minutes before requesting another."
+            )
+            return redirect('core:profile')
+        
+        # Send new verification email
+        EmailService.send_verification_email(request.user)
+        
+        messages.success(
+            request,
+            "Verification email sent! Please check your inbox and spam folder."
+        )
+        return redirect('core:profile')
+        
+    except UserProfile.DoesNotExist:
+        messages.error(request, "Profile not found.")
+        return redirect('core:home')
+    except Exception as e:
+        logger.error(f"Error resending verification for {request.user.username}: {e}")
+        messages.error(request, "Error sending verification email. Please try again later.")
+        return redirect('core:profile')
 
 
 # ============================================================================
@@ -163,226 +241,273 @@ def dashboard_view(request):
     """Unified dashboard for donors and recipients"""
     try:
         profile = request.user.profile
-        stats = AnalyticsService.get_user_analytics(request.user, date_range='30d')
         
         if profile.user_type == UserProfile.DONOR:
-            donations = Donation.objects.filter(
+            # Donor dashboard
+            recent_donations = Donation.objects.filter(
                 donor=request.user
-            ).select_related('recipient', 'recipient__profile').order_by('-created_at')[:10]
+            ).select_related(
+                'recipient', 'recipient__profile'
+            ).order_by('-created_at')[:5]
             
-            recommendations = AIService.get_donor_recommendations(request.user)
+            stats = DonationService.get_user_donation_stats(request.user)
+            
+            # Get pending ratings (completed donations not yet rated)
+            pending_ratings = Donation.objects.filter(
+                donor=request.user,
+                status=Donation.COMPLETED
+            ).exclude(
+                ratings__rating_user=request.user
+            ).select_related('recipient')[:3]
             
             context = {
-                'profile': profile,
+                'recent_donations': recent_donations,
                 'stats': stats,
-                'recent_donations': donations,
-                'recommendations': recommendations,
-                'is_donor': True,
+                'pending_ratings': pending_ratings,
             }
-            template = 'dashboard/donor.html'
-        else:
-            recommendations = AIService.get_personalized_recommendations(request.user, limit=8)
             
-            claimed = Donation.objects.filter(
+            return render(request, 'dashboard/donor.html', context)
+        
+        else:
+            # Recipient dashboard
+            claimed_donations = Donation.objects.filter(
                 recipient=request.user,
-                status=Donation.CLAIMED
+                status__in=[Donation.CLAIMED, Donation.COMPLETED]
             ).select_related('donor', 'donor__profile').order_by('-claimed_at')[:5]
             
-            nutrition_insights = AIService.get_nutrition_insights(request.user)
+            # Available donations (simple query, no GPS)
+            available_donations = Donation.objects.filter(
+                status=Donation.AVAILABLE
+            ).select_related('donor', 'donor__profile').order_by('-created_at')[:6]
+            
+            stats = DonationService.get_user_donation_stats(request.user)
+            
+            # Pending ratings
+            pending_ratings = Donation.objects.filter(
+                recipient=request.user,
+                status=Donation.COMPLETED
+            ).exclude(
+                ratings__rating_user=request.user
+            ).select_related('donor')[:3]
             
             context = {
-                'profile': profile,
+                'claimed_donations': claimed_donations,
+                'available_donations': available_donations,
                 'stats': stats,
-                'recommendations': recommendations,
-                'claimed_donations': claimed,
-                'nutrition_insights': nutrition_insights,
-                'is_donor': False,
+                'pending_ratings': pending_ratings,
             }
-            template = 'dashboard/recipient.html'
-        
-        return render(request, template, context)
+            
+            return render(request, 'dashboard/recipient.html', context)
         
     except Exception as e:
-        logger.error(f"Dashboard error for user {request.user.id}: {e}")
-        messages.error(request, 'Error loading dashboard. Please try again.')
-        return redirect('core:profile')
+        logger.error(f"Dashboard error for {request.user.username}: {e}")
+        messages.error(request, "Error loading dashboard. Please try again.")
+        return redirect('core:home')
 
 
 # ============================================================================
 # DONATION VIEWS
 # ============================================================================
 
-@login_required
 @donor_required
 def create_donation_view(request):
-    """Create new donation - donors only"""
+    """Create a new donation"""
     if request.method == 'POST':
         form = DonationForm(request.POST, request.FILES)
+        
         if form.is_valid():
             try:
-                response = DonationService.create_donation(
+                # Prepare form data
+                form_data = form.cleaned_data
+                image_file = request.FILES.get('image')
+                
+                # Create donation via service
+                result = DonationService.create_donation(
                     donor=request.user,
-                    form_data=form.cleaned_data,
-                    image_file=request.FILES.get('image')
+                    form_data=form_data,
+                    image_file=image_file
                 )
                 
-                if response.success:
-                    messages.success(request, response.message)
-                    CacheManager.invalidate_user_donations(request.user.id)
-                    return redirect('core:donation_detail', donation_id=response.data.id)
+                if result.success:
+                    messages.success(request, "Donation created successfully!")
+                    return redirect('core:donation_detail', donation_id=result.data['donation'].id)
                 else:
-                    messages.error(request, response.message)
+                    messages.error(request, result.message)
+                    
             except Exception as e:
                 logger.error(f"Donation creation error: {e}")
-                messages.error(request, 'Failed to create donation. Please try again.')
+                messages.error(request, "An error occurred. Please try again.")
         else:
+            # Show form validation errors
             for field, errors in form.errors.items():
                 for error in errors:
-                    messages.error(request, f"{field}: {error}")
+                    messages.error(request, f"{field.title()}: {error}")
     else:
         form = DonationForm()
     
     return render(request, 'donor/create_donation.html', {'form': form})
 
 
+def donation_detail_view(request, donation_id):
+    """View donation details"""
+    donation = DonationService.get_donation_detail(donation_id, request.user)
+    
+    if not donation:
+        messages.error(request, "Donation not found.")
+        return redirect('core:dashboard')
+    
+    # Check if user can claim (for recipients)
+    can_claim = False
+    if request.user.is_authenticated:
+        try:
+            profile = request.user.profile
+            can_claim = (
+                profile.user_type == UserProfile.RECIPIENT and
+                donation.status == Donation.AVAILABLE and
+                not donation.is_expired() and
+                profile.email_verified
+            )
+        except UserProfile.DoesNotExist:
+            pass
+    
+    # Check if user can complete (for donor or recipient)
+    can_complete = (
+        request.user.is_authenticated and
+        donation.status == Donation.CLAIMED and
+        (request.user == donation.donor or request.user == donation.recipient)
+    )
+    
+    # Check if user needs to rate
+    needs_rating = False
+    if request.user.is_authenticated and donation.status == Donation.COMPLETED:
+        needs_rating = not Rating.objects.filter(
+            donation=donation,
+            rating_user=request.user
+        ).exists()
+    
+    context = {
+        'donation': donation,
+        'can_claim': can_claim,
+        'can_complete': can_complete,
+        'needs_rating': needs_rating,
+    }
+    
+    return render(request, 'donation/detail.html', context)
+
+
 @login_required
 @profile_required
-def donation_detail_view(request, donation_id):
-    """View donation details with efficient queries"""
-    try:
-        donation = get_object_or_404(
-            Donation.objects.select_related(
-                'donor', 'donor__profile',
-                'recipient', 'recipient__profile'
-            ).prefetch_related(
-                Prefetch('ratings', queryset=Rating.objects.select_related('rating_user', 'rated_user'))
-            ),
-            id=donation_id
-        )
-        
-        profile = request.user.profile
-        
-        # 1. Who is the user? (Role)
-        user_is_donor = profile.user_type == UserProfile.DONOR
-        user_is_recipient = profile.user_type == UserProfile.RECIPIENT
-        
-        # 2. What is their relationship to THIS donation?
-        is_owner = donation.donor == request.user
-        is_assignee = donation.recipient == request.user
-        
-        # 3. Can they claim it?
-        can_claim = (
-            user_is_recipient and
-            donation.status == Donation.AVAILABLE and
-            not donation.is_expired() and
-            profile.email_verified
-        )
-        
-        # 4. Can they rate it?
-        can_rate = False
-        if donation.status == Donation.COMPLETED:
-            if is_owner and donation.recipient:
-                can_rate = not Rating.objects.filter(
-                    rating_user=request.user, donation=donation
-                ).exists()
-            elif is_assignee:
-                can_rate = not Rating.objects.filter(
-                    rating_user=request.user, donation=donation
-                ).exists()
-        
-        context = {
-            'donation': donation,
-            'is_owner': is_owner,           # Is this MY donation?
-            'is_assignee': is_assignee,     # Did I claim this?
-            'user_is_donor': user_is_donor, # Am I a Donor type?
-            'user_is_recipient': user_is_recipient, # Am I a Recipient type?
-            'can_claim': can_claim,
-            'can_rate': can_rate,
-            'is_expired': donation.is_expired(),
-            'time_until_expiry': donation.time_until_expiry(),
-        }
-        
-        return render(request, 'donation/detail.html', context)
-        
-    except Exception as e:
-        logger.error(f"Donation detail error: {e}")
-        messages.error(request, 'Error loading donation details.')
-        return redirect('core:dashboard')
-
-
-@login_required
-@recipient_required
 @require_POST
 def claim_donation_view(request, donation_id):
-    """Claim a donation - recipients only"""
-    response = DonationService.claim_donation(donation_id, request.user)
+    """Claim a donation (recipients only)"""
+    result = DonationService.claim_donation(donation_id, request.user)
     
-    if response.success:
-        messages.success(request, response.message)
-        donation = response.data
-        CacheManager.invalidate_donation_related(
-            donation.id, donation.donor.id, request.user.id
-        )
-        CacheManager.invalidate_recommendations(request.user.id)
+    if result.success:
+        messages.success(request, result.message)
+        return redirect('core:donation_detail', donation_id=donation_id)
     else:
-        messages.error(request, response.message)
-    
-    return redirect('core:donation_detail', donation_id=donation_id)
+        messages.error(request, result.message)
+        return redirect('core:donation_detail', donation_id=donation_id)
 
 
 @login_required
-@donor_required
+@profile_required
 @require_POST
 def complete_donation_view(request, donation_id):
-    """Mark donation as completed - donors only"""
-    response = DonationService.complete_donation(donation_id, request.user)
+    """Mark donation as completed"""
+    result = DonationService.complete_donation(donation_id, request.user)
     
-    if response.success:
-        messages.success(request, response.message)
-        CacheManager.invalidate_donation(donation_id)
-        CacheManager.invalidate_user_donations(request.user.id)
+    if result.success:
+        messages.success(request, result.message)
+        return redirect('core:rate_user', donation_id=donation_id)
     else:
-        messages.error(request, response.message)
-    
-    return redirect('core:donation_detail', donation_id=donation_id)
+        messages.error(request, result.message)
+        return redirect('core:donation_detail', donation_id=donation_id)
 
 
-@login_required
 @donor_required
 @require_POST
 def cancel_donation_view(request, donation_id):
-    """Cancel donation - donors only"""
-    try:
-        donation = get_object_or_404(Donation, id=donation_id, donor=request.user)
-        donation.cancel()
-        
-        messages.success(request, 'Donation cancelled successfully.')
-        CacheManager.invalidate_donation(donation_id)
-        CacheManager.invalidate_user_donations(request.user.id)
-        
-    except Exception as e:
-        logger.error(f"Cancel donation error: {e}")
-        messages.error(request, str(e))
+    """Cancel a donation (donor only)"""
+    result = DonationService.cancel_donation(donation_id, request.user)
+    
+    if result.success:
+        messages.success(request, result.message)
+    else:
+        messages.error(request, result.message)
     
     return redirect('core:my_donations')
 
 
-@login_required
-@profile_required
-def search_donations_view(request):
-    """Search donations with efficient filtering"""
-    form = NutritionSearchForm(request.GET)
+@donor_required
+def my_donations_view(request):
+    """View all donations by the logged-in donor"""
+    status_filter = request.GET.get('status')
     
-    query_params = {
-        'q': request.GET.get('q', ''),
-        'food_category': request.GET.get('food_category', ''),
-        'max_calories': request.GET.get('max_calories', ''),
-        'min_nutrition_score': request.GET.get('min_nutrition_score', ''),
-        'dietary_tags': request.GET.getlist('dietary_tags'),
+    donations = Donation.objects.filter(
+        donor=request.user
+    ).select_related('recipient', 'recipient__profile').order_by('-created_at')
+    
+    if status_filter:
+        donations = donations.filter(status=status_filter)
+    
+    # Pagination
+    paginator = Paginator(donations, 12)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'donations': page_obj,
+        'status_filter': status_filter,
+        'total_count': donations.count(),
+    }
+
+    return render(request, 'donor/my_donations.html', context)
+
+
+@recipient_required
+def my_claims_view(request):
+    """View all claimed donations by the logged-in recipient"""
+    status_filter = request.GET.get('status')
+    
+    # ✅ FIXED: Get donations where user is the RECIPIENT
+    donations = Donation.objects.filter(
+        recipient=request.user
+    ).select_related('donor', 'donor__profile').order_by('-claimed_at')
+    
+    if status_filter:
+        donations = donations.filter(status=status_filter)
+    
+    # Pagination
+    paginator = Paginator(donations, 12)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'donations': page_obj,
+        'status_filter': status_filter,
+        'total_count': donations.count(),
     }
     
-    donations = DonationService.search_donations(query_params, request.user)
+    return render(request, 'recipient/my_claims.html', context)
+
+# ============================================================================
+# SEARCH VIEWS
+# ============================================================================
+
+def nutrition_search_view(request):
+    """Search donations with nutrition filters"""
+    form = NutritionSearchForm(request.GET or None)
+    donations = []
     
+    if form.is_valid():
+        query_params = form.cleaned_data
+        donations = DonationService.search_donations(query_params, request.user)
+    else:
+        # Show all available donations if no search
+        donations = DonationService.search_donations({}, request.user)
+    
+    # Pagination
     paginator = Paginator(donations, 12)
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
@@ -390,51 +515,14 @@ def search_donations_view(request):
     context = {
         'form': form,
         'donations': page_obj,
-        'query_params': query_params,
         'total_results': len(donations),
     }
     
     return render(request, 'search/nutrition_search.html', context)
 
-
-@login_required
-@profile_required
-def my_donations_view(request):
-    """View user's donations (donor or recipient)"""
-    profile = request.user.profile
-    
-    if profile.user_type == UserProfile.DONOR:
-        donations = Donation.objects.filter(
-            donor=request.user
-        ).select_related('recipient', 'recipient__profile').order_by('-created_at')
-        title = "My Donations"
-        template = 'donor/my_donations.html'
-    else:
-        donations = Donation.objects.filter(
-            recipient=request.user
-        ).select_related('donor', 'donor__profile').order_by('-claimed_at')
-        title = "My Claimed Donations"
-        template = 'recipient/my_donations.html'
-    
-    status = request.GET.get('status', 'all')
-    if status != 'all':
-        donations = donations.filter(status=status)
-    
-    paginator = Paginator(donations, 10)
-    page_number = request.GET.get('page', 1)
-    page_obj = paginator.get_page(page_number)
-    
-    stats = DonationService.get_user_donation_stats(request.user)
-    
-    context = {
-        'donations': page_obj,
-        'title': title,
-        'stats': stats,
-        'current_status': status,
-        'is_donor': profile.user_type == UserProfile.DONOR,
-    }
-    
-    return render(request, template, context)
+def search_donations_view(request):
+    """Search donations - redirect to nutrition search"""
+    return nutrition_search_view(request)
 
 
 # ============================================================================
@@ -444,66 +532,57 @@ def my_donations_view(request):
 @login_required
 @profile_required
 def rate_user_view(request, donation_id):
-    """Rate a user after completed donation"""
-    try:
-        donation = get_object_or_404(
-            Donation.objects.select_related('donor', 'recipient'),
-            id=donation_id,
-            status=Donation.COMPLETED
+    """Rate a user after donation completion"""
+    donation = get_object_or_404(Donation, id=donation_id)
+    
+    # Verify user can rate
+    if request.user != donation.donor and request.user != donation.recipient:
+        messages.error(request, "You cannot rate this transaction.")
+        return redirect('core:dashboard')
+    
+    if donation.status != Donation.COMPLETED:
+        messages.error(request, "Can only rate completed donations.")
+        return redirect('core:donation_detail', donation_id=donation_id)
+    
+    # Check if already rated
+    existing_rating = Rating.objects.filter(
+        donation=donation,
+        rating_user=request.user
+    ).first()
+    
+    if existing_rating:
+        messages.info(request, "You have already rated this transaction.")
+        return redirect('core:donation_detail', donation_id=donation_id)
+    
+    if request.method == 'POST':
+        form = RatingForm(
+            request.POST,
+            donation=donation,
+            rating_user=request.user
         )
         
-        # Determine who to rate
-        if donation.donor == request.user:
-            rated_user = donation.recipient
-            if not rated_user:
-                messages.error(request, 'No recipient to rate.')
-                return redirect('core:donation_detail', donation_id=donation_id)
-        elif donation.recipient == request.user:
-            rated_user = donation.donor
-        else:
-            messages.error(request, 'You cannot rate this donation.')
-            return redirect('core:donation_detail', donation_id=donation_id)
-        
-        existing_rating = Rating.objects.filter(
-            rating_user=request.user,
-            donation=donation
-        ).first()
-        
-        if request.method == 'POST':
-            form = RatingForm(request.POST, instance=existing_rating)
-            if form.is_valid():
-                try:
-                    rating = form.save(commit=False)
-                    rating.rating_user = request.user
-                    rating.rated_user = rated_user
-                    rating.donation = donation
-                    rating.save()
-                    
-                    NotificationService.notify_rating_received(rating, request.user)
-                    
-                    messages.success(request, 'Thank you for your rating!')
-                    return redirect('core:donation_detail', donation_id=donation_id)
-                    
-                except Exception as e:
-                    logger.error(f"Rating save error: {e}")
-                    messages.error(request, 'Failed to save rating.')
-                    return redirect('core:donation_detail', donation_id=donation_id)
-        else:
-            form = RatingForm(instance=existing_rating)
-        
-        context = {
-            'form': form,
-            'donation': donation,
-            'rated_user': rated_user,
-            'existing_rating': existing_rating,
-        }
-        
-        return render(request, 'ratings/rating_form.html', context)
-        
-    except Exception as e:
-        logger.error(f"Rate user error: {e}")
-        messages.error(request, 'Error loading rating page.')
-        return redirect('core:dashboard')
+        if form.is_valid():
+            rating = form.save()
+            
+            # Send notification to rated user
+            rated_user = donation.recipient if request.user == donation.donor else donation.donor
+            NotificationService.notify_rating_received(rated_user, rating)
+            
+            messages.success(request, "Thank you for your rating!")
+            return redirect('core:dashboard')
+    else:
+        form = RatingForm(donation=donation, rating_user=request.user)
+    
+    # Determine who is being rated
+    rated_user = donation.recipient if request.user == donation.donor else donation.donor
+    
+    context = {
+        'form': form,
+        'donation': donation,
+        'rated_user': rated_user,
+    }
+    
+    return render(request, 'ratings/rating_form.html', context)
 
 
 # ============================================================================
@@ -518,97 +597,108 @@ def profile_view(request):
     
     if request.method == 'POST':
         form = ProfileUpdateForm(
-            request.POST, 
-            request.FILES, 
+            request.POST,
+            request.FILES,
             instance=profile,
             user=request.user
         )
         
         if form.is_valid():
-            try:
-                form.save()
-                CacheManager.invalidate_user_profile(request.user.id)
-                
-                messages.success(request, 'Profile updated successfully!')
-                return redirect('core:profile')
-            except Exception as e:
-                logger.error(f"Profile update error: {e}")
-                messages.error(request, 'Failed to update profile.')
+            form.save()
+            messages.success(request, "Profile updated successfully!")
+            return redirect('core:profile')
         else:
             for field, errors in form.errors.items():
                 for error in errors:
-                    messages.error(request, f"{field}: {error}")
+                    messages.error(request, f"{field.title()}: {error}")
     else:
         form = ProfileUpdateForm(instance=profile, user=request.user)
-    
-    ratings_received = Rating.objects.filter(
-        rated_user=request.user
-    ).select_related('rating_user', 'donation').order_by('-created_at')[:5]
-    
-    analytics = AnalyticsService.get_user_analytics(request.user, date_range='all')
     
     context = {
         'form': form,
         'profile': profile,
-        'ratings_received': ratings_received,
-        'analytics': analytics,
     }
     
     return render(request, 'profile/profile.html', context)
 
 
-@login_required
+
+def public_profile_view(request, username):
+    """View public profile of another user"""
+    profile_user = get_object_or_404(User, username=username)  
+    
+    try:
+        profile = profile_user.profile 
+    except UserProfile.DoesNotExist:
+        messages.error(request, "User profile not found.")
+        return redirect('core:home')
+    
+    # Get user's donations or claims based on their type
+    if profile.user_type == UserProfile.DONOR:
+        recent_donations = Donation.objects.filter(
+            donor=profile_user,
+            status__in=[Donation.AVAILABLE, Donation.COMPLETED]
+        ).select_related('recipient', 'recipient__profile').order_by('-created_at')[:6]
+        
+        active_donations_count = Donation.objects.filter(
+            donor=profile_user,
+            status=Donation.AVAILABLE
+        ).count()
+    else:
+        recent_donations = Donation.objects.filter(
+            recipient=profile_user,
+            status=Donation.COMPLETED
+        ).select_related('donor', 'donor__profile').order_by('-completed_at')[:6]
+        
+        active_donations_count = Donation.objects.filter(
+            recipient=profile_user,
+            status__in=[Donation.CLAIMED, Donation.AVAILABLE]
+        ).count()
+    
+    # Get ratings received by this user
+    recent_ratings = Rating.objects.filter(
+        rated_user=profile_user
+    ).select_related('rating_user', 'rating_user__profile', 'donation').order_by('-created_at')[:5]
+    
+    context = {
+        'profile_user': profile_user,  
+        'profile': profile,             
+        'recent_donations': recent_donations,
+        'active_donations_count': active_donations_count,
+        'recent_ratings': recent_ratings,
+    }
+    
+    return render(request, 'profile/public_profile.html', context)
+
+
+# Find and UPDATE the dietary_preferences_view function (around line 690):
+
 @recipient_required
 def dietary_preferences_view(request):
-    """Manage dietary preferences - recipients only"""
+    """Manage dietary preferences (recipients only)"""
     profile = request.user.profile
     
     if request.method == 'POST':
         form = DietaryPreferencesForm(request.POST, instance=profile)
+        
         if form.is_valid():
             form.save()
-            CacheManager.invalidate_recommendations(request.user.id)
-            
-            messages.success(request, 'Dietary preferences updated!')
+            messages.success(request, "Dietary preferences updated!")
             return redirect('core:profile')
+        else:
+            # Show validation errors
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field.title()}: {error}")
     else:
         form = DietaryPreferencesForm(instance=profile)
     
-    return render(request, 'profile/dietary_preferences.html', {'form': form})
-
-
-def public_profile_view(request, user_id):
-    """View public profile of a user"""
-    try:
-        user = get_object_or_404(User, id=user_id, is_active=True)
-        profile = get_object_or_404(UserProfile, user=user)
-        
-        ratings = Rating.objects.filter(
-            rated_user=user
-        ).select_related('rating_user', 'donation').order_by('-created_at')[:10]
-        
-        if profile.user_type == UserProfile.DONOR:
-            donation_count = Donation.objects.filter(
-                donor=user, status=Donation.COMPLETED
-            ).count()
-        else:
-            donation_count = Donation.objects.filter(
-                recipient=user, status=Donation.COMPLETED
-            ).count()
-        
-        context = {
-            'viewed_user': user,
-            'profile': profile,
-            'ratings': ratings,
-            'donation_count': donation_count,
-        }
-        
-        return render(request, 'profile/public_profile.html', context)
-        
-    except Exception as e:
-        logger.error(f"Public profile error: {e}")
-        messages.error(request, 'Profile not found.')
-        return redirect('core:dashboard')
+    context = {
+        'form': form,
+        'dietary_choices': Donation.FOOD_CATEGORY_CHOICES,
+    }
+    
+    return render(request, 'profile/dietary_preferences.html', context)
 
 
 # ============================================================================
@@ -616,165 +706,106 @@ def public_profile_view(request, user_id):
 # ============================================================================
 
 @login_required
-@ajax_required
-def get_notifications_view(request):
-    """Get notifications via AJAX"""
-    try:
-        notifications = NotificationService.get_user_notifications(
-            request.user,
-            limit=20,
-            unread_only=request.GET.get('unread_only') == 'true'
-        )
-        
-        data = {
-            'notifications': [
-                {
-                    'id': n.id,
-                    'type': n.notification_type,
-                    'title': n.title,
-                    'message': n.message,
-                    'is_read': n.is_read,
-                    'created_at': n.created_at.isoformat(),
-                    'related_url': n.related_url,
-                }
-                for n in notifications
-            ],
-            'unread_count': NotificationService.get_unread_count(request.user)
-        }
-        
-        return JsonResponse(data)
-        
-    except Exception as e:
-        logger.error(f"Get notifications error: {e}")
-        return JsonResponse({'error': 'Failed to load notifications'}, status=500)
+def notifications_view(request):
+    """View all notifications"""
+    notifications = request.user.notifications.select_related(
+        'related_donation'
+    ).order_by('-created_at')
+    
+    # Pagination
+    paginator = Paginator(notifications, 20)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+    
+    return render(request, 'notifications/list.html', {'notifications': page_obj})
 
 
 @login_required
-@ajax_required
 @require_POST
 def mark_notification_read_view(request, notification_id):
-    """Mark notification as read via AJAX"""
-    response = NotificationService.mark_notification_read(notification_id, request.user)
+    """Mark a notification as read"""
+    notification = get_object_or_404(
+        Notification,
+        id=notification_id,
+        user=request.user
+    )
     
-    if response.success:
+    notification.mark_as_read()
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return JsonResponse({'success': True})
-    else:
-        return JsonResponse({'success': False, 'error': response.message}, status=400)
-
-
-@login_required
-@ajax_required
-@require_POST
-def mark_all_notifications_read_view(request):
-    """Mark all notifications as read via AJAX"""
-    response = NotificationService.mark_all_read(request.user)
     
-    if response.success:
-        return JsonResponse({'success': True, 'count': response.data['count']})
-    else:
-        return JsonResponse({'success': False, 'error': response.message}, status=400)
+    return redirect('core:notifications')
 
-
-# ============================================================================
-# MAP VIEWS
-# ============================================================================
 
 @login_required
-@profile_required
-def map_view(request):
-    """Interactive map of donations - Optimized for Frontend"""
+def get_notifications_view(request):
+    """Get notifications as JSON (for AJAX polling)"""
     try:
-        # Fetch donations (unchanged logic)
-        donations = Donation.objects.filter(
-            status=Donation.AVAILABLE,
-            latitude__isnull=False,
-            longitude__isnull=False,
-            expiry_datetime__gt=timezone.now()
-        ).select_related('donor', 'donor__profile')
+        notifications = request.user.notifications.select_related(
+            'related_donation'
+        ).order_by('-created_at')[:10]
         
-        # Serialization Logic - MOVED FROM TEMPLATE TO VIEW
-        map_data = []
-        for d in donations:
-            map_data.append({
-                'id': d.id,
-                'title': d.title,
-                'category': d.get_food_category_display(), # Get display name
-                'lat': float(d.latitude),
-                'lng': float(d.longitude),
-                'score': d.nutrition_score,
-                'expiry': d.expiry_datetime.isoformat(), # Standard ISO format for JS
-                'url': f"/donation/{d.id}/" # Pre-build the URL
+        notifications_data = []
+        for notif in notifications:
+            notifications_data.append({
+                'id': notif.id,
+                'type': notif.notification_type,
+                'title': notif.title,
+                'message': notif.message,
+                'related_url': notif.related_url,
+                'is_read': notif.is_read,
+                'time_ago': _format_time_ago(notif.created_at),
+                'created_at': notif.created_at.isoformat(),
             })
-
-        profile = request.user.profile
-        user_location = None
-        if profile.has_valid_coordinates:
-            user_location = {
-                'lat': float(profile.latitude),
-                'lng': float(profile.longitude)
-            }
         
-        context = {
-            # Pass as JSON string directly
-            'map_data_json': json.dumps(map_data, cls=DjangoJSONEncoder), 
-            'user_location_json': json.dumps(user_location, cls=DjangoJSONEncoder),
-        }
-        
-        return render(request, 'map/map_view.html', context)
+        return JsonResponse({
+            'success': True,
+            'notifications': notifications_data,
+            'unread_count': request.user.notifications.filter(is_read=False).count()
+        })
         
     except Exception as e:
-        logger.error(f"Map view error: {e}")
-        messages.error(request, 'Error loading map. Please try again.')
-        return redirect('core:dashboard')
+        logger.error(f"Error fetching notifications for {request.user.username}: {e}")
+        return JsonResponse({
+            'success': False,
+            'error': 'Error loading notifications'
+        }, status=500)
 
 
-# ============================================================================
-# ANALYTICS VIEWS
-# ============================================================================
+def _format_time_ago(dt):
+    """Helper function to format datetime as 'time ago' string"""
+    now = timezone.now()
+    diff = now - dt
+    
+    if diff.days > 30:
+        return f"{diff.days // 30} month{'s' if diff.days // 30 > 1 else ''} ago"
+    elif diff.days > 0:
+        return f"{diff.days} day{'s' if diff.days > 1 else ''} ago"
+    elif diff.seconds >= 3600:
+        hours = diff.seconds // 3600
+        return f"{hours} hour{'s' if hours > 1 else ''} ago"
+    elif diff.seconds >= 60:
+        minutes = diff.seconds // 60
+        return f"{minutes} minute{'s' if minutes > 1 else ''} ago"
+    else:
+        return "Just now"
 
 @login_required
-@profile_required
-def analytics_view(request):
-    """Personal analytics dashboard"""
-    date_range = request.GET.get('range', '30d')
+@require_POST
+def mark_all_notifications_read_view(request):
+    """Mark all notifications as read"""
+    count = request.user.notifications.filter(is_read=False).update(is_read=True)
     
-    analytics = AnalyticsService.get_user_analytics(request.user, date_range)
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'success': True, 'count': count})
     
-    days_map = {'7d': 7, '30d': 30, '90d': 90}
-    days = days_map.get(date_range, 30)
-    
-    # PASS THE USER HERE
-    trends = AnalyticsService.get_donation_trends(days, user=request.user)
-    
-    date_ranges = ['7d', '30d', '90d']
-    
-    context = {
-        'analytics': analytics,
-        'trends': trends,
-        'date_range': date_range,
-        'date_ranges': date_ranges,
-        'is_donor': request.user.profile.user_type == 'donor', # Helper flag
-    }
-    
-    return render(request, 'analytics/nutrition_analytics.html', context)
-
-
-@cache_page(60 * 15)
-def platform_stats_view(request):
-    """Public platform statistics"""
-    overview = AnalyticsService.get_platform_overview()
-    nutrition_insights = AnalyticsService.get_nutrition_insights_summary()
-    
-    context = {
-        'overview': overview,
-        'nutrition_insights': nutrition_insights,
-    }
-    
-    return render(request, 'analytics/platform_stats.html', context)
+    messages.success(request, f"{count} notifications marked as read.")
+    return redirect('core:notifications')
 
 
 # ============================================================================
-# UTILITY VIEWS
+# STATIC PAGE VIEWS
 # ============================================================================
 
 def home_view(request):
@@ -782,15 +813,24 @@ def home_view(request):
     if request.user.is_authenticated:
         return redirect('core:dashboard')
     
+    # Get recent stats
     stats = {
-        'total_donations': Donation.objects.filter(status=Donation.COMPLETED).count(),
+        'total_donations': Donation.objects.count(),
+        'completed_donations': Donation.objects.filter(status=Donation.COMPLETED).count(),
         'active_users': UserProfile.objects.filter(email_verified=True).count(),
-        'calories_saved': Donation.objects.filter(
-            status=Donation.COMPLETED
-        ).aggregate(total=Sum('estimated_calories'))['total'] or 0,
     }
     
-    return render(request, 'pages/home.html', {'stats': stats})
+    # Get recent available donations for preview
+    recent_donations = Donation.objects.filter(
+        status=Donation.AVAILABLE
+    ).select_related('donor', 'donor__profile').order_by('-created_at')[:6]
+    
+    context = {
+        'stats': stats,
+        'recent_donations': recent_donations,
+    }
+    
+    return render(request, 'pages/home.html', context)
 
 
 def about_view(request):
@@ -814,24 +854,47 @@ def terms_view(request):
 
 
 # ============================================================================
-# ERROR HANDLERS - UPDATED TO USE errors/ FOLDER
+# MAP VIEW (Simplified - No GPS)
 # ============================================================================
 
-def handler404(request, exception):
-    """Custom 404 error handler"""
-    return render(request, 'errors/404.html', status=404)
+def map_view(request):
+    """Simple map showing donation locations (text-based)"""
+    donations = Donation.objects.filter(
+        status=Donation.AVAILABLE
+    ).select_related('donor', 'donor__profile').order_by('-created_at')
+    
+    context = {
+        'donations': donations,
+    }
+    
+    return render(request, 'map/map_view.html', context)
 
 
-def handler500(request):
-    """Custom 500 error handler"""
-    return render(request, 'errors/500.html', status=500)
+# ============================================================================
+# ANALYTICS VIEW (Simplified)
+# ============================================================================
 
-
-def handler403(request, exception):
-    """Custom 403 error handler"""
-    return render(request, 'errors/403.html', status=403)
-
-
-def handler400(request, exception):
-    """Custom 400 error handler"""
-    return render(request, 'errors/400.html', status=400)
+@login_required
+@profile_required
+def analytics_view(request):
+    """Simple analytics dashboard"""
+    profile = request.user.profile
+    
+    if profile.user_type == UserProfile.DONOR:
+        # Donor analytics
+        stats = DonationService.get_user_donation_stats(request.user)
+        
+        # Category breakdown
+        category_stats = Donation.objects.filter(
+            donor=request.user
+        ).values('food_category').annotate(count=Count('id')).order_by('-count')
+        
+        context = {
+            'stats': stats,
+            'category_stats': category_stats,
+        }
+        
+        return render(request, 'analytics/nutrition_analytics.html', context)
+    else:
+        messages.error(request, "Analytics are only available for donors.")
+        return redirect('core:dashboard')

@@ -4,66 +4,209 @@
 {% block title %}Terms of Service - FoodLoop{% endblock %}
 
 {% block content %}
-<div style="background: var(--color-text-main); color: white; padding: 6rem 0; text-align: center; border-radius: var(--radius-xl); margin-bottom: 4rem;">
-    <div class="container" style="max-width: 800px;">
-        <h1 style="font-size: 3rem; margin-bottom: 1.5rem;">Terms of Service</h1>
-        <p style="font-size: 1.25rem; color: #94a3b8; line-height: 1.7;">
-            Last updated: November 30, 2025
-        </p>
+<div class="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12 md:py-16">
+    
+    <!-- Header -->
+    <div class="mb-8 sm:mb-12">
+        <a href="{% url 'core:home' %}" class="inline-flex items-center gap-2 text-slate-500 hover:text-brand-600 font-semibold text-sm mb-4 transition-colors">
+            <i class="fas fa-arrow-left"></i> Back to Home
+        </a>
+        <h1 class="text-3xl sm:text-4xl md:text-5xl font-display font-extrabold text-slate-900 mb-4">Terms of Service</h1>
+        <p class="text-sm sm:text-base text-slate-600">Last updated: December 3, 2025</p>
     </div>
-</div>
 
-<div class="container" style="max-width: 900px;">
-    <div class="card" style="padding: 3rem;">
-        <article style="color: var(--color-text-muted); line-height: 1.8;">
-            
-            <h3 style="color: var(--color-text-main); font-size: 1.5rem; margin-bottom: 1rem;">1. Acceptance of Terms</h3>
-            <p style="margin-bottom: 2rem;">
-                By accessing and using FoodLoop ("we," "our," or "us"), you agree to comply with and be bound by these Terms of Service. If you do not agree to these terms, please do not use our platform.
+    <!-- Content -->
+    <div class="prose prose-slate max-w-none">
+        
+        <!-- Introduction -->
+        <div class="card p-6 sm:p-8 mb-6 bg-brand-50 border-brand-200">
+            <p class="text-sm sm:text-base text-slate-700 leading-relaxed mb-0">
+                Welcome to FoodLoop. By accessing or using our platform, you agree to be bound by these Terms of Service. 
+                Please read them carefully before using our services.
             </p>
+        </div>
 
-            <h3 style="color: var(--color-text-main); font-size: 1.5rem; margin-bottom: 1rem; margin-top: 3rem;">2. Nature of Service</h3>
-            <p style="margin-bottom: 2rem;">
-                FoodLoop acts as a facilitator connecting food donors with recipients. We do not manufacture, store, or prepare the food exchanged on our platform. We are a venue for community connection, not a food retailer.
-            </p>
-
-            <h3 style="color: var(--color-text-main); font-size: 1.5rem; margin-bottom: 1rem; margin-top: 3rem;">3. Food Safety & Liability</h3>
-            <div style="background: #fef2f2; border-left: 4px solid var(--color-danger); padding: 1.5rem; margin: 1.5rem 0; border-radius: 0 var(--radius-md) var(--radius-md) 0;">
-                <p style="color: #991b1b; font-size: 0.875rem; font-weight: bold; margin-bottom: 0.5rem;">IMPORTANT DISCLAIMER</p>
-                <p style="color: #dc2626; font-size: 0.875rem; margin: 0;">
-                    All food items are donated "as is." Donors are responsible for ensuring food is safe to eat and handled correctly. Recipients acknowledge that consuming donated food involves inherent risks.
+        <!-- Section 1 -->
+        <div class="card p-6 sm:p-8 mb-6">
+            <h2 class="text-xl sm:text-2xl font-bold text-slate-900 mb-4">1. Acceptance of Terms</h2>
+            <div class="space-y-3 text-sm sm:text-base text-slate-600 leading-relaxed">
+                <p>
+                    By creating an account on FoodLoop, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service and our Privacy Policy.
+                </p>
+                <p>
+                    If you do not agree to these terms, you may not use our platform.
                 </p>
             </div>
-            <ul style="list-style: disc; padding-left: 2rem; margin-bottom: 2rem;">
-                <li style="margin-bottom: 0.5rem;"><strong>Donors:</strong> You agree to only donate food that is fresh, within its expiry date, and handled according to local food safety regulations.</li>
-                <li style="margin-bottom: 0.5rem;"><strong>Recipients:</strong> You agree to inspect all food items upon pickup. You release FoodLoop and the donor from any liability arising from the consumption of donated food to the fullest extent permitted by applicable "Good Samaritan" laws.</li>
-            </ul>
+        </div>
 
-            <h3 style="color: var(--color-text-main); font-size: 1.5rem; margin-bottom: 1rem; margin-top: 3rem;">4. User Conduct</h3>
-            <p style="margin-bottom: 1rem;">You agree not to:</p>
-            <ul style="list-style: disc; padding-left: 2rem; margin-bottom: 2rem;">
-                <li style="margin-bottom: 0.5rem;">Create false accounts or misrepresent your identity.</li>
-                <li style="margin-bottom: 0.5rem;">Sell donations received through the platform.</li>
-                <li style="margin-bottom: 0.5rem;">Harass, abuse, or harm another person.</li>
-                <li style="margin-bottom: 0.5rem;">Use the platform for any illegal purpose.</li>
-            </ul>
-
-            <h3 style="color: var(--color-text-main); font-size: 1.5rem; margin-bottom: 1rem; margin-top: 3rem;">5. Account Termination</h3>
-            <p style="margin-bottom: 2rem;">
-                We reserve the right to suspend or terminate your account at our sole discretion, without notice, for conduct that we believe violates these Terms of Service or is harmful to other users of the platform.
-            </p>
-
-            <div style="margin-top: 3rem; padding: 2rem; background: var(--color-background); border-radius: var(--radius-lg); border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 1rem;">
-                <div>
-                    <h4 style="font-size: 0.875rem; font-weight: bold; color: var(--color-text-main); text-transform: uppercase; margin-bottom: 0.25rem;">Questions?</h4>
-                    <p style="font-size: 0.875rem; margin: 0;">For legal inquiries, please contact our team.</p>
-                </div>
-                <a href="{% url 'core:contact' %}" class="btn btn-outline" style="align-self: flex-start; padding: 0.625rem 1.5rem; font-size: 0.875rem;">
-                    Contact Legal
-                </a>
+        <!-- Section 2 -->
+        <div class="card p-6 sm:p-8 mb-6">
+            <h2 class="text-xl sm:text-2xl font-bold text-slate-900 mb-4">2. User Accounts</h2>
+            <div class="space-y-3 text-sm sm:text-base text-slate-600 leading-relaxed">
+                <p><strong>Account Creation:</strong> You must provide accurate and complete information when creating an account.</p>
+                <p><strong>Account Security:</strong> You are responsible for maintaining the confidentiality of your account credentials.</p>
+                <p><strong>User Types:</strong> FoodLoop supports two user types:</p>
+                <ul class="list-disc list-inside space-y-2 ml-4">
+                    <li><strong>Donors:</strong> Users who share surplus food</li>
+                    <li><strong>Recipients:</strong> Users who receive donated food</li>
+                </ul>
+                <p><strong>Email Verification:</strong> Recipients must verify their email address before claiming donations.</p>
             </div>
+        </div>
 
-        </article>
+        <!-- Section 3 -->
+        <div class="card p-6 sm:p-8 mb-6">
+            <h2 class="text-xl sm:text-2xl font-bold text-slate-900 mb-4">3. Food Donations</h2>
+            <div class="space-y-3 text-sm sm:text-base text-slate-600 leading-relaxed">
+                <p><strong>Donor Responsibilities:</strong></p>
+                <ul class="list-disc list-inside space-y-2 ml-4">
+                    <li>Ensure all donated food is safe for consumption</li>
+                    <li>Provide accurate descriptions, quantities, and expiry dates</li>
+                    <li>Honor pickup commitments once a donation is claimed</li>
+                    <li>Cancel donations promptly if they become unavailable</li>
+                </ul>
+                
+                <p class="mt-4"><strong>Recipient Responsibilities:</strong></p>
+                <ul class="list-disc list-inside space-y-2 ml-4">
+                    <li>Only claim donations you intend to pick up</li>
+                    <li>Arrive at scheduled pickup times</li>
+                    <li>Inspect food before accepting</li>
+                    <li>Complete or cancel claims within the time window</li>
+                </ul>
+
+                <p class="mt-4"><strong>Food Safety:</strong></p>
+                <ul class="list-disc list-inside space-y-2 ml-4">
+                    <li>FoodLoop is a platform connecting users; we do not inspect or guarantee food quality</li>
+                    <li>Users accept food at their own risk</li>
+                    <li>Recipients should use personal judgment when accepting donations</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Section 4 -->
+        <div class="card p-6 sm:p-8 mb-6">
+            <h2 class="text-xl sm:text-2xl font-bold text-slate-900 mb-4">4. Prohibited Activities</h2>
+            <div class="space-y-3 text-sm sm:text-base text-slate-600 leading-relaxed">
+                <p>You may NOT use FoodLoop to:</p>
+                <ul class="list-disc list-inside space-y-2 ml-4">
+                    <li>Post false, misleading, or inaccurate information</li>
+                    <li>Sell food or request payment for donations</li>
+                    <li>Donate unsafe, expired, or contaminated food</li>
+                    <li>Harass, threaten, or abuse other users</li>
+                    <li>Create multiple accounts to circumvent claim limits</li>
+                    <li>Use the platform for commercial purposes without authorization</li>
+                    <li>Scrape or collect user data without permission</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Section 5 -->
+        <div class="card p-6 sm:p-8 mb-6">
+            <h2 class="text-xl sm:text-2xl font-bold text-slate-900 mb-4">5. Rating System</h2>
+            <div class="space-y-3 text-sm sm:text-base text-slate-600 leading-relaxed">
+                <p>
+                    FoodLoop uses a rating system to build community trust. Users can rate each other after completing a donation exchange.
+                </p>
+                <p><strong>Rating Guidelines:</strong></p>
+                <ul class="list-disc list-inside space-y-2 ml-4">
+                    <li>Ratings must be honest and based on actual interactions</li>
+                    <li>Abusive or retaliatory ratings may be removed</li>
+                    <li>Users with consistently low ratings may face account restrictions</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Section 6 -->
+        <div class="card p-6 sm:p-8 mb-6">
+            <h2 class="text-xl sm:text-2xl font-bold text-slate-900 mb-4">6. Intellectual Property</h2>
+            <div class="space-y-3 text-sm sm:text-base text-slate-600 leading-relaxed">
+                <p>
+                    All content on FoodLoop, including text, graphics, logos, and software, is owned by FoodLoop or its licensors and protected by intellectual property laws.
+                </p>
+                <p>
+                    You retain ownership of content you post (e.g., donation descriptions, photos) but grant FoodLoop a license to display and distribute it on the platform.
+                </p>
+            </div>
+        </div>
+
+        <!-- Section 7 -->
+        <div class="card p-6 sm:p-8 mb-6">
+            <h2 class="text-xl sm:text-2xl font-bold text-slate-900 mb-4">7. Limitation of Liability</h2>
+            <div class="space-y-3 text-sm sm:text-base text-slate-600 leading-relaxed">
+                <p>
+                    <strong>FoodLoop is a platform connecting users and is not responsible for:</strong>
+                </p>
+                <ul class="list-disc list-inside space-y-2 ml-4">
+                    <li>Quality, safety, or legality of donated food</li>
+                    <li>Actions or omissions of users</li>
+                    <li>Disputes between donors and recipients</li>
+                    <li>Loss, injury, or damages arising from food exchanges</li>
+                </ul>
+                <p class="mt-4">
+                    TO THE MAXIMUM EXTENT PERMITTED BY LAW, FOODLOOP SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES.
+                </p>
+            </div>
+        </div>
+
+        <!-- Section 8 -->
+        <div class="card p-6 sm:p-8 mb-6">
+            <h2 class="text-xl sm:text-2xl font-bold text-slate-900 mb-4">8. Account Termination</h2>
+            <div class="space-y-3 text-sm sm:text-base text-slate-600 leading-relaxed">
+                <p>
+                    FoodLoop reserves the right to suspend or terminate accounts that violate these Terms of Service, including but not limited to:
+                </p>
+                <ul class="list-disc list-inside space-y-2 ml-4">
+                    <li>Posting unsafe or misleading donations</li>
+                    <li>Repeatedly failing to honor commitments</li>
+                    <li>Engaging in harassment or abusive behavior</li>
+                    <li>Using the platform for prohibited activities</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Section 9 -->
+        <div class="card p-6 sm:p-8 mb-6">
+            <h2 class="text-xl sm:text-2xl font-bold text-slate-900 mb-4">9. Changes to Terms</h2>
+            <div class="space-y-3 text-sm sm:text-base text-slate-600 leading-relaxed">
+                <p>
+                    We may update these Terms of Service from time to time. Continued use of FoodLoop after changes constitutes acceptance of the new terms.
+                </p>
+                <p>
+                    We will notify users of significant changes via email or platform notification.
+                </p>
+            </div>
+        </div>
+
+        <!-- Section 10 -->
+        <div class="card p-6 sm:p-8 mb-6">
+            <h2 class="text-xl sm:text-2xl font-bold text-slate-900 mb-4">10. Contact Information</h2>
+            <div class="space-y-3 text-sm sm:text-base text-slate-600 leading-relaxed">
+                <p>
+                    If you have questions about these Terms of Service, please contact us:
+                </p>
+                <ul class="list-none space-y-2 ml-0">
+                    <li><strong>Email:</strong> legal@foodloop.com</li>
+                    <li><strong>Contact Form:</strong> <a href="{% url 'core:contact' %}" class="text-brand-600 hover:text-brand-700 font-semibold">Visit our contact page</a></li>
+                </ul>
+            </div>
+        </div>
+
     </div>
+
+    <!-- Footer CTA -->
+    <div class="card bg-slate-50 border-slate-200 p-6 sm:p-8 text-center mt-8">
+        <p class="text-sm sm:text-base text-slate-700 mb-4">
+            By using FoodLoop, you agree to these Terms of Service.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+            <a href="{% url 'core:privacy' %}" class="btn btn-outline text-sm sm:text-base">
+                <i class="fas fa-shield-alt"></i> Privacy Policy
+            </a>
+            <a href="{% url 'core:contact' %}" class="btn btn-brand text-sm sm:text-base">
+                <i class="fas fa-envelope"></i> Contact Us
+            </a>
+        </div>
+    </div>
+
 </div>
 {% endblock %}

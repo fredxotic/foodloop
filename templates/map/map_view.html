@@ -1,146 +1,87 @@
 {% extends 'base/base.html' %}
 {% load static %}
+{% load humanize %}
 
-{% block title %}Live Map - FoodLoop{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<style>
-    /* CRITICAL MAP FIXES */
-    .leaflet-pane img, .leaflet-marker-icon, .leaflet-marker-shadow {
-        max-width: none !important;
-        max-height: none !important;
-    }
-    .leaflet-tile {
-        width: inherit !important;
-        height: inherit !important;
-        padding: 0 !important;
-        border: none !important;
-    }
-
-    #map-container {
-        height: 85vh;
-        width: 100%;
-        border-radius: var(--radius-xl);
-        overflow: hidden;
-        background: #e2e8f0;
-        z-index: 1;
-        isolation: isolate;
-    }
-
-    /* Mobile Height Adjustment */
-    @media (max-width: 768px) {
-        #map-container {
-            height: calc(100vh - 140px); /* Fill screen minus header/nav */
-            border-radius: var(--radius-lg);
-        }
-        .map-controls {
-            bottom: 20px;
-            top: auto !important;
-            left: 50% !important;
-            transform: translateX(-50%);
-            width: 90%;
-        }
-    }
-
-    /* Desktop Controls */
-    @media (min-width: 769px) {
-        .map-controls {
-            top: 20px;
-            left: 20px;
-            width: 320px;
-        }
-    }
-
-    .map-controls {
-        position: absolute;
-        z-index: 1000;
-        pointer-events: none;
-    }
-
-    .map-panel {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(12px);
-        padding: 1.25rem;
-        border-radius: var(--radius-lg);
-        border: 1px solid rgba(203, 213, 225, 0.5); /* Slate-300 */
-        box-shadow: var(--shadow-lg);
-        pointer-events: auto;
-    }
-
-    /* ... Custom Pin CSS from Phase 4 (Keep unchanged) ... */
-    .custom-map-pin .pin-inner {
-        background-color: var(--color-primary);
-        width: 36px; height: 36px;
-        border-radius: 50% 50% 50% 0;
-        transform: rotate(-45deg);
-        display: flex; align-items: center; justify-content: center;
-        border: 3px solid white;
-        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2);
-        transition: transform 0.2s ease;
-    }
-    .custom-map-pin i { transform: rotate(45deg); color: white; font-size: 14px; }
-    .custom-map-pin:hover .pin-inner { background-color: var(--color-primary-dark); transform: rotate(-45deg) scale(1.1); }
-    
-    .user-location-pin .center-dot { width: 16px; height: 16px; background-color: #2563eb; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.3); position: relative; z-index: 2; }
-    .user-location-pin .pulse-ring { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 40px; height: 40px; background: rgba(37, 99, 235, 0.2); border-radius: 50%; animation: mapPulse 2s infinite; z-index: 1; }
-    @keyframes mapPulse { 0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; } }
-</style>
-{% endblock %}
+{% block title %}Browse Locations - FoodLoop{% endblock %}
 
 {% block content %}
-<div class="relative w-full h-full animate-fade-in-up">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 md:py-12">
     
-    <div class="map-controls">
-        <div class="map-panel">
-            <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-brand-100 text-brand-600 flex items-center justify-center shadow-sm shrink-0">
-                        <i class="fas fa-map-location-dot"></i>
-                    </div>
-                    <div>
-                        <h1 class="font-display font-bold text-slate-900 text-lg leading-none">Live Map</h1>
-                        <div class="flex items-center gap-2 mt-1">
-                            <span class="relative flex h-2 w-2">
-                              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
-                              <span class="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
-                            </span>
-                            <p class="text-[10px] font-bold text-brand-600 uppercase tracking-wide">
-                                {{ donations|length }} Active
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-2">
-                <button onclick="FoodLoopMap.centerOnUser(window.userLocation)" 
-                        class="btn btn-brand btn-sm w-full justify-center">
-                    <i class="fas fa-crosshairs mr-2"></i> Find Me
-                </button>
-                <a href="{% url 'core:search_donations' %}" 
-                   class="btn btn-outline btn-sm w-full justify-center bg-white">
-                    <i class="fas fa-list mr-2"></i> List View
-                </a>
-            </div>
-        </div>
+    <!-- Header -->
+    <div class="mb-6 sm:mb-8">
+        <h1 class="text-2xl sm:text-3xl md:text-4xl font-display font-extrabold text-slate-900 mb-2">Browse Donation Locations</h1>
+        <p class="text-sm sm:text-base text-slate-600">View all available donations organized by pickup location</p>
     </div>
 
-    <div id="map-container"></div>
-</div>
-{% endblock %}
+    <!-- Location Groups -->
+    {% if donations %}
+        {% regroup donations by pickup_location as location_groups %}
+        
+        <div class="space-y-6 sm:space-y-8">
+            {% for location in location_groups %}
+            <div class="card p-4 sm:p-6">
+                <!-- Location Header -->
+                <div class="flex items-start gap-3 mb-4 sm:mb-6 pb-4 border-b border-slate-200">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-brand-100 rounded-xl flex items-center justify-center text-brand-600 text-lg sm:text-xl shrink-0">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h3 class="text-lg sm:text-xl font-bold text-slate-900 mb-1">{{ location.grouper }}</h3>
+                        <p class="text-xs sm:text-sm text-slate-500">{{ location.list|length }} donation{{ location.list|length|pluralize }} available</p>
+                    </div>
+                </div>
 
-{% block scripts %}
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="{% static 'js/map_logic.js' %}"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const mapData = {
-            userLocation: {{ user_location_json|safe|default:"null" }},
-            donations: {{ map_data_json|safe|default:"[]" }}
-        };
-        window.userLocation = mapData.userLocation;
-        FoodLoopMap.init('map-container', mapData);
-    });
-</script>
+                <!-- Donations Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                    {% for donation in location.list %}
+                    <a href="{% url 'core:donation_detail' donation.id %}" class="border border-slate-200 rounded-xl p-3 hover:border-brand-500 hover:shadow-md transition-all group">
+                        <div class="flex gap-3">
+                            <!-- Thumbnail -->
+                            <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-slate-100 overflow-hidden shrink-0">
+                                {% if donation.image %}
+                                    <img src="{{ donation.image.url }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" alt="{{ donation.title }}">
+                                {% else %}
+                                    <div class="w-full h-full flex items-center justify-center text-slate-300">
+                                        <i class="fas fa-image"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Info -->
+                            <div class="flex-1 min-w-0">
+                                <h4 class="font-bold text-sm text-slate-900 mb-1 line-clamp-1 group-hover:text-brand-600 transition-colors">
+                                    {{ donation.title }}
+                                </h4>
+                                <p class="text-xs text-slate-600 mb-2 line-clamp-1">{{ donation.quantity }}</p>
+                                <div class="flex items-center gap-2 text-xs text-slate-500">
+                                    <span class="flex items-center gap-1">
+                                        <i class="fas fa-clock"></i> {{ donation.created_at|timesince }} ago
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+    {% else %}
+        <!-- Empty State -->
+        <div class="card py-16 sm:py-24 text-center border-dashed border-2 border-slate-200">
+            <div class="w-16 h-16 sm:w-20 sm:h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 text-slate-300">
+                <i class="fas fa-map-marked-alt text-3xl sm:text-4xl"></i>
+            </div>
+            <h3 class="text-xl sm:text-2xl font-bold text-slate-900 mb-2">No Donations Available</h3>
+            <p class="text-sm sm:text-base text-slate-500 mb-6 sm:mb-8">
+                Check back soon for new donations in your area.
+            </p>
+            <a href="{% url 'core:search_donations' %}" class="btn btn-brand text-sm sm:text-base">
+                <i class="fas fa-search"></i> Search Donations
+            </a>
+        </div>
+    {% endif %}
+
+</div>
 {% endblock %}

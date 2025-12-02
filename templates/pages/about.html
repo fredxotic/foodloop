@@ -4,40 +4,129 @@
 {% block title %}About Us - FoodLoop{% endblock %}
 
 {% block content %}
-<div style="background: var(--color-text-main); color: white; padding: 6rem 0; text-align: center; border-radius: var(--radius-xl); margin-bottom: 4rem;">
-    <div class="container" style="max-width: 800px;">
-        <h1 style="font-size: 3rem; margin-bottom: 1.5rem;">Connecting Food, Connecting People.</h1>
-        <p style="font-size: 1.25rem; color: #94a3b8; line-height: 1.7;">
-            We are on a mission to eliminate food waste and hunger by building the world's most efficient food rescue platform.
+<div class="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12 md:py-16">
+    
+    <!-- Header -->
+    <div class="text-center mb-8 sm:mb-12">
+        <h1 class="text-3xl sm:text-4xl md:text-5xl font-display font-extrabold text-slate-900 mb-4">About FoodLoop</h1>
+        <p class="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto">
+            Connecting communities to reduce food waste and fight hunger.
         </p>
     </div>
-</div>
 
-<div class="container">
-    <div class="grid-cols-3" style="gap: 3rem;">
-        <div class="card" style="border: none; box-shadow: none; background: transparent;">
-            <div style="width: 3.5rem; height: 3.5rem; background: #dcfce7; color: #166534; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1.5rem;">
-                <i class="fas fa-seedling"></i>
+    <!-- Mission Card -->
+    <div class="card p-6 sm:p-8 md:p-10 mb-8 sm:mb-12 bg-gradient-to-br from-brand-50 to-white border-brand-200">
+        <div class="flex items-start gap-4 mb-4">
+            <div class="w-12 h-12 sm:w-14 sm:h-14 bg-brand-600 rounded-xl flex items-center justify-center text-white text-xl sm:text-2xl shrink-0">
+                <i class="fas fa-bullseye"></i>
             </div>
-            <h3 style="font-size: 1.5rem; margin-bottom: 1rem;">Sustainability First</h3>
-            <p style="color: var(--color-text-muted);">Food belongs on plates, not landfills. Every meal saved is a victory for our planet.</p>
-        </div>
-        
-        <div class="card" style="border: none; box-shadow: none; background: transparent;">
-            <div style="width: 3.5rem; height: 3.5rem; background: #dbeafe; color: #1e40af; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1.5rem;">
-                <i class="fas fa-users"></i>
+            <div>
+                <h2 class="text-xl sm:text-2xl font-bold text-slate-900 mb-2">Our Mission</h2>
+                <p class="text-sm sm:text-base text-slate-700 leading-relaxed">
+                    FoodLoop is dedicated to reducing food waste while addressing food insecurity in our communities. We provide a simple, efficient platform for food donors to connect with those in need, ensuring that surplus food reaches people instead of landfills.
+                </p>
             </div>
-            <h3 style="font-size: 1.5rem; margin-bottom: 1rem;">Community Driven</h3>
-            <p style="color: var(--color-text-muted);">Technology is the tool, people are the solution. We empower communities to care for their own.</p>
-        </div>
-
-        <div class="card" style="border: none; box-shadow: none; background: transparent;">
-            <div style="width: 3.5rem; height: 3.5rem; background: #f3e8ff; color: #6b21a8; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1.5rem;">
-                <i class="fas fa-shield-alt"></i>
-            </div>
-            <h3 style="font-size: 1.5rem; margin-bottom: 1rem;">Trust & Safety</h3>
-            <p style="color: var(--color-text-muted);">We build systems ensuring food safety and fostering trust through verified profiles.</p>
         </div>
     </div>
+
+    <!-- The Problem -->
+    <div class="mb-8 sm:mb-12">
+        <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 mb-4 sm:mb-6">The Problem We're Solving</h2>
+        <div class="prose prose-slate max-w-none">
+            <p class="text-sm sm:text-base text-slate-600 leading-relaxed mb-4">
+                Every year, billions of pounds of food go to waste while millions of people struggle with food insecurity. This disconnect hurts our environment, wastes resources, and leaves vulnerable community members without access to nutritious meals.
+            </p>
+            <p class="text-sm sm:text-base text-slate-600 leading-relaxed">
+                FoodLoop bridges this gap by making it easy for restaurants, grocery stores, and individuals to share surplus food with local recipients who need it most.
+            </p>
+        </div>
+    </div>
+
+    <!-- How It Works -->
+    <div class="mb-8 sm:mb-12">
+        <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 mb-4 sm:mb-6">How We Do It</h2>
+        <div class="space-y-4 sm:space-y-6">
+            <div class="flex gap-4">
+                <div class="w-10 h-10 bg-brand-100 rounded-lg flex items-center justify-center text-brand-600 font-bold shrink-0">1</div>
+                <div>
+                    <h3 class="text-base sm:text-lg font-bold text-slate-900 mb-1">Simple Posting</h3>
+                    <p class="text-sm sm:text-base text-slate-600">Donors list surplus food with pickup details and expiry information.</p>
+                </div>
+            </div>
+            <div class="flex gap-4">
+                <div class="w-10 h-10 bg-brand-100 rounded-lg flex items-center justify-center text-brand-600 font-bold shrink-0">2</div>
+                <div>
+                    <h3 class="text-base sm:text-lg font-bold text-slate-900 mb-1">Smart Matching</h3>
+                    <p class="text-sm sm:text-base text-slate-600">Recipients can search and filter based on dietary needs and preferences.</p>
+                </div>
+            </div>
+            <div class="flex gap-4">
+                <div class="w-10 h-10 bg-brand-100 rounded-lg flex items-center justify-center text-brand-600 font-bold shrink-0">3</div>
+                <div>
+                    <h3 class="text-base sm:text-lg font-bold text-slate-900 mb-1">Direct Connection</h3>
+                    <p class="text-sm sm:text-base text-slate-600">Users coordinate pickup times and complete exchanges directly.</p>
+                </div>
+            </div>
+            <div class="flex gap-4">
+                <div class="w-10 h-10 bg-brand-100 rounded-lg flex items-center justify-center text-brand-600 font-bold shrink-0">4</div>
+                <div>
+                    <h3 class="text-base sm:text-lg font-bold text-slate-900 mb-1">Community Trust</h3>
+                    <p class="text-sm sm:text-base text-slate-600">Rating system ensures quality and accountability for all users.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Values -->
+    <div class="mb-8 sm:mb-12">
+        <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 mb-4 sm:mb-6">Our Values</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+            <div class="card p-4 sm:p-6">
+                <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center text-green-600 text-lg mb-3">
+                    <i class="fas fa-leaf"></i>
+                </div>
+                <h3 class="text-base sm:text-lg font-bold text-slate-900 mb-2">Sustainability</h3>
+                <p class="text-sm text-slate-600">Protecting our planet by reducing food waste.</p>
+            </div>
+            <div class="card p-4 sm:p-6">
+                <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 text-lg mb-3">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h3 class="text-base sm:text-lg font-bold text-slate-900 mb-2">Community</h3>
+                <p class="text-sm text-slate-600">Building connections between neighbors.</p>
+            </div>
+            <div class="card p-4 sm:p-6">
+                <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 text-lg mb-3">
+                    <i class="fas fa-hand-holding-heart"></i>
+                </div>
+                <h3 class="text-base sm:text-lg font-bold text-slate-900 mb-2">Compassion</h3>
+                <p class="text-sm text-slate-600">Ensuring everyone has access to nutritious food.</p>
+            </div>
+            <div class="card p-4 sm:p-6">
+                <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center text-yellow-600 text-lg mb-3">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3 class="text-base sm:text-lg font-bold text-slate-900 mb-2">Trust</h3>
+                <p class="text-sm text-slate-600">Maintaining safety through verification and ratings.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="card bg-gradient-to-br from-brand-600 to-brand-700 text-white p-6 sm:p-8 md:p-10 text-center">
+        <h2 class="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">Join Our Community</h2>
+        <p class="text-sm sm:text-base text-brand-100 mb-6 max-w-xl mx-auto">
+            Whether you have food to share or need support, FoodLoop is here for you.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+            <a href="{% url 'core:signup' %}" class="btn bg-white text-brand-700 hover:bg-brand-50 text-sm sm:text-base px-6 sm:px-8 justify-center">
+                <i class="fas fa-user-plus"></i> Sign Up Now
+            </a>
+            <a href="{% url 'core:contact' %}" class="btn border-2 border-white text-white hover:bg-white/10 text-sm sm:text-base px-6 sm:px-8 justify-center">
+                <i class="fas fa-envelope"></i> Contact Us
+            </a>
+        </div>
+    </div>
+
 </div>
 {% endblock %}

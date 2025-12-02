@@ -2,42 +2,75 @@
 
 <div class="relative" x-data="{ open: false }" @click.away="open = false">
     
+    <!-- Notification Bell Button -->
     <button @click="open = !open" 
             id="notificationTrigger"
-            class="relative p-2.5 rounded-xl text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 transition-all focus:outline-none">
+            class="relative p-2 sm:p-2.5 rounded-xl text-slate-500 hover:text-brand-600 hover:bg-brand-50 transition-all focus:outline-none">
         <span class="sr-only">Notifications</span>
-        <i class="fas fa-bell text-xl"></i>
+        <i class="fas fa-bell text-lg sm:text-xl"></i>
         
+        <!-- Unread Badge -->
         <span id="notificationBadge" 
-              class="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-red-500 border-2 border-white animate-pulse"
+              class="absolute top-1.5 right-1.5 h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-red-500 border-2 border-white animate-pulse"
               style="display: {% if unread_notifications > 0 %}block{% else %}none{% endif %};"></span>
     </button>
 
+    <!-- Dropdown Panel -->
     <div x-show="open" 
          x-transition:enter="transition ease-out duration-200"
          x-transition:enter-start="opacity-0 translate-y-2 scale-95"
          x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-         class="absolute right-0 top-full mt-3 w-80 sm:w-96 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden z-50 origin-top-right"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+         x-transition:leave-end="opacity-0 translate-y-2 scale-95"
+         class="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden z-50 origin-top-right"
          style="display: none;">
         
-        <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/80 backdrop-blur-sm">
-            <h3 class="font-display font-bold text-slate-900">Notifications</h3>
-            <button onclick="window.notificationManager.markAllAsRead()" class="text-[10px] font-bold text-emerald-600 hover:text-emerald-700 uppercase tracking-wide bg-emerald-50 hover:bg-emerald-100 px-3 py-1 rounded-full transition-colors cursor-pointer">
+        <!-- Header -->
+        <div class="px-4 sm:px-5 py-3 sm:py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+            <h3 class="font-bold text-sm sm:text-base text-slate-900">Notifications</h3>
+            <button onclick="window.notificationManager.markAllAsRead()" 
+                    class="text-[10px] font-bold text-brand-600 hover:text-brand-700 uppercase tracking-wide bg-brand-50 hover:bg-brand-100 px-2.5 sm:px-3 py-1 rounded-full transition-colors">
                 Mark all read
             </button>
         </div>
 
-        <div id="notificationList" class="max-h-[24rem] overflow-y-auto custom-scrollbar bg-white">
+        <!-- Notification List -->
+        <div id="notificationList" 
+             class="max-h-[20rem] sm:max-h-[24rem] overflow-y-auto custom-scrollbar bg-white">
+            <!-- Loading State -->
             <div class="px-5 py-12 text-center text-slate-400">
-                <i class="fas fa-circle-notch fa-spin text-2xl mb-3 text-emerald-500"></i>
-                <p class="text-xs font-bold uppercase tracking-wide">Syncing...</p>
+                <i class="fas fa-circle-notch fa-spin text-2xl mb-3 text-brand-500"></i>
+                <p class="text-xs font-bold uppercase tracking-wide">Loading notifications...</p>
             </div>
         </div>
         
-        <div class="bg-slate-50 px-5 py-3 border-t border-slate-100 text-center">
-            <button class="text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors">
-                View History
-            </button>
+        <!-- Footer -->
+        <div class="bg-slate-50 px-4 sm:px-5 py-3 border-t border-slate-100 text-center">
+            <a href="{% url 'core:dashboard' %}" 
+               class="text-xs font-semibold text-slate-600 hover:text-brand-600 transition-colors">
+                View All Notifications <i class="fas fa-arrow-right ml-1 text-[10px]"></i>
+            </a>
         </div>
     </div>
 </div>
+
+<style>
+/* Notification List Scrollbar */
+#notificationList::-webkit-scrollbar {
+    width: 6px;
+}
+
+#notificationList::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+
+#notificationList::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+#notificationList::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+</style>

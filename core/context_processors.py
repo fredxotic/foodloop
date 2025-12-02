@@ -2,7 +2,6 @@
 Context processors for adding common data to all templates
 Optimized with caching to reduce database queries
 """
-from core.cache import CacheManager
 import logging
 
 logger = logging.getLogger(__name__)
@@ -13,81 +12,89 @@ def user_profile(request):
     Add user profile and notification count to all template contexts
     Uses caching to minimize database hits
     """
-    context = {
-        'user_profile': None,
-        'unread_notifications': 0,
-    }
+    if not request.user.is_authenticated:
+        return {
+            'user_profile': None,
+            'unread_notifications_count': 0,
+        }
     
-    if request.user.is_authenticated:
-        try:
-            from core.models import UserProfile, Notification
-            
-            # Try to get profile from cache first
-            cached_profile_data = CacheManager.get_user_profile(request.user.id)
-            
-            if cached_profile_data:
-                # Reconstruct minimal profile object for template
-                context['user_profile'] = type('obj', (object,), cached_profile_data)
-            else:
-                # Fetch from database and cache
-                user_profile = UserProfile.objects.select_related('user').get(user=request.user)
-                
-                # Cache essential profile data
-                profile_data = {
-                    'user_type': user_profile.user_type,
-                    'email_verified': user_profile.email_verified,
-                    'profile_picture': user_profile.profile_picture.url if user_profile.profile_picture else None,
-                    'phone_number': user_profile.phone_number,
-                    'location': user_profile.location,
-                    'has_valid_coordinates': user_profile.has_valid_coordinates,
-                }
-                CacheManager.set_user_profile(request.user.id, profile_data)
-                
-                context['user_profile'] = user_profile
-            
-            # Get unread notification count with caching
-            unread_count = CacheManager.get_notification_count(request.user.id)
-            
-            if unread_count is None:
-                unread_count = Notification.objects.filter(
-                    user=request.user,
-                    is_read=False
-                ).count()
-                CacheManager.set_notification_count(request.user.id, unread_count)
-            
-            context['unread_notifications'] = unread_count
-            
-        except UserProfile.DoesNotExist:
-            logger.warning(f"Profile not found for user {request.user.id}")
-            context['user_profile'] = None
-        except Exception as e:
-            logger.error(f"Context processor error for user {request.user.id}: {e}")
-    
-    return context
+    try:
+        from core.cache import CacheManager  # Import inside function
+        
+        # Cache key unique to this user
+        cache_key = f'user_context_{request.user.id}'
+        
+        # ✅ FIX: Use Django's cache directly, not CacheManager.get()
+        from django.core.cache import cache
+        cached_data = cache.get(cache_key)
+        if cached_data:
+            return cached_data
+        
+        # Get profile with related data
+        user_profile = request.user.profile
+        
+        # Get unread notification count efficiently
+        unread_count = request.user.notifications.filter(is_read=False).count()
+        
+        # Build profile data dictionary
+        profile_data = {
+            'id': user_profile.id,
+            'user_type': user_profile.user_type,
+            'email_verified': user_profile.email_verified,
+            'profile_picture': user_profile.profile_picture.url if user_profile.profile_picture else None,
+            'phone_number': user_profile.phone_number,
+            'location': user_profile.location,
+            'dietary_restrictions': user_profile.dietary_restrictions,
+            'average_rating': float(user_profile.average_rating),
+            'total_ratings': user_profile.total_ratings,
+            'bio': user_profile.bio,
+        }
+        
+        context_data = {
+            'user_profile': profile_data,
+            'unread_notifications_count': unread_count,
+        }
+        
+        # ✅ FIX: Use Django's cache.set() directly
+        cache.set(cache_key, context_data, 300)  # 5 minutes
+        
+        return context_data
+        
+    except Exception as e:
+        logger.error(f"Context processor error for user {request.user.id}: {e}")
+        return {
+            'user_profile': None,
+            'unread_notifications_count': 0,
+        }
 
 
 def site_settings(request):
     """
-    Add global site settings to context
-    Cached for performance
+    Add site-wide settings to context
     """
-    from django.conf import settings
-    
     return {
-        'SITE_NAME': getattr(settings, 'SITE_NAME', 'FoodLoop'),
-        'SITE_URL': getattr(settings, 'SITE_URL', 'http://localhost:8000'),
-        'GOOGLE_MAPS_API_KEY': getattr(settings, 'GOOGLE_MAPS_API_KEY', ''),
-        'DEBUG': settings.DEBUG,
+        'SITE_NAME': 'FoodLoop',
+        'SITE_TAGLINE': 'Fight Waste, Feed Communities',
+        'SUPPORT_EMAIL': 'support@foodloop.com',
+        'ENABLE_ANALYTICS': False,  # Phase 1: Analytics disabled
     }
 
 
 def donation_categories(request):
     """
-    Add donation categories to context for forms/filters
+    Add donation categories to context for filters/dropdowns
     """
     from core.models import Donation
     
     return {
-        'FOOD_CATEGORIES': Donation.FOOD_CATEGORY_CHOICES,
-        'DONATION_STATUSES': Donation.STATUS_CHOICES,
+        'DONATION_CATEGORIES': Donation.FOOD_CATEGORY_CHOICES,
+        'DIETARY_TAGS': [
+            ('vegetarian', 'Vegetarian'),
+            ('vegan', 'Vegan'),
+            ('halal', 'Halal'),
+            ('kosher', 'Kosher'),
+            ('gluten-free', 'Gluten-Free'),
+            ('dairy-free', 'Dairy-Free'),
+            ('nut-free', 'Nut-Free'),
+        ],
     }

@@ -1,12 +1,10 @@
 """
-Optimized Utility Functions - Consolidated and efficient
+Optimized Utility Functions - Clean & Synchronous
 """
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
-from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
 from typing import Optional, Dict, Any
 import logging
 
@@ -23,8 +21,8 @@ def send_email_with_template(
     from_email: Optional[str] = None
 ) -> bool:
     """
-    Unified email sender with template support
-    Replaces multiple redundant email functions
+    Unified email sender with template support.
+    Runs synchronously.
     """
     try:
         # Add default context
@@ -62,8 +60,8 @@ def send_realtime_notification(
     related_donation=None
 ) -> Optional[Notification]:
     """
-    Unified real-time notification sender
-    Creates DB record and sends WebSocket notification
+    Unified notification creator.
+    Removed WebSocket logic - only creates DB record now.
     """
     try:
         # Create notification record
@@ -75,29 +73,6 @@ def send_realtime_notification(
             related_url=related_url,
             related_donation=related_donation
         )
-
-        # Send via WebSocket
-        try:
-            channel_layer = get_channel_layer()
-            async_to_sync(channel_layer.group_send)(
-                f"notifications_{user.id}",
-                {
-                    "type": "notification_message",
-                    "message": {
-                        "id": notification.id,
-                        "type": notification_type,
-                        "title": title,
-                        "message": message,
-                        "related_url": related_url,
-                        "created_at": notification.created_at.isoformat(),
-                        "is_read": False,
-                    },
-                },
-            )
-        except Exception as ws_error:
-            logger.warning(f"WebSocket notification failed: {ws_error}")
-            # DB notification still created, so don't fail
-        
         return notification
         
     except Exception as e:

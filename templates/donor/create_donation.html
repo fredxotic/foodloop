@@ -1,148 +1,274 @@
 {% extends 'base/base.html' %}
 {% load static %}
 
-{% block title %}Publish Donation - FoodLoop{% endblock %}
+{% block title %}Create Donation - FoodLoop{% endblock %}
 
 {% block content %}
-<div class="container" style="max-width: 800px; padding-top: 2rem; padding-bottom: 4rem;">
+<div class="max-w-4xl mx-auto pt-4 sm:pt-6 pb-12 sm:pb-16 px-4 sm:px-6">
     
-    <div style="margin-bottom: 2rem;">
-        <a href="{% url 'core:dashboard' %}" style="display: inline-flex; align-items: center; gap: 0.5rem; color: var(--color-text-muted); font-size: 0.9rem; font-weight: 600; margin-bottom: 1rem;">
+    <!-- Header -->
+    <div class="mb-6 sm:mb-8">
+        <a href="{% url 'core:dashboard' %}" class="inline-flex items-center gap-2 text-slate-500 hover:text-brand-600 font-semibold text-sm sm:text-base mb-3 sm:mb-4 transition-colors">
             <i class="fas fa-arrow-left"></i> Back to Dashboard
         </a>
-        <h1 style="font-size: 2.5rem; font-weight: 800; color: var(--color-text-main);">Publish Donation</h1>
+        <h1 class="text-2xl sm:text-3xl md:text-4xl font-display font-extrabold text-slate-900">Create Donation</h1>
+        <p class="text-sm sm:text-base text-slate-500 mt-2">Share surplus food with your community</p>
     </div>
 
-    <div class="card" x-data="{ step: 1, totalSteps: 3 }">
+    <!-- Multi-Step Form Container -->
+    <div class="card p-4 sm:p-6 md:p-8" x-data="donationForm()">
         
-        <div style="display: flex; gap: 0.5rem; margin-bottom: 2rem;">
-            <div style="flex: 1; height: 4px; border-radius: 2px;" :style="step >= 1 ? 'background: var(--color-primary);' : 'background: #e2e8f0;'"></div>
-            <div style="flex: 1; height: 4px; border-radius: 2px;" :style="step >= 2 ? 'background: var(--color-primary);' : 'background: #e2e8f0;'"></div>
-            <div style="flex: 1; height: 4px; border-radius: 2px;" :style="step >= 3 ? 'background: var(--color-primary);' : 'background: #e2e8f0;'"></div>
+        <!-- Progress Indicator - Mobile Optimized -->
+        <div class="flex gap-2 mb-6 sm:mb-8">
+            <div class="flex-1 h-2 rounded-full transition-all duration-300" :class="step >= 1 ? 'bg-brand-600' : 'bg-slate-200'"></div>
+            <div class="flex-1 h-2 rounded-full transition-all duration-300" :class="step >= 2 ? 'bg-brand-600' : 'bg-slate-200'"></div>
+            <div class="flex-1 h-2 rounded-full transition-all duration-300" :class="step >= 3 ? 'bg-brand-600' : 'bg-slate-200'"></div>
         </div>
 
-        <form method="post" enctype="multipart/form-data">
+        <!-- Step Labels - Show current step on mobile -->
+        <div class="text-center mb-6 sm:mb-8">
+            <p class="text-xs sm:text-sm font-bold uppercase text-slate-400 tracking-wider">
+                <span x-show="step === 1">Step 1 of 3: Basic Info</span>
+                <span x-show="step === 2">Step 2 of 3: Pickup Details</span>
+                <span x-show="step === 3">Step 3 of 3: Additional Info</span>
+            </p>
+        </div>
+
+        <form method="post" enctype="multipart/form-data" @submit="validateStep">
             {% csrf_token %}
 
-            <div x-show="step === 1" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0">
-                <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem;">What are you donating?</h3>
+            <!-- STEP 1: Basic Information -->
+            <div x-show="step === 1" 
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 translate-x-4"
+                 x-transition:enter-end="opacity-100 translate-x-0"
+                 class="space-y-4 sm:space-y-6">
                 
-                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-                    <div>
-                        <label class="form-label" style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem;">Title</label>
-                        {{ form.title }}
-                        <p style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 0.25rem;">e.g., 'Fresh Sourdough Bread', 'Box of Mixed Veggies'</p>
-                    </div>
+                <h3 class="text-lg sm:text-xl font-bold text-slate-900 mb-4 sm:mb-6">What are you donating?</h3>
+                
+                <!-- Title -->
+                <div>
+                    <label for="{{ form.title.id_for_label }}" class="block text-sm font-bold text-slate-700 mb-2">
+                        Food Title <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.title }}
+                    <p class="text-xs text-slate-500 mt-1.5">Be specific: "Fresh Sourdough Bread" instead of just "Bread"</p>
+                    {% if form.title.errors %}
+                        <p class="text-xs text-red-600 mt-1">{{ form.title.errors.0 }}</p>
+                    {% endif %}
+                </div>
 
-                    <div>
-                        <label class="form-label" style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem;">Description</label>
-                        {{ form.description }}
-                    </div>
+                <!-- Description -->
+                <div>
+                    <label for="{{ form.description.id_for_label }}" class="block text-sm font-bold text-slate-700 mb-2">
+                        Description <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.description }}
+                    <p class="text-xs text-slate-500 mt-1.5">Include preparation method, ingredients, or serving suggestions</p>
+                    {% if form.description.errors %}
+                        <p class="text-xs text-red-600 mt-1">{{ form.description.errors.0 }}</p>
+                    {% endif %}
+                </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-                        <div>
-                            <label class="form-label" style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem;">Category</label>
-                            {{ form.food_category }}
-                        </div>
-                        <div>
-                            <label class="form-label" style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem;">Quantity</label>
-                            {{ form.quantity }}
-                        </div>
+                <!-- Category & Quantity Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                    <div>
+                        <label for="{{ form.food_category.id_for_label }}" class="block text-sm font-bold text-slate-700 mb-2">
+                            Category <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.food_category }}
+                        {% if form.food_category.errors %}
+                            <p class="text-xs text-red-600 mt-1">{{ form.food_category.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.quantity.id_for_label }}" class="block text-sm font-bold text-slate-700 mb-2">
+                            Quantity <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.quantity }}
+                        <p class="text-xs text-slate-500 mt-1.5">e.g., "5 portions", "2 loaves"</p>
+                        {% if form.quantity.errors %}
+                            <p class="text-xs text-red-600 mt-1">{{ form.quantity.errors.0 }}</p>
+                        {% endif %}
                     </div>
                 </div>
 
-                <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
-                    <button type="button" @click="step = 2" class="btn btn-primary">
-                        Next: Logistics <i class="fas fa-arrow-right"></i>
+                <!-- Navigation -->
+                <div class="flex justify-end pt-4">
+                    <button type="button" @click="nextStep" class="btn btn-brand text-sm sm:text-base px-6 sm:px-8">
+                        Next: Pickup Details <i class="fas fa-arrow-right ml-2"></i>
                     </button>
                 </div>
             </div>
 
-            <div x-show="step === 2" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" style="display: none;">
-                <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem;">When & Where?</h3>
+            <!-- STEP 2: Pickup Details -->
+            <div x-show="step === 2" 
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 translate-x-4"
+                 x-transition:enter-end="opacity-100 translate-x-0"
+                 style="display: none;"
+                 class="space-y-4 sm:space-y-6">
                 
-                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-                        <div>
-                            <label class="form-label" style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem;">Pickup Starts</label>
-                            {{ form.pickup_start }}
-                        </div>
-                        <div>
-                            <label class="form-label" style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem;">Pickup Ends</label>
-                            {{ form.pickup_end }}
-                        </div>
-                    </div>
-
+                <h3 class="text-lg sm:text-xl font-bold text-slate-900 mb-4 sm:mb-6">When and where can recipients pick up?</h3>
+                
+                <!-- Pickup Time Range -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     <div>
-                        <label class="form-label" style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem;">Expiry Date</label>
-                        {{ form.expiry_datetime }}
+                        <label for="{{ form.pickup_start.id_for_label }}" class="block text-sm font-bold text-slate-700 mb-2">
+                            Pickup Start <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.pickup_start }}
+                        {% if form.pickup_start.errors %}
+                            <p class="text-xs text-red-600 mt-1">{{ form.pickup_start.errors.0 }}</p>
+                        {% endif %}
                     </div>
-
                     <div>
-                        <label class="form-label" style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem;">Pickup Location</label>
-                        <div style="position: relative;">
-                            <i class="fas fa-location-dot" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--color-text-muted);"></i>
-                            <div style="/* Targeting widget input specifically */">
-                                {{ form.pickup_location }} 
-                            </div>
-                        </div>
-                        {{ form.latitude }}
-                        {{ form.longitude }}
+                        <label for="{{ form.pickup_end.id_for_label }}" class="block text-sm font-bold text-slate-700 mb-2">
+                            Pickup End <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.pickup_end }}
+                        {% if form.pickup_end.errors %}
+                            <p class="text-xs text-red-600 mt-1">{{ form.pickup_end.errors.0 }}</p>
+                        {% endif %}
                     </div>
                 </div>
 
-                <div style="margin-top: 2rem; display: flex; justify-content: space-between;">
-                    <button type="button" @click="step = 1" class="btn btn-outline">Back</button>
-                    <button type="button" @click="step = 3" class="btn btn-primary">
-                        Next: Details <i class="fas fa-arrow-right"></i>
+                <!-- Expiry Date -->
+                <div>
+                    <label for="{{ form.expiry_datetime.id_for_label }}" class="block text-sm font-bold text-slate-700 mb-2">
+                        Expiry Date <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.expiry_datetime }}
+                    <p class="text-xs text-slate-500 mt-1.5">When will this food no longer be safe to consume?</p>
+                    {% if form.expiry_datetime.errors %}
+                        <p class="text-xs text-red-600 mt-1">{{ form.expiry_datetime.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Pickup Location (Text-based, no GPS) -->
+                <div>
+                    <label for="{{ form.pickup_location.id_for_label }}" class="block text-sm font-bold text-slate-700 mb-2">
+                        Pickup Location <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <i class="fas fa-map-marker-alt absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                        <input type="text" 
+                               name="{{ form.pickup_location.name }}" 
+                               id="{{ form.pickup_location.id_for_label }}"
+                               value="{{ form.pickup_location.value|default:'' }}"
+                               placeholder="Enter street address or landmark"
+                               class="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-sm sm:text-base">
+                    </div>
+                    <p class="text-xs text-slate-500 mt-1.5">Example: "123 Main St, Springfield" or "Community Center Entrance"</p>
+                    {% if form.pickup_location.errors %}
+                        <p class="text-xs text-red-600 mt-1">{{ form.pickup_location.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Navigation -->
+                <div class="flex flex-col-reverse sm:flex-row justify-between gap-3 pt-4">
+                    <button type="button" @click="prevStep" class="btn btn-outline text-sm sm:text-base w-full sm:w-auto">
+                        <i class="fas fa-arrow-left mr-2"></i> Back
+                    </button>
+                    <button type="button" @click="nextStep" class="btn btn-brand text-sm sm:text-base w-full sm:w-auto px-6 sm:px-8">
+                        Next: Additional Info <i class="fas fa-arrow-right ml-2"></i>
                     </button>
                 </div>
             </div>
 
-            <div x-show="step === 3" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" style="display: none;">
-                <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem;">Final Details</h3>
+            <!-- STEP 3: Additional Details -->
+            <div x-show="step === 3" 
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 translate-x-4"
+                 x-transition:enter-end="opacity-100 translate-x-0"
+                 style="display: none;"
+                 class="space-y-4 sm:space-y-6">
                 
-                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-                    
-                    <div x-data="{ preview: null }">
-                        <label class="form-label" style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem;">Food Photo</label>
-                        <div style="border: 2px dashed #e2e8f0; border-radius: 12px; padding: 2rem; text-align: center; cursor: pointer; position: relative; overflow: hidden; background: #f8fafc;"
-                             @click="$refs.fileInput.click()">
-                            
-                            <div x-show="!preview">
-                                <i class="fas fa-camera" style="font-size: 2rem; color: #cbd5e1; margin-bottom: 0.5rem;"></i>
-                                <p style="font-size: 0.9rem; font-weight: 600; color: var(--color-text-muted);">Click to upload photo</p>
-                            </div>
-                            
-                            <img x-show="preview" :src="preview" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
-                            
-                            <input type="file" name="image" x-ref="fileInput" class="hidden" accept="image/*"
-                                   @change="preview = URL.createObjectURL($event.target.files[0])" style="display: none;">
+                <h3 class="text-lg sm:text-xl font-bold text-slate-900 mb-4 sm:mb-6">Add helpful details</h3>
+                
+                <!-- Image Upload with Preview -->
+                <div x-data="{ preview: null }">
+                    <label class="block text-sm font-bold text-slate-700 mb-2">Food Photo</label>
+                    <div @click="$refs.fileInput.click()" 
+                         class="relative border-2 border-dashed border-slate-300 rounded-xl p-6 sm:p-8 text-center cursor-pointer hover:border-brand-500 transition-all bg-slate-50 overflow-hidden"
+                         :class="preview ? 'h-48 sm:h-64' : ''">
+                        
+                        <!-- Upload Prompt -->
+                        <div x-show="!preview" class="flex flex-col items-center">
+                            <i class="fas fa-camera text-3xl sm:text-4xl text-slate-300 mb-3"></i>
+                            <p class="text-sm sm:text-base font-semibold text-slate-600 mb-1">Click to upload photo</p>
+                            <p class="text-xs text-slate-400">PNG, JPG up to 5MB</p>
                         </div>
+                        
+                        <!-- Image Preview -->
+                        <img x-show="preview" :src="preview" class="absolute inset-0 w-full h-full object-cover rounded-lg" alt="Preview">
+                        
+                        <input type="file" 
+                               name="image" 
+                               x-ref="fileInput" 
+                               accept="image/*"
+                               @change="preview = $event.target.files[0] ? URL.createObjectURL($event.target.files[0]) : null"
+                               class="hidden">
                     </div>
-
-                    <div>
-                        <label class="form-label" style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem;">Estimated Calories</label>
-                        {{ form.estimated_calories }}
-                    </div>
-
-                    <div>
-                        <label class="form-label" style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem;">Dietary Tags</label>
-                        <div style="display: flex; flex-wrap: gap; gap: 0.5rem;">
-                            {% for checkbox in form.dietary_tags %}
-                                <div style="display: inline-flex; align-items: center; background: #f1f5f9; padding: 0.25rem 0.75rem; border-radius: 99px; font-size: 0.85rem;">
-                                    {{ checkbox.tag }}
-                                    <span style="margin-left: 0.5rem;">{{ checkbox.choice_label }}</span>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    </div>
+                    <p class="text-xs text-slate-500 mt-1.5">A clear photo helps recipients know what to expect</p>
                 </div>
 
-                <div style="margin-top: 2rem; display: flex; justify-content: space-between;">
-                    <button type="button" @click="step = 2" class="btn btn-outline">Back</button>
-                    <button type="submit" class="btn btn-brand" style="padding-left: 3rem; padding-right: 3rem;">
-                        Publish Donation
+                <!-- Estimated Calories -->
+                <div>
+                    <label for="{{ form.estimated_calories.id_for_label }}" class="block text-sm font-bold text-slate-700 mb-2">
+                        Estimated Calories <span class="text-slate-400 font-normal">(Optional)</span>
+                    </label>
+                    {{ form.estimated_calories }}
+                    <p class="text-xs text-slate-500 mt-1.5">Approximate calories per serving</p>
+                    {% if form.estimated_calories.errors %}
+                        <p class="text-xs text-red-600 mt-1">{{ form.estimated_calories.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Dietary Tags -->
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-3">
+                        Dietary Tags <span class="text-slate-400 font-normal">(Optional)</span>
+                    </label>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
+                        {% for value, label in form.fields.dietary_tags.choices %}
+                        <label class="flex items-center gap-2 p-2.5 sm:p-3 border-2 border-slate-200 rounded-lg cursor-pointer hover:border-brand-500 transition-all text-sm">
+                            <input type="checkbox" 
+                                   name="dietary_tags" 
+                                   value="{{ value }}"
+                                   class="w-4 h-4 text-brand-600 border-slate-300 rounded focus:ring-brand-500">
+                            <span class="font-medium text-slate-700">{{ label }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                    <p class="text-xs text-slate-500 mt-2">Select all that apply</p>
+                </div>
+
+                <!-- Ingredients (Optional) -->
+                <div>
+                    <label for="{{ form.ingredients_list.id_for_label }}" class="block text-sm font-bold text-slate-700 mb-2">
+                        Ingredients <span class="text-slate-400 font-normal">(Optional)</span>
+                    </label>
+                    {{ form.ingredients_list }}
+                    <p class="text-xs text-slate-500 mt-1.5">List main ingredients separated by commas</p>
+                </div>
+
+                <!-- Allergen Info (Optional) -->
+                <div>
+                    <label for="{{ form.allergen_info.id_for_label }}" class="block text-sm font-bold text-slate-700 mb-2">
+                        Allergen Information <span class="text-slate-400 font-normal">(Optional)</span>
+                    </label>
+                    {{ form.allergen_info }}
+                    <p class="text-xs text-slate-500 mt-1.5">List allergens: nuts, dairy, gluten, etc.</p>
+                </div>
+
+                <!-- Navigation -->
+                <div class="flex flex-col-reverse sm:flex-row justify-between gap-3 pt-4">
+                    <button type="button" @click="prevStep" class="btn btn-outline text-sm sm:text-base w-full sm:w-auto">
+                        <i class="fas fa-arrow-left mr-2"></i> Back
+                    </button>
+                    <button type="submit" class="btn btn-brand text-sm sm:text-base font-bold w-full sm:w-auto px-8 sm:px-12 shadow-lg">
+                        <i class="fas fa-check-circle mr-2"></i> Publish Donation
                     </button>
                 </div>
             </div>
@@ -151,24 +277,76 @@
     </div>
 </div>
 
+<script>
+function donationForm() {
+    return {
+        step: 1,
+        
+        nextStep() {
+            if (this.step < 3) {
+                this.step++;
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        },
+        
+        prevStep() {
+            if (this.step > 1) {
+                this.step--;
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        },
+        
+        validateStep(e) {
+            // Let Django handle validation on submit
+            return true;
+        }
+    }
+}
+</script>
+
 <style>
-    /* Ensure form inputs inside the wizard look good */
-    input[type="text"], input[type="number"], input[type="datetime-local"], select, textarea {
-        width: 100%;
-        padding: 0.75rem 1rem;
-        border-radius: var(--radius-md);
-        border: 1px solid #e2e8f0;
-        background-color: white;
-        font-family: inherit;
-        font-size: 0.95rem;
-        transition: all 0.2s;
-        outline: none;
+/* Form Input Styling */
+input[type="text"],
+input[type="number"],
+input[type="datetime-local"],
+select,
+textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    border: 1px solid #e2e8f0;
+    background-color: white;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.1);
+}
+
+textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+/* Mobile: Larger tap targets */
+@media (max-width: 640px) {
+    input[type="text"],
+    input[type="number"],
+    input[type="datetime-local"],
+    select {
+        padding: 0.875rem 1rem;
+        font-size: 16px; /* Prevents iOS zoom on focus */
     }
-    input:focus, select:focus, textarea:focus {
-        border-color: var(--color-primary);
-        box-shadow: 0 0 0 3px var(--color-primary-light);
+    
+    button {
+        min-height: 44px; /* iOS minimum touch target */
     }
-    /* Specific adjustment for location icon */
-    #id_pickup_location { padding-left: 2.5rem; }
+}
 </style>
 {% endblock %}

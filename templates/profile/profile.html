@@ -4,199 +4,279 @@
 {% block title %}Account Settings - FoodLoop{% endblock %}
 
 {% block content %}
-<div class="max-w-5xl mx-auto pt-6 pb-16">
+<div class="max-w-4xl mx-auto pt-4 sm:pt-6 pb-12 sm:pb-16 px-4 sm:px-6">
     
-    <div class="mb-8">
-        <h1 class="text-3xl md:text-4xl font-display font-extrabold text-navy-900">Account Settings</h1>
-        <p class="text-slate-500 text-lg mt-1">Manage your personal details and preferences.</p>
+    <!-- Header -->
+    <div class="mb-6 sm:mb-8">
+        <a href="{% url 'core:dashboard' %}" class="inline-flex items-center gap-2 text-slate-500 hover:text-brand-600 font-semibold text-sm sm:text-base mb-3 sm:mb-4 transition-colors">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+        <h1 class="text-2xl sm:text-3xl md:text-4xl font-display font-extrabold text-slate-900">Account Settings</h1>
+        <p class="text-sm sm:text-base text-slate-500 mt-2">Manage your profile and preferences</p>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-start" x-data="{ activeTab: 'personal' }">
+    <!-- Email Verification Alert -->
+    {% if not user.profile.email_verified %}
+    <div class="card bg-yellow-50 border-yellow-200 p-4 sm:p-6 mb-6 sm:mb-8">
+        <div class="flex gap-3 sm:gap-4">
+            <div class="w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center shrink-0">
+                <i class="fas fa-exclamation text-white"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+                <h4 class="text-base sm:text-lg font-bold text-slate-900 mb-1">Verify Your Email</h4>
+                <p class="text-xs sm:text-sm text-slate-700 mb-3 leading-relaxed">
+                    Please verify your email address to unlock all features and start claiming donations.
+                </p>
+                <form method="post" action="{% url 'core:resend_verification' %}" class="inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm bg-yellow-600 hover:bg-yellow-700 text-white text-xs sm:text-sm">
+                        <i class="fas fa-envelope"></i> Resend Verification Email
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Profile Form -->
+    <div class="card p-4 sm:p-6 md:p-8 mb-6 sm:mb-8">
+        <h3 class="text-lg sm:text-xl font-bold text-slate-900 mb-6">Profile Information</h3>
         
-        <div class="md:col-span-1 space-y-6">
-            <div class="card p-6 text-center border border-slate-200 shadow-lg">
-                <div class="relative w-24 h-24 mx-auto mb-4">
-                    {% if profile.profile_picture %}
-                        <img src="{{ profile.profile_picture.url }}" class="w-full h-full rounded-full object-cover border-4 border-slate-50 shadow-inner">
-                    {% else %}
-                        <div class="w-full h-full rounded-full bg-brand-100 text-brand-600 flex items-center justify-center text-3xl font-bold border-4 border-slate-50">
-                            {{ user.first_name|first }}
-                        </div>
-                    {% endif %}
+        <form method="post" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+
+            <!-- Profile Picture Upload -->
+            <div x-data="{ preview: '{{ user.profile.profile_picture.url|default:'' }}' }">
+                <label class="block text-sm font-bold text-slate-700 mb-3">Profile Picture</label>
+                <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                    <!-- Current/Preview Image -->
+                    <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden bg-slate-100 border-4 border-slate-200 shrink-0 relative">
+                        <template x-if="preview">
+                            <img :src="preview" class="w-full h-full object-cover" alt="Profile">
+                        </template>
+                        <template x-if="!preview">
+                            <div class="w-full h-full flex items-center justify-center text-3xl sm:text-4xl font-bold text-brand-600 bg-brand-50">
+                                {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+                            </div>
+                        </template>
+                    </div>
                     
-                    {% if profile.email_verified %}
-                        <div class="absolute bottom-0 right-0 bg-blue-500 text-white w-7 h-7 rounded-full flex items-center justify-center text-xs border-2 border-white shadow-sm" title="Verified">
-                            <i class="fas fa-check"></i>
-                        </div>
+                    <!-- Upload Button -->
+                    <div class="flex-1 w-full">
+                        <input type="file" 
+                               name="profile_picture" 
+                               x-ref="fileInput"
+                               accept="image/*"
+                               @change="preview = $event.target.files[0] ? URL.createObjectURL($event.target.files[0]) : preview"
+                               class="hidden">
+                        <button type="button" 
+                                @click="$refs.fileInput.click()"
+                                class="btn btn-outline w-full sm:w-auto text-sm">
+                            <i class="fas fa-camera"></i> Change Photo
+                        </button>
+                        <p class="text-xs text-slate-500 mt-2">JPG, PNG up to 5MB</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Name Fields (Grid on Desktop) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                <div>
+                    <label for="{{ form.first_name.id_for_label }}" class="block text-sm font-bold text-slate-700 mb-2">
+                        First Name <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.first_name }}
+                    {% if form.first_name.errors %}
+                        <p class="text-xs text-red-600 mt-1">{{ form.first_name.errors.0 }}</p>
                     {% endif %}
                 </div>
-                
-                <h3 class="text-xl font-bold text-navy-900 mb-1">{{ user.get_full_name }}</h3>
-                <p class="text-sm text-slate-500 capitalize font-medium">{{ profile.user_type }}</p>
-                
-                <div class="mt-6 pt-4 border-t border-slate-100 flex justify-center gap-8">
-                    <div>
-                        <div class="font-extrabold text-lg text-navy-900">{{ analytics.donation_stats.total|default:0 }}</div>
-                        <div class="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Activity</div>
-                    </div>
-                    <div>
-                        <div class="font-extrabold text-lg text-navy-900">{{ profile.average_rating }}</div>
-                        <div class="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Rating</div>
-                    </div>
+                <div>
+                    <label for="{{ form.last_name.id_for_label }}" class="block text-sm font-bold text-slate-700 mb-2">
+                        Last Name <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.last_name }}
+                    {% if form.last_name.errors %}
+                        <p class="text-xs text-red-600 mt-1">{{ form.last_name.errors.0 }}</p>
+                    {% endif %}
                 </div>
             </div>
 
-            <div class="card p-2 flex flex-col gap-1 border border-slate-200">
-                <button @click="activeTab = 'personal'" 
-                        :class="activeTab === 'personal' ? 'bg-navy-50 text-navy-900 font-bold' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'"
-                        class="w-full text-left px-4 py-3 rounded-xl text-sm transition-all flex items-center gap-3">
-                    <i class="fas fa-user-circle text-lg w-6 text-center"></i> Personal Info
-                </button>
-                
-                {% if profile.user_type == 'recipient' %}
-                <button @click="activeTab = 'preferences'" 
-                        :class="activeTab === 'preferences' ? 'bg-navy-50 text-navy-900 font-bold' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'"
-                        class="w-full text-left px-4 py-3 rounded-xl text-sm transition-all flex items-center gap-3">
-                    <i class="fas fa-sliders text-lg w-6 text-center"></i> Dietary Preferences
-                </button>
+            <!-- Email (Read-only) -->
+            <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2">Email Address</label>
+                <div class="relative">
+                    <input type="email" 
+                           value="{{ user.email }}" 
+                           readonly 
+                           class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-600 cursor-not-allowed">
+                    {% if user.profile.email_verified %}
+                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-green-600 text-sm">
+                            <i class="fas fa-check-circle"></i> Verified
+                        </span>
+                    {% else %}
+                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-yellow-600 text-sm">
+                            <i class="fas fa-exclamation-circle"></i> Unverified
+                        </span>
+                    {% endif %}
+                </div>
+                <p class="text-xs text-slate-500 mt-1.5">Contact support to change your email address</p>
+            </div>
+
+            <!-- Phone Number -->
+            <div>
+                <label for="{{ form.phone_number.id_for_label }}" class="block text-sm font-bold text-slate-700 mb-2">
+                    Phone Number <span class="text-slate-400 font-normal">(Optional)</span>
+                </label>
+                {{ form.phone_number }}
+                <p class="text-xs text-slate-500 mt-1.5">Used for pickup coordination</p>
+                {% if form.phone_number.errors %}
+                    <p class="text-xs text-red-600 mt-1">{{ form.phone_number.errors.0 }}</p>
                 {% endif %}
-                
-                <a href="{% url 'core:public_profile' user.id %}" target="_blank"
-                   class="w-full text-left px-4 py-3 rounded-xl text-sm text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition-all flex items-center gap-3">
-                    <i class="fas fa-external-link-alt text-lg w-6 text-center"></i> View Public Profile
+            </div>
+
+            <!-- Location (Text-based, no GPS) -->
+            <div>
+                <label for="{{ form.location.id_for_label }}" class="block text-sm font-bold text-slate-700 mb-2">
+                    Location <span class="text-slate-400 font-normal">(Optional)</span>
+                </label>
+                <div class="relative">
+                    <i class="fas fa-map-marker-alt absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" 
+                           name="location" 
+                           id="{{ form.location.id_for_label }}"
+                           value="{{ form.location.value|default:'' }}"
+                           placeholder="e.g., Downtown, Springfield"
+                           class="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+                </div>
+                <p class="text-xs text-slate-500 mt-1.5">General area for finding nearby donations</p>
+                {% if form.location.errors %}
+                    <p class="text-xs text-red-600 mt-1">{{ form.location.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Bio -->
+            <div>
+                <label for="{{ form.bio.id_for_label }}" class="block text-sm font-bold text-slate-700 mb-2">
+                    Bio <span class="text-slate-400 font-normal">(Optional)</span>
+                </label>
+                {{ form.bio }}
+                <p class="text-xs text-slate-500 mt-1.5">Tell the community a bit about yourself</p>
+                {% if form.bio.errors %}
+                    <p class="text-xs text-red-600 mt-1">{{ form.bio.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Submit Button -->
+            <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4 border-t border-slate-200">
+                <a href="{% url 'core:dashboard' %}" class="btn btn-outline w-full sm:w-auto justify-center">
+                    Cancel
                 </a>
+                <button type="submit" class="btn btn-brand w-full sm:w-auto justify-center px-8">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
             </div>
-        </div>
+        </form>
+    </div>
 
-        <div class="md:col-span-2">
-            <form method="post" enctype="multipart/form-data">
-                {% csrf_token %}
-                
-                <div x-show="activeTab === 'personal'" class="card p-6 md:p-8 border border-slate-200 shadow-md" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-2">
-                    <h2 class="text-xl font-bold text-navy-900 mb-6 flex items-center gap-2">
-                        <i class="fas fa-id-card text-brand-500"></i> Personal Information
-                    </h2>
-
-                    <div class="space-y-6">
-                        <div x-data="{ preview: null }">
-                            <div class="flex items-center gap-6">
-                                <div class="relative w-20 h-20 rounded-full overflow-hidden bg-slate-100 cursor-pointer group shadow-inner"
-                                     @click="$refs.photoInput.click()">
-                                    <img x-show="preview" :src="preview" class="w-full h-full object-cover">
-                                    <div x-show="!preview" class="w-full h-full flex items-center justify-center text-slate-400 group-hover:text-slate-600 transition-colors">
-                                        <i class="fas fa-camera text-2xl"></i>
-                                    </div>
-                                    <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors"></div>
-                                </div>
-                                <div>
-                                    <button type="button" @click="$refs.photoInput.click()" class="btn btn-sm btn-outline border-slate-300 text-slate-600 hover:border-slate-400 hover:bg-slate-50 mb-1">Change Photo</button>
-                                    <p class="text-xs text-slate-400">JPG or PNG, max 5MB</p>
-                                </div>
-                                <input type="file" name="profile_picture" x-ref="photoInput" class="hidden" accept="image/*"
-                                       @change="preview = URL.createObjectURL($event.target.files[0])">
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label class="block text-xs font-bold uppercase text-slate-500 mb-2">First Name</label>
-                                {{ form.first_name }}
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Last Name</label>
-                                {{ form.last_name }}
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Email</label>
-                            {{ form.email }}
-                            {% if not profile.email_verified %}
-                                <p class="text-xs text-orange-600 mt-2 flex items-center gap-1">
-                                    <i class="fas fa-exclamation-circle"></i> Unverified. 
-                                    <a href="{% url 'core:resend_verification' %}" class="underline hover:text-orange-700 font-bold">Resend Link</a>
-                                </p>
-                            {% endif %}
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Bio</label>
-                            {{ form.bio }}
-                            <p class="text-xs text-slate-400 mt-1 text-right">Brief description for your public profile.</p>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Phone</label>
-                                {{ form.phone_number }}
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Location</label>
-                                {{ form.location }}
-                                {{ form.latitude }}
-                                {{ form.longitude }}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mt-8 pt-6 border-t border-slate-100 flex justify-end">
-                        <button type="submit" class="btn bg-navy-900 hover:bg-navy-800 text-white shadow-lg shadow-navy-900/10 px-8">Save Changes</button>
-                    </div>
-                </div>
-
-                {% if profile.user_type == 'recipient' %}
-                <div x-show="activeTab === 'preferences'" class="card p-6 md:p-8 border border-slate-200 shadow-md" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-2" style="display: none;">
-                    <h2 class="text-xl font-bold text-navy-900 mb-4 flex items-center gap-2">
-                        <i class="fas fa-utensils text-brand-500"></i> Dietary Preferences
-                    </h2>
-                    <p class="text-slate-500 mb-6 text-sm">Select the types of food you are interested in. This helps our AI recommend the best donations for you.</p>
-
-                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        {% for choice in form.dietary_restrictions %}
-                        <div class="relative">
-                            {{ choice.tag }}
-                            <label for="{{ choice.id_for_label }}" class="preference-card cursor-pointer">
-                                <span class="font-bold text-sm">{{ choice.choice_label }}</span>
-                            </label>
-                        </div>
-                        {% endfor %}
-                    </div>
-
-                    <div class="mt-8 pt-6 border-t border-slate-100 flex justify-end">
-                        <button type="submit" class="btn bg-navy-900 hover:bg-navy-800 text-white shadow-lg shadow-navy-900/10 px-8">Save Preferences</button>
-                    </div>
-                </div>
-                {% endif %}
-
-            </form>
+    <!-- Account Stats Card -->
+    <div class="card p-4 sm:p-6 md:p-8 mb-6 sm:mb-8">
+        <h3 class="text-lg sm:text-xl font-bold text-slate-900 mb-6">Account Statistics</h3>
+        
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div class="text-center p-4 bg-slate-50 rounded-xl">
+                <p class="text-2xl sm:text-3xl font-display font-bold text-brand-600">
+                    {{ user.profile.total_donations }}
+                </p>
+                <p class="text-xs sm:text-sm text-slate-600 font-medium mt-1">Total Donations</p>
+            </div>
+            <div class="text-center p-4 bg-slate-50 rounded-xl">
+                <p class="text-2xl sm:text-3xl font-display font-bold text-blue-600">
+                    {{ user.profile.completed_donations }}
+                </p>
+                <p class="text-xs sm:text-sm text-slate-600 font-medium mt-1">Completed</p>
+            </div>
+            <div class="text-center p-4 bg-slate-50 rounded-xl">
+                <p class="text-2xl sm:text-3xl font-display font-bold text-yellow-600 flex items-center justify-center gap-1">
+                    {{ user.profile.average_rating|floatformat:1 }}
+                    <i class="fas fa-star text-base sm:text-lg"></i>
+                </p>
+                <p class="text-xs sm:text-sm text-slate-600 font-medium mt-1">Rating</p>
+            </div>
+            <div class="text-center p-4 bg-slate-50 rounded-xl">
+                <p class="text-2xl sm:text-3xl font-display font-bold text-purple-600">
+                    {{ user.profile.total_ratings }}
+                </p>
+                <p class="text-xs sm:text-sm text-slate-600 font-medium mt-1">Reviews</p>
+            </div>
         </div>
     </div>
+
+    <!-- Quick Links -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <a href="{% url 'core:dietary_preferences' %}" class="card p-4 sm:p-6 hover:scale-[1.02] transition-transform group">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center text-green-600 text-xl group-hover:scale-110 transition-transform">
+                    <i class="fas fa-utensils"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h4 class="font-bold text-slate-900 mb-1">Dietary Preferences</h4>
+                    <p class="text-xs text-slate-500">Manage your food preferences</p>
+                </div>
+                <i class="fas fa-chevron-right text-slate-400"></i>
+            </div>
+        </a>
+
+        <a href="{% url 'core:public_profile' user.username %}" class="card p-4 sm:p-6 hover:scale-[1.02] transition-transform group">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-brand-100 rounded-xl flex items-center justify-center text-brand-600 text-xl group-hover:scale-110 transition-transform">
+                    <i class="fas fa-eye"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h4 class="font-bold text-slate-900 mb-1">View Public Profile</h4>
+                    <p class="text-xs text-slate-500">See how others view your profile</p>
+                </div>
+                <i class="fas fa-chevron-right text-slate-400"></i>
+            </div>
+        </a>
+    </div>
+
 </div>
 
 <style>
-    .preference-card {
-        border: 2px solid #e2e8f0;
-        border-radius: 12px;
-        padding: 1rem;
-        text-align: center;
-        transition: all 0.2s;
-        background: white;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #64748b;
-    }
-    
-    input[type="checkbox"]:checked + .preference-card {
-        border-color: var(--color-primary);
-        background-color: var(--color-primary-light);
-        color: var(--color-primary-dark);
-        font-weight: 700;
-    }
+/* Form Input Styling */
+input[type="text"],
+input[type="tel"],
+input[type="email"],
+textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    border: 1px solid #e2e8f0;
+    background-color: white;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+}
 
-    input[type="checkbox"] {
-        display: none;
+input:focus,
+textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.1);
+}
+
+textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+/* Mobile: Prevent iOS zoom */
+@media (max-width: 640px) {
+    input[type="text"],
+    input[type="tel"],
+    input[type="email"],
+    textarea {
+        font-size: 16px;
     }
+}
 </style>
 {% endblock %}

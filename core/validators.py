@@ -32,27 +32,6 @@ def validate_phone_number(value):
         )
 
 
-def validate_coordinates(latitude, longitude):
-    """
-    Validate GPS coordinates
-    """
-    if latitude is not None:
-        try:
-            lat = float(latitude)
-            if not (-90 <= lat <= 90):
-                raise ValidationError(_('Latitude must be between -90 and 90'))
-        except (TypeError, ValueError):
-            raise ValidationError(_('Invalid latitude format'))
-    
-    if longitude is not None:
-        try:
-            lon = float(longitude)
-            if not (-180 <= lon <= 180):
-                raise ValidationError(_('Longitude must be between -180 and 180'))
-        except (TypeError, ValueError):
-            raise ValidationError(_('Invalid longitude format'))
-
-
 def validate_image_size(image):
     """
     Validate uploaded image size and dimensions

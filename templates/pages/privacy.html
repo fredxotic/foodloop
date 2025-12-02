@@ -4,42 +4,248 @@
 {% block title %}Privacy Policy - FoodLoop{% endblock %}
 
 {% block content %}
-<div style="background: var(--color-text-main); color: white; padding: 6rem 0; text-align: center; border-radius: var(--radius-xl); margin-bottom: 4rem;">
-    <div class="container" style="max-width: 800px;">
-        <h1 style="font-size: 3rem; margin-bottom: 1.5rem;">Privacy Policy</h1>
-        <p style="font-size: 1.25rem; color: #94a3b8; line-height: 1.7;">
-            Last updated: November 29, 2025
-        </p>
+<div class="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12 md:py-16">
+    
+    <!-- Header -->
+    <div class="mb-8 sm:mb-12">
+        <a href="{% url 'core:home' %}" class="inline-flex items-center gap-2 text-slate-500 hover:text-brand-600 font-semibold text-sm mb-4 transition-colors">
+            <i class="fas fa-arrow-left"></i> Back to Home
+        </a>
+        <h1 class="text-3xl sm:text-4xl md:text-5xl font-display font-extrabold text-slate-900 mb-4">Privacy Policy</h1>
+        <p class="text-sm sm:text-base text-slate-600">Last updated: December 3, 2025</p>
     </div>
-</div>
 
-<div class="container" style="max-width: 900px;">
-    <div class="card" style="padding: 3rem;">
-        <article style="color: var(--color-text-muted); line-height: 1.8;">
-            <h3 style="color: var(--color-text-main); font-size: 1.5rem; margin-bottom: 1rem;">1. Introduction</h3>
-            <p style="margin-bottom: 2rem;">Welcome to FoodLoop. We respect your privacy and are committed to protecting your personal data. This privacy policy will inform you as to how we look after your personal data when you visit our website and tell you about your privacy rights and how the law protects you.</p>
+    <!-- Content -->
+    <div class="prose prose-slate max-w-none">
+        
+        <!-- Introduction -->
+        <div class="card p-6 sm:p-8 mb-6 bg-blue-50 border-blue-200">
+            <p class="text-sm sm:text-base text-slate-700 leading-relaxed mb-0">
+                FoodLoop ("we," "us," "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our platform.
+            </p>
+        </div>
 
-            <h3 style="color: var(--color-text-main); font-size: 1.5rem; margin-bottom: 1rem; margin-top: 3rem;">2. Data We Collect</h3>
-            <p style="margin-bottom: 1rem;">We may collect, use, store and transfer different kinds of personal data about you which we have grouped together follows:</p>
-            <ul style="list-style: disc; padding-left: 2rem; margin-bottom: 2rem;">
-                <li style="margin-bottom: 0.5rem;"><strong>Identity Data:</strong> includes first name, last name, username or similar identifier.</li>
-                <li style="margin-bottom: 0.5rem;"><strong>Contact Data:</strong> includes email address and telephone numbers.</li>
-                <li style="margin-bottom: 0.5rem;"><strong>Location Data:</strong> includes GPS coordinates for donation pickup/delivery.</li>
-            </ul>
-
-            <h3 style="color: var(--color-text-main); font-size: 1.5rem; margin-bottom: 1rem; margin-top: 3rem;">3. How We Use Your Data</h3>
-            <p style="margin-bottom: 1rem;">We will only use your personal data when the law allows us to. Most commonly, we will use your personal data in the following circumstances:</p>
-            <ul style="list-style: disc; padding-left: 2rem; margin-bottom: 2rem;">
-                <li style="margin-bottom: 0.5rem;">To facilitate food donations and pickups between users.</li>
-                <li style="margin-bottom: 0.5rem;">To manage your account and registration.</li>
-                <li style="margin-bottom: 0.5rem;">To improve our website and services via aggregated analytics.</li>
-            </ul>
+        <!-- Section 1 -->
+        <div class="card p-6 sm:p-8 mb-6">
+            <h2 class="text-xl sm:text-2xl font-bold text-slate-900 mb-4">1. Information We Collect</h2>
             
-            <div style="margin-top: 3rem; padding: 2rem; background: var(--color-background); border-radius: var(--radius-lg); border: 1px solid #e2e8f0;">
-                <h4 style="font-size: 0.875rem; font-weight: bold; color: var(--color-text-main); text-transform: uppercase; margin-bottom: 0.5rem;">Contact Us</h4>
-                <p style="font-size: 0.875rem; margin: 0;">If you have questions about this policy, please email us at <a href="mailto:privacy@foodloop.com" style="color: var(--color-primary); text-decoration: underline;">privacy@foodloop.com</a>.</p>
+            <div class="space-y-4 text-sm sm:text-base text-slate-600 leading-relaxed">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-900 mb-2">1.1 Information You Provide</h3>
+                    <ul class="list-disc list-inside space-y-2 ml-4">
+                        <li><strong>Account Information:</strong> Name, email address, phone number (optional), password</li>
+                        <li><strong>Profile Information:</strong> Profile picture, bio, location (general area, not GPS coordinates), dietary preferences</li>
+                        <li><strong>Donation Information:</strong> Food descriptions, photos, pickup locations, expiry dates</li>
+                        <li><strong>Communications:</strong> Messages, ratings, reviews, and support inquiries</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-bold text-slate-900 mb-2">1.2 Automatically Collected Information</h3>
+                    <ul class="list-disc list-inside space-y-2 ml-4">
+                        <li><strong>Usage Data:</strong> Pages visited, features used, time spent on platform</li>
+                        <li><strong>Device Information:</strong> Browser type, operating system, IP address</li>
+                        <li><strong>Cookies:</strong> We use cookies for authentication and preferences (see Section 7)</li>
+                    </ul>
+                </div>
             </div>
-        </article>
+        </div>
+
+        <!-- Section 2 -->
+        <div class="card p-6 sm:p-8 mb-6">
+            <h2 class="text-xl sm:text-2xl font-bold text-slate-900 mb-4">2. How We Use Your Information</h2>
+            <div class="space-y-3 text-sm sm:text-base text-slate-600 leading-relaxed">
+                <p>We use your information to:</p>
+                <ul class="list-disc list-inside space-y-2 ml-4">
+                    <li>Provide and maintain FoodLoop services</li>
+                    <li>Connect donors with recipients</li>
+                    <li>Send notifications about donations, claims, and platform updates</li>
+                    <li>Process and display ratings and reviews</li>
+                    <li>Improve platform functionality and user experience</li>
+                    <li>Prevent fraud and enforce Terms of Service</li>
+                    <li>Respond to support requests and inquiries</li>
+                    <li>Comply with legal obligations</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Section 3 -->
+        <div class="card p-6 sm:p-8 mb-6">
+            <h2 class="text-xl sm:text-2xl font-bold text-slate-900 mb-4">3. Information Sharing</h2>
+            <div class="space-y-4 text-sm sm:text-base text-slate-600 leading-relaxed">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-900 mb-2">3.1 Public Information</h3>
+                    <p>The following information is visible to other FoodLoop users:</p>
+                    <ul class="list-disc list-inside space-y-2 ml-4">
+                        <li>Your name and profile picture</li>
+                        <li>Your user type (Donor/Recipient)</li>
+                        <li>Donation listings you create</li>
+                        <li>Your ratings and reviews (from other users)</li>
+                        <li>General location (not precise GPS coordinates)</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-bold text-slate-900 mb-2">3.2 We Do NOT Sell Your Data</h3>
+                    <p class="font-semibold text-slate-900">
+                        FoodLoop does not sell, rent, or trade your personal information to third parties for marketing purposes.
+                    </p>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-bold text-slate-900 mb-2">3.3 Limited Sharing</h3>
+                    <p>We may share information with:</p>
+                    <ul class="list-disc list-inside space-y-2 ml-4">
+                        <li><strong>Service Providers:</strong> Email services, hosting providers (under strict confidentiality agreements)</li>
+                        <li><strong>Legal Requirements:</strong> When required by law or to protect rights and safety</li>
+                        <li><strong>Business Transfers:</strong> In connection with a merger, acquisition, or sale of assets</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 4 -->
+        <div class="card p-6 sm:p-8 mb-6">
+            <h2 class="text-xl sm:text-2xl font-bold text-slate-900 mb-4">4. Data Security</h2>
+            <div class="space-y-3 text-sm sm:text-base text-slate-600 leading-relaxed">
+                <p>We implement security measures to protect your information:</p>
+                <ul class="list-disc list-inside space-y-2 ml-4">
+                    <li>Passwords are encrypted using industry-standard hashing</li>
+                    <li>HTTPS encryption for all data transmission</li>
+                    <li>Regular security audits and updates</li>
+                    <li>Limited employee access to personal data</li>
+                </ul>
+                <p class="mt-4">
+                    <strong>Note:</strong> While we strive to protect your data, no method of transmission over the internet is 100% secure. Use FoodLoop at your own risk.
+                </p>
+            </div>
+        </div>
+
+        <!-- Section 5 -->
+        <div class="card p-6 sm:p-8 mb-6">
+            <h2 class="text-xl sm:text-2xl font-bold text-slate-900 mb-4">5. Your Privacy Rights</h2>
+            <div class="space-y-3 text-sm sm:text-base text-slate-600 leading-relaxed">
+                <p>You have the right to:</p>
+                <ul class="list-disc list-inside space-y-2 ml-4">
+                    <li><strong>Access:</strong> Request a copy of your personal data</li>
+                    <li><strong>Correction:</strong> Update inaccurate information in your profile</li>
+                    <li><strong>Deletion:</strong> Request deletion of your account and data</li>
+                    <li><strong>Opt-Out:</strong> Unsubscribe from marketing emails (notification emails may still be sent for core functionality)</li>
+                    <li><strong>Data Portability:</strong> Receive your data in a structured format</li>
+                </ul>
+                <p class="mt-4">
+                    To exercise these rights, contact us at <a href="mailto:privacy@foodloop.com" class="text-brand-600 hover:text-brand-700 font-semibold">privacy@foodloop.com</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Section 6 -->
+        <div class="card p-6 sm:p-8 mb-6">
+            <h2 class="text-xl sm:text-2xl font-bold text-slate-900 mb-4">6. Data Retention</h2>
+            <div class="space-y-3 text-sm sm:text-base text-slate-600 leading-relaxed">
+                <p>We retain your information for as long as:</p>
+                <ul class="list-disc list-inside space-y-2 ml-4">
+                    <li>Your account is active</li>
+                    <li>Needed to provide services</li>
+                    <li>Required by law</li>
+                </ul>
+                <p class="mt-4">
+                    When you delete your account, we will remove or anonymize your personal data within 30 days, except where retention is required for legal compliance or dispute resolution.
+                </p>
+            </div>
+        </div>
+
+        <!-- Section 7 -->
+        <div class="card p-6 sm:p-8 mb-6">
+            <h2 class="text-xl sm:text-2xl font-bold text-slate-900 mb-4">7. Cookies and Tracking</h2>
+            <div class="space-y-3 text-sm sm:text-base text-slate-600 leading-relaxed">
+                <p>FoodLoop uses cookies for:</p>
+                <ul class="list-disc list-inside space-y-2 ml-4">
+                    <li><strong>Essential Cookies:</strong> Authentication, security, basic functionality (cannot be disabled)</li>
+                    <li><strong>Preference Cookies:</strong> Remember your settings and choices</li>
+                    <li><strong>Analytics Cookies:</strong> Understand how users interact with the platform (can be disabled)</li>
+                </ul>
+                <p class="mt-4">
+                    You can control cookies through your browser settings, but disabling essential cookies may affect platform functionality.
+                </p>
+            </div>
+        </div>
+
+        <!-- Section 8 -->
+        <div class="card p-6 sm:p-8 mb-6">
+            <h2 class="text-xl sm:text-2xl font-bold text-slate-900 mb-4">8. Children's Privacy</h2>
+            <div class="space-y-3 text-sm sm:text-base text-slate-600 leading-relaxed">
+                <p>
+                    FoodLoop is not intended for users under 18 years of age. We do not knowingly collect personal information from children.
+                </p>
+                <p>
+                    If we discover we have collected information from a child under 18, we will delete it immediately.
+                </p>
+            </div>
+        </div>
+
+        <!-- Section 9 -->
+        <div class="card p-6 sm:p-8 mb-6">
+            <h2 class="text-xl sm:text-2xl font-bold text-slate-900 mb-4">9. Third-Party Links</h2>
+            <div class="space-y-3 text-sm sm:text-base text-slate-600 leading-relaxed">
+                <p>
+                    FoodLoop may contain links to third-party websites or services. We are not responsible for the privacy practices of these external sites.
+                </p>
+                <p>
+                    Please review the privacy policies of any third-party sites you visit.
+                </p>
+            </div>
+        </div>
+
+        <!-- Section 10 -->
+        <div class="card p-6 sm:p-8 mb-6">
+            <h2 class="text-xl sm:text-2xl font-bold text-slate-900 mb-4">10. Changes to Privacy Policy</h2>
+            <div class="space-y-3 text-sm sm:text-base text-slate-600 leading-relaxed">
+                <p>
+                    We may update this Privacy Policy from time to time. We will notify you of significant changes via:
+                </p>
+                <ul class="list-disc list-inside space-y-2 ml-4">
+                    <li>Email notification</li>
+                    <li>Platform announcement</li>
+                    <li>Updated "Last Modified" date at the top of this page</li>
+                </ul>
+                <p class="mt-4">
+                    Continued use of FoodLoop after changes constitutes acceptance of the updated policy.
+                </p>
+            </div>
+        </div>
+
+        <!-- Section 11 -->
+        <div class="card p-6 sm:p-8 mb-6">
+            <h2 class="text-xl sm:text-2xl font-bold text-slate-900 mb-4">11. Contact Us</h2>
+            <div class="space-y-3 text-sm sm:text-base text-slate-600 leading-relaxed">
+                <p>
+                    If you have questions about this Privacy Policy or your data, please contact:
+                </p>
+                <ul class="list-none space-y-2 ml-0">
+                    <li><strong>Privacy Team:</strong> privacy@foodloop.com</li>
+                    <li><strong>General Inquiries:</strong> support@foodloop.com</li>
+                    <li><strong>Contact Form:</strong> <a href="{% url 'core:contact' %}" class="text-brand-600 hover:text-brand-700 font-semibold">Visit our contact page</a></li>
+                </ul>
+            </div>
+        </div>
+
     </div>
+
+    <!-- Footer CTA -->
+    <div class="card bg-slate-50 border-slate-200 p-6 sm:p-8 text-center mt-8">
+        <p class="text-sm sm:text-base text-slate-700 mb-4">
+            Your privacy is important to us. We're committed to transparency and data protection.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+            <a href="{% url 'core:terms' %}" class="btn btn-outline text-sm sm:text-base">
+                <i class="fas fa-file-contract"></i> Terms of Service
+            </a>
+            <a href="{% url 'core:contact' %}" class="btn btn-brand text-sm sm:text-base">
+                <i class="fas fa-envelope"></i> Contact Us
+            </a>
+        </div>
+    </div>
+
 </div>
 {% endblock %}
