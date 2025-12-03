@@ -16,9 +16,13 @@ python manage.py migrate admin --noinput
 python manage.py migrate sessions --noinput
 python manage.py migrate authtoken --noinput
 
-# using --fake-initial to skip existing database objects
-echo "Applying core migrations with --fake-initial..."
-python manage.py migrate core --fake-initial --noinput || echo "Warning: Some core migrations skipped"
+# Fake the problematic migration that creates duplicate index
+echo "Faking migration 0002 (has duplicate index)..."
+python manage.py migrate core 0002_remove_gps_fields --fake --noinput || echo "Migration 0002 fake failed, continuing..."
+
+# Now apply remaining migrations normally
+echo "Applying remaining core migrations..."
+python manage.py migrate core --noinput || echo "Warning: Some core migrations skipped"
 
 # Apply any remaining migrations
 python manage.py migrate --noinput || echo "Some migrations may have been skipped"
