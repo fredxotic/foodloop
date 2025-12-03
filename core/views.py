@@ -970,17 +970,26 @@ def home_view(request):
     if request.user.is_authenticated:
         return redirect('core:dashboard')
     
-    # Get recent stats
-    stats = {
-        'total_donations': Donation.objects.count(),
-        'completed_donations': Donation.objects.filter(status=Donation.COMPLETED).count(),
-        'active_users': UserProfile.objects.filter(email_verified=True).count(),
-    }
-    
-    # Get recent available donations for preview
-    recent_donations = Donation.objects.filter(
-        status=Donation.AVAILABLE
-    ).select_related('donor', 'donor__profile').order_by('-created_at')[:6]
+    # Get recent stats (with error handling)
+    try:
+        stats = {
+            'total_donations': Donation.objects.count(),
+            'completed_donations': Donation.objects.filter(status=Donation.COMPLETED).count(),
+            'active_users': UserProfile.objects.filter(email_verified=True).count(),
+        }
+        
+        # Get recent available donations for preview
+        recent_donations = Donation.objects.filter(
+            status=Donation.AVAILABLE
+        ).select_related('donor', 'donor__profile').order_by('-created_at')[:6]
+    except Exception as e:
+        logger.warning(f"Database not ready: {e}")
+        stats = {
+            'total_donations': 0,
+            'completed_donations': 0,
+            'active_users': 0,
+        }
+        recent_donations = []
     
     context = {
         'stats': stats,
