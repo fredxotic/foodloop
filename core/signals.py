@@ -11,19 +11,17 @@ from .models import UserProfile
 @receiver(post_save, sender=User)
 def ensure_user_profile(sender, instance, created, **kwargs):
     """
-    Ensure every user has a profile.
-    Only create if it doesn't exist to avoid conflicts with form-based creation.
+    Profile creation is now handled by signup form.
+    This signal only ensures existing users have profiles (for admin users, etc.)
     """
-    if created:
-        # Check if profile was already created by signup form
+    if not created:  # ONLY run on UPDATE, not on CREATE
+        # Ensure profile exists for existing users (updates only)
         if not hasattr(instance, 'profile'):
-            UserProfile.objects.create(
+            UserProfile.objects.get_or_create(
                 user=instance,
-                user_type=UserProfile.DONOR if instance.is_staff else UserProfile.RECIPIENT
+                defaults={
+                    'user_type': UserProfile.DONOR if instance.is_staff else UserProfile.RECIPIENT,
+                    'phone_number': None,  # Allow NULL for admin-created users
+                    'location': ''
+                }
             )
-    else:
-        # Ensure profile exists for existing users
-        UserProfile.objects.get_or_create(
-            user=instance,
-            defaults={'user_type': UserProfile.RECIPIENT}
-        )
