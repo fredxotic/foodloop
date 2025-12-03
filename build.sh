@@ -1,39 +1,35 @@
 #!/usr/bin/env bash
 set -o errexit
 
+# Install dependencies
 pip install -r requirements.txt
+
+# Collect static files
 python manage.py collectstatic --no-input
 
-echo "=== Starting database migrations ==="
+echo "=== Starting database setup ==="
 
-# Apply Django's built-in apps first
+# First, apply all Django built-in migrations
 python manage.py migrate auth --noinput
 python manage.py migrate contenttypes --noinput
 python manage.py migrate admin --noinput
 python manage.py migrate sessions --noinput
 python manage.py migrate authtoken --noinput
 
-# ✅ NUCLEAR OPTION: Drop and recreate core tables
-echo "Dropping old core tables..."
-python -c "
-import os
-import django
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'foodloop.settings')
-django.setup()
-from django.db import connection
-with connection.cursor() as cursor:
-    cursor.execute('DROP TABLE IF EXISTS user_profiles CASCADE;')
-    cursor.execute('DROP TABLE IF EXISTS donations CASCADE;')
-    cursor.execute('DROP TABLE IF EXISTS ratings CASCADE;')
-    cursor.execute('DROP TABLE IF EXISTS notifications CASCADE;')
-    cursor.execute('DROP TABLE IF EXISTS email_verifications CASCADE;')
-    print('✅ Dropped all core tables')
-"
+# Now handle core app migrations
+echo "Applying core app migrations..."
 
-echo "Creating tables with fresh schema..."
-python manage.py migrate core --noinput
+# Check if there are any migration files
+if python manage.py showmigrations core | grep -q "\[ \]"; then
+    echo "Core has unapplied migrations, running them..."
+    python manage.py migrate core --noinput
+else
+    echo "No unapplied migrations for core, running makemigrations..."
+    python manage.py makemigrations core --noinput
+    python manage.py migrate core --noinput
+fi
 
-echo "Applying remaining migrations..."
+# Apply any remaining migrations
 python manage.py migrate --noinput
 
-echo "=== Migrations completed ==="
+echo "=== Database setup completed ==="
