@@ -16,11 +16,14 @@ python manage.py migrate admin --noinput
 python manage.py migrate sessions --noinput
 python manage.py migrate authtoken --noinput
 
-# Fake problematic migrations that conflict with existing DB
-echo "Faking migration 0002 (has duplicate index)..."
-python manage.py migrate core 0002_remove_gps_fields --fake --noinput || echo "Migration 0002 fake failed, continuing..."
+# Fake problematic migrations
+echo "Faking migration 0002 (duplicate index)..."
+python manage.py migrate core 0002_remove_gps_fields --fake --noinput || echo "Migration 0002 fake failed"
 
-# Apply remaining migrations normally
+echo "Faking migration 0006 (unique constraint)..."
+python manage.py migrate core 0006_alter_userprofile_phone_number --fake --noinput || echo "Migration 0006 fake failed"
+
+# Apply remaining migrations
 echo "Applying remaining core migrations..."
 python manage.py migrate core --noinput || echo "Warning: Some core migrations skipped"
 
