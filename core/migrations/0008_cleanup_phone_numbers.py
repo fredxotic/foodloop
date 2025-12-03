@@ -1,4 +1,5 @@
-from django.db import migrations
+from django.db import migrations, models
+import core.validators
 
 
 def cleanup_duplicate_phones(apps, schema_editor):
@@ -9,7 +10,7 @@ def cleanup_duplicate_phones(apps, schema_editor):
             DROP INDEX IF EXISTS user_profiles_phone_number_ef2c3933_uniq CASCADE;
             DROP INDEX IF EXISTS user_profiles_phone_number_key CASCADE;
         """)
-        print("✅ Dropped all phone_number unique constraints")
+        print(" Dropped all phone_number unique constraints")
         
         # 2. Set all empty string phone numbers to NULL
         cursor.execute("""
@@ -17,14 +18,14 @@ def cleanup_duplicate_phones(apps, schema_editor):
             SET phone_number = NULL 
             WHERE phone_number = '' OR phone_number IS NULL;
         """)
-        print("✅ Cleaned up empty phone numbers")
+        print(" Cleaned up empty phone numbers")
         
         # 3. Remove the unique constraint from the column definition
         cursor.execute("""
             ALTER TABLE user_profiles 
             ALTER COLUMN phone_number DROP NOT NULL IF EXISTS;
         """)
-        print("✅ Removed NOT NULL constraint")
+        print(" Removed NOT NULL constraint")
 
 
 def reverse_cleanup(apps, schema_editor):
@@ -48,7 +49,7 @@ class Migration(migrations.Migration):
                 max_length=15,
                 blank=True,
                 null=True,
-                unique=False,  # ✅ NO UNIQUE CONSTRAINT
+                unique=False,  #  NO UNIQUE CONSTRAINT
                 validators=[core.validators.validate_phone_number]
             ),
         ),
