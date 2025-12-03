@@ -16,8 +16,9 @@ python manage.py migrate admin --noinput
 python manage.py migrate sessions --noinput
 python manage.py migrate authtoken --noinput
 
-# Apply ALL core migrations
-python manage.py migrate core --noinput || echo "Warning: Core migrations may have errors"
+# using --fake-initial to skip existing database objects
+echo "Applying core migrations with --fake-initial..."
+python manage.py migrate core --fake-initial --noinput || echo "Warning: Some core migrations skipped"
 
 # Apply any remaining migrations
 python manage.py migrate --noinput || echo "Some migrations may have been skipped"
