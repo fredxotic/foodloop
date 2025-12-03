@@ -1,0 +1,60 @@
+{% extends 'base/base_email.html' %}
+
+{% block title %}Welcome to {{ site_name }}!{% endblock %}
+
+{% block content %}
+<div style="text-align: center; padding: 40px 20px;">
+    <!-- Celebration Icon -->
+    <div style="font-size: 60px; margin-bottom: 20px;">🎉</div>
+
+    <!-- Heading -->
+    <h1 style="font-family: 'Outfit', sans-serif; font-size: 32px; font-weight: 800; color: #0f172a; margin-bottom: 16px;">
+        Welcome to FoodLoop!
+    </h1>
+
+    <p style="font-size: 16px; color: #64748b; line-height: 1.6; margin-bottom: 32px;">
+        Hi <strong>{{ user.get_full_name|default:user.username }}</strong>,<br>
+        You're now part of our mission to fight food waste and help communities. Let's get started!
+    </p>
+
+    <!-- Quick Start Cards -->
+    <div style="max-width: 500px; margin: 40px auto;">
+        <div style="background: #f8fafc; border-radius: 12px; padding: 20px; margin-bottom: 16px; text-align: left;">
+            <div style="font-size: 24px; margin-bottom: 8px;">📍</div>
+            <h3 style="font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 8px;">Complete Your Profile</h3>
+            <p style="font-size: 14px; color: #64748b; margin: 0;">
+                Add your location and dietary preferences to get the best matches.
+            </p>
+        </div>
+
+        {% if user.profile.user_type == 'donor' %}
+        <div style="background: #f0fdf4; border-radius: 12px; padding: 20px; margin-bottom: 16px; text-align: left;">
+            <div style="font-size: 24px; margin-bottom: 8px;">🍽️</div>
+            <h3 style="font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 8px;">Create Your First Donation</h3>
+            <p style="font-size: 14px; color: #64748b; margin: 0;">
+                Share surplus food with your community in just a few clicks.
+            </p>
+        </div>
+        {% else %}
+        <div style="background: #eff6ff; border-radius: 12px; padding: 20px; margin-bottom: 16px; text-align: left;">
+            <div style="font-size: 24px; margin-bottom: 8px;">🔍</div>
+            <h3 style="font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 8px;">Browse Donations</h3>
+            <p style="font-size: 14px; color: #64748b; margin: 0;">
+                Find available food near you and claim what you need.
+            </p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- CTA Button -->
+    <a href="{{ site_url }}/dashboard/" 
+       style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #047857 100%); color: white; text-decoration: none; padding: 16px 40px; border-radius: 12px; font-weight: 700; font-size: 16px; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); margin-top: 20px;">
+        Go to Dashboard
+    </a>
+
+    <!-- Help Section -->
+    <p style="font-size: 14px; color: #94a3b8; margin-top: 40px;">
+        Need help? <a href="{{ site_url }}/contact/" style="color: #10b981; text-decoration: none; font-weight: 600;">Contact our support team</a>
+    </p>
+</div>
+{% endblock %}

@@ -112,7 +112,7 @@ class UserProfile(TimeStampedModel):
         """Recalculate average rating from all ratings"""
         from django.db.models import Avg, Count
         
-        stats = self.received_ratings.aggregate(
+        stats = Rating.objects.filter(rated_user=self.user).aggregate(
             avg=Avg('rating'),
             count=Count('id')
         )
@@ -329,12 +329,14 @@ class Rating(TimeStampedModel):
         """Update user's rating stats after saving"""
         super().save(*args, **kwargs)
         
-        # Update rated user's profile stats
+        # Update rated user's profile stats using correct method
         try:
             profile = UserProfile.objects.get(user=self.rated_user)
             profile.update_rating_stats()
         except UserProfile.DoesNotExist:
-            pass
+            logger.warning(f"Profile not found for user {self.rated_user.id}")
+        except Exception as e:
+            logger.error(f"Error updating rating stats: {e}")
 
 
 class Notification(TimeStampedModel):
@@ -374,7 +376,12 @@ class Notification(TimeStampedModel):
         blank=True,
         related_name='notifications'
     )
-    related_url = models.CharField(max_length=255, blank=True)
+    related_url = models.CharField(
+        max_length=255, 
+        blank=True,
+        null=True,
+        default=''
+    )
     is_read = models.BooleanField(default=False, db_index=True)
     
     class Meta:
@@ -402,7 +409,7 @@ class EmailVerification(TimeStampedModel):
         on_delete=models.CASCADE,
         related_name='email_verifications'
     )
-    token = models.CharField(max_length=100, unique=True, db_index=True)
+    token = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True)
     is_used = models.BooleanField(default=False)
     expires_at = models.DateTimeField()
     

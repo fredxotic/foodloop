@@ -8,6 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q, Prefetch, Count
 from django.http import JsonResponse, HttpResponseForbidden
+from django.urls import reverse
 from django.views.decorators.http import require_http_methods, require_POST
 from django.utils import timezone
 from django.core.paginator import Paginator
@@ -166,8 +167,18 @@ def logout_view(request):
 def verify_email_view(request, token):
     """Handle email verification"""
     try:
-        # Token is now a string, not UUID
-        verification = EmailVerification.objects.get(token=token)
+        if isinstance(token, str) and '-' in token:
+            import uuid
+            try:
+                token_uuid = uuid.UUID(token)
+            except ValueError:
+                messages.error(request, "Invalid verification link format.")
+                return redirect('core:home')
+        else:
+            token_uuid = token
+        
+        # Query using UUID
+        verification = EmailVerification.objects.get(token=token_uuid)
         
         if verification.is_valid():
             # Mark email as verified
@@ -187,6 +198,10 @@ def verify_email_view(request, token):
             
     except EmailVerification.DoesNotExist:
         messages.error(request, "Invalid verification link.")
+        return redirect('core:home')
+    except Exception as e:
+        logger.error(f"Email verification error: {e}")
+        messages.error(request, "An error occurred during verification.")
         return redirect('core:home')
 
 
@@ -396,33 +411,92 @@ def donation_detail_view(request, donation_id):
 
 
 @login_required
-@profile_required
-@require_POST
+@recipient_required
 def claim_donation_view(request, donation_id):
     """Claim a donation (recipients only)"""
-    result = DonationService.claim_donation(donation_id, request.user)
+    if request.method != 'POST':
+        messages.error(request, "Invalid request method.")
+        return redirect('core:donation_detail', donation_id=donation_id)
+    
+    # Get donation object first
+    donation = get_object_or_404(Donation, id=donation_id)
+    
+    # Pass donation.id (not donation object) to service
+    result = DonationService.claim_donation(donation.id, request.user)
     
     if result.success:
+        # Refresh donation to get updated data
+        donation.refresh_from_db()
+        
+        # Send notification to donor
+        NotificationService.notify_donation_claimed(donation, request.user)
+        
+        # Send email to donor
+        EmailService.send_donation_claimed_email(donation, request.user)
+        
         messages.success(request, result.message)
-        return redirect('core:donation_detail', donation_id=donation_id)
+
+        # Send email to donor
+        EmailService.send_donation_claimed_email(donation, request.user)
+        
+        messages.success(request, result.message)
+        
+        # Check if AJAX request
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True,
+                'redirect_url': reverse('core:donation_detail', args=[donation.id])
+            })
+        else:
+            # Regular form submission - direct redirect
+            return redirect('core:donation_detail', donation_id=donation.id)
+    
+    messages.error(request, result.message)
+    
+    # Handle error response
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'error': result.message}, status=400)
     else:
-        messages.error(request, result.message)
-        return redirect('core:donation_detail', donation_id=donation_id)
+        return redirect('core:donation_detail', donation_id=donation.id)
 
 
 @login_required
-@profile_required
-@require_POST
 def complete_donation_view(request, donation_id):
     """Mark donation as completed"""
-    result = DonationService.complete_donation(donation_id, request.user)
+    if request.method != 'POST':
+        messages.error(request, "Invalid request method.")
+        return redirect('core:donation_detail', donation_id=donation_id)
+    
+    donation = get_object_or_404(Donation, id=donation_id)
+    
+    # Verify user authorization
+    if donation.donor != request.user and donation.recipient != request.user:
+        messages.error(request, "You are not authorized to complete this donation.")
+        return redirect('core:donation_detail', donation_id=donation.id)
+    
+    # Pass donation.id instead of donation object
+    result = DonationService.complete_donation(donation.id, request.user)
     
     if result.success:
         messages.success(request, result.message)
-        return redirect('core:rate_user', donation_id=donation_id)
+
+        #  Check if AJAX request
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True,
+                'redirect_url': reverse('core:donation_detail', args=[donation.id])
+            })
+        else:
+            # Regular form submission - direct redirect
+            return redirect('core:donation_detail', donation_id=donation.id)
+
+    messages.error(request, result.message)
+    
+    # Handle error response
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'error': result.message}, status=400)
     else:
-        messages.error(request, result.message)
-        return redirect('core:donation_detail', donation_id=donation_id)
+        return redirect('core:donation_detail', donation_id=donation.id)
 
 
 @donor_required
@@ -470,7 +544,7 @@ def my_claims_view(request):
     """View all claimed donations by the logged-in recipient"""
     status_filter = request.GET.get('status')
     
-    # ✅ FIXED: Get donations where user is the RECIPIENT
+    # Get donations where user is the RECIPIENT
     donations = Donation.objects.filter(
         recipient=request.user
     ).select_related('donor', 'donor__profile').order_by('-claimed_at')
@@ -530,29 +604,31 @@ def search_donations_view(request):
 # ============================================================================
 
 @login_required
-@profile_required
 def rate_user_view(request, donation_id):
-    """Rate a user after donation completion"""
+    """Rate user after donation completion"""
     donation = get_object_or_404(Donation, id=donation_id)
     
-    # Verify user can rate
-    if request.user != donation.donor and request.user != donation.recipient:
-        messages.error(request, "You cannot rate this transaction.")
-        return redirect('core:dashboard')
+    # Verify authorization
+    if donation.donor != request.user and donation.recipient != request.user:
+        messages.error(request, "You are not authorized to rate this donation.")
+        return redirect('core:donation_detail', donation_id=donation.id)
     
+    # Verify donation is completed
     if donation.status != Donation.COMPLETED:
-        messages.error(request, "Can only rate completed donations.")
-        return redirect('core:donation_detail', donation_id=donation_id)
+        messages.error(request, "You can only rate completed donations.")
+        return redirect('core:donation_detail', donation_id=donation.id)
     
     # Check if already rated
+    rated_user = donation.recipient if request.user == donation.donor else donation.donor
     existing_rating = Rating.objects.filter(
         donation=donation,
-        rating_user=request.user
+        rating_user=request.user,
+        rated_user=rated_user
     ).first()
     
     if existing_rating:
-        messages.info(request, "You have already rated this transaction.")
-        return redirect('core:donation_detail', donation_id=donation_id)
+        messages.info(request, "You have already rated this exchange.")
+        return redirect('core:donation_detail', donation_id=donation.id)
     
     if request.method == 'POST':
         form = RatingForm(
@@ -562,32 +638,49 @@ def rate_user_view(request, donation_id):
         )
         
         if form.is_valid():
-            rating = form.save()
+            try:
+                # Save rating
+                rating = form.save()
+                
+                # Send notification to rated user
+                NotificationService.notify_rating_received(rating, request.user)
+                
+                # Send email notification
+                EmailService.send_rating_notification_email(rating, request.user)
+                
+                messages.success(
+                    request,
+                    f"Thank you for rating {rated_user.get_full_name() or rated_user.username}!"
+                )
+                return redirect('core:donation_detail', donation_id=donation.id)
             
-            # Send notification to rated user
-            rated_user = donation.recipient if request.user == donation.donor else donation.donor
-            NotificationService.notify_rating_received(rated_user, rating)
-            
-            messages.success(request, "Thank you for your rating!")
-            return redirect('core:dashboard')
+            except Exception as e:
+                logger.error(f"Rating submission error: {e}")
+                messages.error(request, "An error occurred while submitting your rating. Please try again.")
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
     else:
-        form = RatingForm(donation=donation, rating_user=request.user)
-    
-    # Determine who is being rated
-    rated_user = donation.recipient if request.user == donation.donor else donation.donor
+        form = RatingForm(
+            donation=donation,
+            rating_user=request.user
+        )
     
     context = {
         'form': form,
         'donation': donation,
         'rated_user': rated_user,
+        'existing_rating': existing_rating,
     }
     
     return render(request, 'ratings/rating_form.html', context)
 
-
 # ============================================================================
 # PROFILE VIEWS
 # ============================================================================
+
+# Find profile_view (around line 580) and UPDATE:
 
 @login_required
 @profile_required
@@ -597,17 +690,44 @@ def profile_view(request):
     
     if request.method == 'POST':
         form = ProfileUpdateForm(
-            request.POST,
-            request.FILES,
+            request.POST, 
+            request.FILES,  # ✅ CRITICAL: Pass FILES for image upload
             instance=profile,
             user=request.user
         )
         
         if form.is_valid():
-            form.save()
-            messages.success(request, "Profile updated successfully!")
-            return redirect('core:profile')
+            try:
+                # Save profile first (this handles the image)
+                profile = form.save(commit=False)
+                
+                # Update user fields manually
+                request.user.first_name = form.cleaned_data['first_name']
+                request.user.last_name = form.cleaned_data['last_name']
+                
+                # Only update email if it changed
+                new_email = form.cleaned_data['email']
+                if new_email != request.user.email:
+                    # Check if email is already taken by another user
+                    if User.objects.filter(email=new_email).exclude(id=request.user.id).exists():
+                        messages.error(request, "This email is already in use by another account.")
+                        return render(request, 'profile/profile.html', {'form': form, 'profile': profile})
+                    
+                    request.user.email = new_email
+                    # Mark as unverified if email changed
+                    profile.email_verified = False
+                
+                request.user.save()
+                profile.save()
+                
+                messages.success(request, "Profile updated successfully!")
+                return redirect('core:profile')
+                
+            except Exception as e:
+                logger.error(f"Profile update error: {e}")
+                messages.error(request, "An error occurred while updating your profile.")
         else:
+            # Show specific errors
             for field, errors in form.errors.items():
                 for error in errors:
                     messages.error(request, f"{field.title()}: {error}")
@@ -742,35 +862,41 @@ def mark_notification_read_view(request, notification_id):
 def get_notifications_view(request):
     """Get notifications as JSON (for AJAX polling)"""
     try:
-        notifications = request.user.notifications.select_related(
-            'related_donation'
-        ).order_by('-created_at')[:10]
+        notifications = NotificationService.get_user_notifications(
+            request.user, 
+            limit=10
+        )
         
-        notifications_data = []
-        for notif in notifications:
-            notifications_data.append({
-                'id': notif.id,
-                'type': notif.notification_type,
-                'title': notif.title,
-                'message': notif.message,
-                'related_url': notif.related_url,
-                'is_read': notif.is_read,
-                'time_ago': _format_time_ago(notif.created_at),
-                'created_at': notif.created_at.isoformat(),
-            })
+        notifications_data = [{
+            'id': n.id,
+            'title': n.title,
+            'message': n.message,
+            'notification_type': n.notification_type,
+            'is_read': n.is_read,
+            'time_ago': _format_time_ago(n.created_at),
+            'related_url': n.related_url or '#',
+        } for n in notifications]
+        
+        unread_count = NotificationService.get_unread_count(request.user)
         
         return JsonResponse({
-            'success': True,
             'notifications': notifications_data,
-            'unread_count': request.user.notifications.filter(is_read=False).count()
+            'unread_count': unread_count
         })
         
     except Exception as e:
-        logger.error(f"Error fetching notifications for {request.user.username}: {e}")
-        return JsonResponse({
-            'success': False,
-            'error': 'Error loading notifications'
-        }, status=500)
+        logger.error(f"Get notifications error: {e}")
+        return JsonResponse({'error': str(e)}, status=500)
+    
+
+@login_required
+def notification_count_view(request):
+    """Get unread notification count"""
+    try:
+        count = NotificationService.get_unread_count(request.user)
+        return JsonResponse({'count': count})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 def _format_time_ago(dt):

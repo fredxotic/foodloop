@@ -24,7 +24,6 @@ def user_profile(request):
         # Cache key unique to this user
         cache_key = f'user_context_{request.user.id}'
         
-        # ✅ FIX: Use Django's cache directly, not CacheManager.get()
         from django.core.cache import cache
         cached_data = cache.get(cache_key)
         if cached_data:

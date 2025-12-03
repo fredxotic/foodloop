@@ -3,7 +3,9 @@ Optimized Email Service - Async-ready and efficient
 """
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
+from django.template.loader import render_to_string
 from django.utils import timezone
+from django.utils.html import strip_tags
 from datetime import timedelta
 from typing import Tuple
 import logging
@@ -24,44 +26,49 @@ class EmailService(BaseService):
 
     @classmethod
     def send_verification_email(cls, user: User) -> ServiceResponse:
-        """
-        Send email verification link
-        """
+        """Send email verification link"""
         try:
-            # Create or update verification token
-            verification, created = EmailVerification.objects.get_or_create(
+            # Delete any existing unused verifications
+            EmailVerification.objects.filter(
                 user=user,
-                defaults={'expires_at': timezone.now() + timedelta(hours=cls.VERIFICATION_EXPIRY_HOURS)}
+                is_used=False
+            ).delete()
+            
+            # Create new verification token
+            verification = EmailVerification.objects.create(
+                user=user,
+                expires_at=timezone.now() + timedelta(hours=48)
             )
             
-            if not created:
-                # Update expiry if token exists
-                verification.expires_at = timezone.now() + timedelta(hours=cls.VERIFICATION_EXPIRY_HOURS)
-                verification.save()
+            site_url = settings.FOODLOOP_CONFIG.get('SITE_URL', 'http://127.0.0.1:8000')
+            verification_url = f"{site_url}/verify-email/{verification.token}/"
             
-            # Build verification URL
-            verification_url = f"{settings.SITE_URL}/verify-email/{verification.token}/"
+            # Render email template
+            context = {
+                'user': user,
+                'verification_url': verification_url,
+                'site_name': settings.FOODLOOP_CONFIG.get('SITE_NAME', 'FoodLoop'),
+            }
             
-            # Send email using utility function
-            success = send_email_with_template(
-                recipient_email=user.email,
-                subject="Verify Your FoodLoop Account",
-                template_name="verification",
-                context={
-                    'user': user,
-                    'verification_url': verification_url,
-                    'expiry_hours': cls.VERIFICATION_EXPIRY_HOURS
-                }
+            html_content = render_to_string('emails/verification.html', context)
+            text_content = strip_tags(html_content)
+            
+            # Send email
+            email = EmailMultiAlternatives(
+                subject='Verify Your FoodLoop Email',
+                body=text_content,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[user.email]
+            )
+            email.attach_alternative(html_content, "text/html")
+            email.send()
+            
+            logger.info(f"Verification email sent to {user.email}")
+            return cls.success(
+                data={'verification_url': verification_url},
+                message="Verification email sent successfully"
             )
             
-            if success:
-                return cls.success(
-                    data={'token': str(verification.token)},
-                    message="Verification email sent successfully"
-                )
-            else:
-                return cls.error("Failed to send verification email")
-                
         except Exception as e:
             return cls.handle_exception(e, "send verification email")
 
@@ -80,77 +87,121 @@ class EmailService(BaseService):
             return False
 
     @classmethod
-    def send_donation_claimed_email(cls, donation: Donation, recipient: User) -> bool:
-        """Notify donor when donation is claimed"""
+    def send_donation_claimed_email(cls, donation, recipient: User) -> ServiceResponse:
+        """Send email to donor when donation is claimed"""
         try:
-            return send_email_with_template(
-                recipient_email=donation.donor.email,
-                subject=f"Your {donation.food_category} Donation Has Been Claimed!",
-                template_name="donation_claimed",
-                context={
-                    'donor': donation.donor,
-                    'recipient': recipient,
-                    'donation': donation,
-                    'pickup_time': donation.pickup_end.strftime('%B %d, %Y at %I:%M %p')
-                }
+            site_url = settings.FOODLOOP_CONFIG.get('SITE_URL', 'http://127.0.0.1:8000')
+            
+            context = {
+                'donation': donation,
+                'recipient': recipient,
+                'site_url': site_url,
+                'site_name': settings.FOODLOOP_CONFIG.get('SITE_NAME', 'FoodLoop'),
+            }
+            
+            html_content = render_to_string('emails/donation_claimed.html', context)
+            text_content = strip_tags(html_content)
+            
+            email = EmailMultiAlternatives(
+                subject=f'Donation Claimed: {donation.title}',
+                body=text_content,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[donation.donor.email]
             )
+            email.attach_alternative(html_content, "text/html")
+            email.send()
+
+            logger.info(f"Donation claimed email sent to {donation.donor.email}")
+            return cls.success(message="Donation claimed email sent")
+        
         except Exception as e:
-            logger.error(f"Claimed email error: {e}")
-            return False
+            return cls.handle_exception(e, "send donation claimed email")
 
     @classmethod
-    def send_donation_completed_email(cls, donation: Donation) -> bool:
-        """Notify both parties when donation is completed"""
+    def send_donation_completed_email(cls, donation) -> ServiceResponse:
+        """Send completion emails to both donor and recipient"""
         try:
+            site_url = settings.FOODLOOP_CONFIG.get('SITE_URL', 'http://127.0.0.1:8000')
+            site_name = settings.FOODLOOP_CONFIG.get('SITE_NAME', 'FoodLoop')
+            
             # Email to donor
-            donor_success = send_email_with_template(
-                recipient_email=donation.donor.email,
-                subject="Donation Completed Successfully! ✅",
-                template_name="donation_completed_donor",
-                context={
-                    'user': donation.donor,
-                    'donation': donation,
-                    'recipient': donation.recipient
-                }
-            )
+            donor_context = {
+                'donation': donation,
+                'site_url': site_url,
+                'site_name': site_name,
+            }
+            donor_html = render_to_string('emails/donation_completed_donor.html', donor_context)
+            donor_text = strip_tags(donor_html)
             
+            donor_email = EmailMultiAlternatives(
+                subject=f'Donation Completed: {donation.title}',
+                body=donor_text,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[donation.donor.email]
+            )
+            donor_email.attach_alternative(donor_html, "text/html")
+            donor_email.send()
+
             # Email to recipient
-            recipient_success = send_email_with_template(
-                recipient_email=donation.recipient.email,
-                subject="Thank You for Picking Up Your Donation!",
-                template_name="donation_completed_recipient",
-                context={
-                    'user': donation.recipient,
-                    'donation': donation,
-                    'donor': donation.donor
-                }
+            recipient_context = {
+                'donation': donation,
+                'site_url': site_url,
+                'site_name': site_name,
+            }
+            recipient_html = render_to_string('emails/donation_completed_recipient.html', recipient_context)
+            recipient_text = strip_tags(recipient_html)
+            
+            recipient_email = EmailMultiAlternatives(
+                subject=f'Pickup Completed: {donation.title}',
+                body=recipient_text,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[donation.recipient.email]
             )
+            recipient_email.attach_alternative(recipient_html, "text/html")
+            recipient_email.send()
             
-            return donor_success and recipient_success
-            
+            logger.info(f"Completion emails sent for donation {donation.id}")
+            return cls.success(message="Completion emails sent")
+        
         except Exception as e:
-            logger.error(f"Completion email error: {e}")
-            return False
+            return cls.handle_exception(e, "Send donation completed emails")
 
     @classmethod
-    def send_rating_notification_email(cls, rating, rater: User) -> bool:
-        """Notify user when they receive a rating"""
+    def send_rating_notification_email(cls, rating, rating_user: User) -> ServiceResponse:
+        """Send email when user receives a rating"""
         try:
-            rated_user = rating.rated_user
+            site_url = settings.FOODLOOP_CONFIG.get('SITE_URL', 'http://127.0.0.1:8000')
             
-            return send_email_with_template(
-                recipient_email=rated_user.email,
-                subject=f"You Received a New Rating from {rater.get_full_name()}",
-                template_name="rating_received",
-                context={
-                    'user': rated_user,
-                    'rater': rater,
-                    'rating': rating
-                }
+            # Get updated rating stats
+            rated_profile = rating.rated_user.profile
+            
+            context = {
+                'rating': rating,
+                'rating_user': rating_user,
+                'rated_user': rating.rated_user,
+                'updated_rating': rated_profile.average_rating,
+                'total_ratings': rated_profile.total_ratings,
+                'site_url': site_url,
+                'site_name': settings.FOODLOOP_CONFIG.get('SITE_NAME', 'FoodLoop'),
+            }
+            
+            html_content = render_to_string('emails/rating_received.html', context)
+            text_content = strip_tags(html_content)
+
+            email = EmailMultiAlternatives(
+                subject='You Received a New Rating on FoodLoop!',
+                body=text_content,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[rating.rated_user.email]
             )
+            email.attach_alternative(html_content, "text/html")
+            email.send()
+        
+            logger.info(f"Rating notification sent to {rating.rated_user.email}")
+            return cls.success(message="Rating notification email sent")
+        
         except Exception as e:
-            logger.error(f"Rating email error: {e}")
-            return False
+            return cls.handle_exception(e, "send rating notification email")
 
     @classmethod
     def send_expiry_reminder_email(cls, donation: Donation, hours_until_expiry: int) -> bool:

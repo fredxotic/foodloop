@@ -154,26 +154,23 @@ class NotificationService(BaseService):
 
     @classmethod
     def _find_compatible_recipients(cls, donation: Donation, max_results: int = 10) -> List[UserProfile]:
-        """
-        Find recipients compatible with donation
-        Optimized query with prefetch
-        """
+        """Find recipients compatible with donation"""
         try:
+            # Get verified recipients in same general area
             recipients = UserProfile.objects.filter(
                 user_type=UserProfile.RECIPIENT,
                 email_verified=True
-            ).select_related('user')
+            ).select_related('user')[:50]  # Get top 50 candidates
             
-            # Convert to list for Python-side filtering
-            recipients_list = list(recipients[:50])  # Reasonable limit
+            # Filter by dietary compatibility
+            compatible = []
+            for recipient in recipients:
+                if recipient.is_dietary_compatible(donation):
+                    compatible.append(recipient)
+                    if len(compatible) >= max_results:
+                        break
             
-            # Filter dietary compatibility in Python
-            compatible = [
-                r for r in recipients_list 
-                if r.is_dietary_compatible(donation)
-            ]
-            
-            return compatible[:max_results]
+            return compatible
             
         except Exception as e:
             logger.error(f"Recipient search error: {e}")

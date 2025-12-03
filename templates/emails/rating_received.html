@@ -1,0 +1,97 @@
+{% extends 'base/base_email.html' %}
+
+{% block title %}New Rating Received - FoodLoop{% endblock %}
+
+{% block content %}
+<div style="padding: 40px 20px;">
+    <!-- Icon -->
+    <div style="text-align: center; font-size: 60px; margin-bottom: 20px;">⭐</div>
+
+    <!-- Heading -->
+    <h1 style="font-family: 'Outfit', sans-serif; font-size: 28px; font-weight: 800; color: #0f172a; text-align: center; margin-bottom: 24px;">
+        You Received a New Rating!
+    </h1>
+
+    <p style="font-size: 16px; color: #64748b; text-align: center; margin-bottom: 32px;">
+        <strong>{{ rating_user.get_full_name|default:rating_user.username }}</strong> rated you for the donation:
+    </p>
+
+    <!-- Rating Display -->
+    <div style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); border-radius: 16px; padding: 32px; max-width: 500px; margin: 0 auto 32px; text-align: center;">
+        <!-- Star Display -->
+        <div style="font-size: 48px; margin-bottom: 16px; letter-spacing: 4px;">
+            {% for i in "12345" %}
+                {% if forloop.counter <= rating.rating %}
+                    ⭐
+                {% else %}
+                    ☆
+                {% endif %}
+            {% endfor %}
+        </div>
+        
+        <h2 style="font-size: 32px; font-weight: 800; color: white; margin: 0;">
+            {{ rating.rating }}/5
+        </h2>
+    </div>
+
+    <!-- Donation Context -->
+    <div style="background: white; border: 2px solid #e2e8f0; border-radius: 16px; padding: 24px; max-width: 500px; margin: 0 auto 32px;">
+        <h3 style="font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 16px;">
+            Donation Details
+        </h3>
+        
+        <div style="border-top: 1px solid #e2e8f0; padding-top: 16px; margin-top: 16px;">
+            <p style="font-size: 14px; color: #64748b; margin: 8px 0;">
+                <strong>Item:</strong> {{ rating.donation.title }}
+            </p>
+            <p style="font-size: 14px; color: #64748b; margin: 8px 0;">
+                <strong>Rated by:</strong> {{ rating_user.get_full_name|default:rating_user.username }}
+            </p>
+            {% if rating.feedback %}
+            <div style="margin-top: 16px; padding: 16px; background: #f8fafc; border-radius: 8px;">
+                <p style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: #64748b; margin: 0 0 8px 0; letter-spacing: 0.5px;">
+                    Feedback:
+                </p>
+                <p style="font-size: 14px; color: #1e293b; margin: 0; font-style: italic;">
+                    "{{ rating.feedback }}"
+                </p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Updated Stats -->
+    {% if updated_rating %}
+    <div style="background: #f0fdf4; border-left: 4px solid #10b981; padding: 20px; border-radius: 8px; max-width: 500px; margin: 0 auto 32px;">
+        <h3 style="font-size: 16px; font-weight: 700; color: #065f46; margin-bottom: 8px;">
+            📊 Your Updated Profile
+        </h3>
+        <p style="font-size: 14px; color: #064e3b; margin: 4px 0;">
+            <strong>Average Rating:</strong> {{ updated_rating|floatformat:1 }}/5 ⭐
+        </p>
+        <p style="font-size: 14px; color: #064e3b; margin: 4px 0;">
+            <strong>Total Ratings:</strong> {{ total_ratings }}
+        </p>
+    </div>
+    {% endif %}
+
+    <!-- CTA Buttons -->
+    <div style="text-align: center;">
+        <a href="{{ site_url }}/donations/{{ rating.donation.id }}/" 
+           style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #047857 100%); color: white; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-weight: 700; font-size: 15px; margin: 0 8px;">
+            View Donation
+        </a>
+        <a href="{{ site_url }}/profile/{{ rated_user.username }}/" 
+           style="display: inline-block; background: white; border: 2px solid #e2e8f0; color: #64748b; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-weight: 700; font-size: 15px; margin: 0 8px;">
+            View Profile
+        </a>
+    </div>
+
+    <!-- Encouragement -->
+    <div style="text-align: center; margin-top: 32px;">
+        <p style="font-size: 14px; color: #94a3b8;">
+            🌟 Keep up the great work! Your contributions matter.
+        </p>
+    </div>
+</div>
+{% endblock %}

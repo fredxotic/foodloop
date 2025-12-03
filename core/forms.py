@@ -109,17 +109,17 @@ class ProfileUpdateForm(forms.ModelForm):
     
     first_name = forms.CharField(
         max_length=30,
-        required=True,
+        required=False,  # Make optional for image-only updates
         widget=forms.TextInput(attrs={'class': 'form-control'})
     )
     last_name = forms.CharField(
         max_length=30,
-        required=True,
+        required=False,  # Make optional for image-only updates
         widget=forms.TextInput(attrs={'class': 'form-control'})
     )
     email = forms.EmailField(
         max_length=254,
-        required=True,
+        required=False,  # Make optional for image-only updates
         widget=forms.EmailInput(attrs={'class': 'form-control'})
     )
     
@@ -160,10 +160,30 @@ class ProfileUpdateForm(forms.ModelForm):
     def clean_email(self):
         """Validate email uniqueness (excluding current user)"""
         email = self.cleaned_data.get('email')
+        
+        # If email is empty, return current user's email
+        if not email and self.user:
+            return self.user.email
+        
         if self.user:
             if User.objects.filter(email=email).exclude(id=self.user.id).exists():
                 raise ValidationError("This email is already in use.")
         return email
+    
+    def clean(self):
+        """Ensure critical fields have values"""
+        cleaned_data = super().clean()
+        
+        # Fill in missing fields from current user if not provided
+        if self.user:
+            if not cleaned_data.get('first_name'):
+                cleaned_data['first_name'] = self.user.first_name
+            if not cleaned_data.get('last_name'):
+                cleaned_data['last_name'] = self.user.last_name
+            if not cleaned_data.get('email'):
+                cleaned_data['email'] = self.user.email
+        
+        return cleaned_data
     
     def save(self, commit=True):
         """Save both User and UserProfile"""

@@ -44,18 +44,19 @@ class DonationService(BaseService):
                 
                 # Send notifications to nearby recipients (simplified - no GPS)
                 NotificationService.notify_new_donation(donation)
-                
-                # Send confirmation email to donor
-                EmailService.send_donation_created_email(donor, donation)
-                
+
+                # ✅ REMOVE: EmailService.send_donation_created_email(donor, donation)
+                # (This method doesn't exist - we'll add it later if needed)
+            
                 logger.info(f"Donation created: {donation.id} by {donor.username}")
                 return cls.success(
                     data={'donation': donation},
                     message="Donation created successfully"
                 )
-                
+            
         except Exception as e:
             return cls.handle_exception(e, "donation creation")
+            
 
     @classmethod
     def _validate_donor_eligibility(cls, donor: User) -> Optional[str]:
@@ -119,23 +120,28 @@ class DonationService(BaseService):
                 
                 # Send notifications
                 NotificationService.notify_donation_claimed(donation, recipient)
+
+
+                # ✅ REMOVE: These methods don't exist
+                # EmailService.send_claim_confirmation_email(recipient, donation)
+                # EmailService.send_donor_claim_notification_email(donation.donor, donation, recipient)
                 
-                # Send emails
-                EmailService.send_claim_confirmation_email(recipient, donation)
-                EmailService.send_donor_claim_notification_email(donation.donor, donation, recipient)
+                # ✅ ADD: Use existing method
+                EmailService.send_donation_claimed_email(donation, recipient)
                 
                 logger.info(f"Donation {donation.id} claimed by {recipient.username}")
                 return cls.success(
                     data={'donation': donation},
                     message="Donation claimed successfully"
                 )
-                
+            
         except Donation.DoesNotExist:
             return cls.error("Donation not found")
         except UserProfile.DoesNotExist:
             return cls.error("User profile not found")
         except Exception as e:
             return cls.handle_exception(e, "donation claim")
+
 
     @classmethod
     def _validate_claim_eligibility(
@@ -171,6 +177,8 @@ class DonationService(BaseService):
         
         return None
 
+    # Find complete_donation method (around line 150) and UPDATE:
+
     @classmethod
     def complete_donation(cls, donation_id: int, user: User) -> ServiceResponse:
         """Complete a donation transaction"""
@@ -192,9 +200,12 @@ class DonationService(BaseService):
                 # Send notifications
                 NotificationService.notify_donation_completed(donation)
                 
-                # Send emails
-                EmailService.send_completion_confirmation_email(donation.donor, donation)
-                EmailService.send_completion_confirmation_email(donation.recipient, donation)
+                # ✅ REMOVE: These methods don't exist
+                # EmailService.send_completion_confirmation_email(donation.donor, donation)
+                # EmailService.send_completion_confirmation_email(donation.recipient, donation)
+                
+                # ✅ ADD: Use existing method (sends to both parties)
+                EmailService.send_donation_completed_email(donation)
                 
                 logger.info(f"Donation {donation.id} completed by {user.username}")
                 return cls.success(
