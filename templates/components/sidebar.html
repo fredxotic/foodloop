@@ -54,14 +54,6 @@
                 <span>Browse Donations</span>
             </a>
             {% endif %}
-
-            {% if user.profile.user_type == 'recipient' %}
-            <a href="{% url 'core:map_view' %}" 
-               class="nav-link {% if 'map' in request.path %}active{% endif %}">
-                <i class="fas fa-map-marked-alt"></i>
-                <span>View by Location</span>
-            </a>
-            {% endif %}
         </div>
 
         <!-- User Type Specific -->
