@@ -13,19 +13,27 @@ python manage.py migrate admin --noinput
 python manage.py migrate sessions --noinput
 python manage.py migrate authtoken --noinput
 
-# ✅ NUCLEAR OPTION: Drop user_profiles table and recreate
-echo "Dropping old user_profiles table..."
-python manage.py dbshell <<EOF
-DROP TABLE IF EXISTS user_profiles CASCADE;
-DROP TABLE IF EXISTS donations CASCADE;
-DROP TABLE IF EXISTS ratings CASCADE;
-DROP TABLE IF EXISTS notifications CASCADE;
-DROP TABLE IF EXISTS email_verifications CASCADE;
-EOF
+# ✅ NUCLEAR OPTION: Drop and recreate core tables
+echo "Dropping old core tables..."
+python -c "
+import os
+import django
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'foodloop.settings')
+django.setup()
+from django.db import connection
+with connection.cursor() as cursor:
+    cursor.execute('DROP TABLE IF EXISTS user_profiles CASCADE;')
+    cursor.execute('DROP TABLE IF EXISTS donations CASCADE;')
+    cursor.execute('DROP TABLE IF EXISTS ratings CASCADE;')
+    cursor.execute('DROP TABLE IF EXISTS notifications CASCADE;')
+    cursor.execute('DROP TABLE IF EXISTS email_verifications CASCADE;')
+    print('✅ Dropped all core tables')
+"
 
-echo "Recreating tables with new schema..."
-python manage.py migrate core --noinput || echo "Migration completed with warnings"
+echo "Creating tables with fresh schema..."
+python manage.py migrate core --noinput
 
-python manage.py migrate --noinput || echo "Some migrations skipped"
+echo "Applying remaining migrations..."
+python manage.py migrate --noinput
 
 echo "=== Migrations completed ==="
