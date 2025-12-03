@@ -128,15 +128,11 @@ class SignUpForm(UserCreationForm):
         return username
     
     def clean_phone_number(self):
-        """✅ NEW: Validate phone number uniqueness"""
+        """Validate phone number uniqueness"""
         phone_number = self.cleaned_data.get('phone_number', '').strip()
         
         if not phone_number:
             raise ValidationError("Phone number is required.")
-        
-        # Check if phone number already exists
-        if UserProfile.objects.filter(phone_number=phone_number).exists():
-            raise ValidationError("This phone number is already registered. Please use a different number.")
         
         return phone_number
 
