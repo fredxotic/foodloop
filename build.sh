@@ -1,15 +1,18 @@
 #!/usr/bin/env bash
 set -o errexit
 
+echo "=== Installing dependencies ==="
 pip install -r requirements.txt
+
+echo "=== Collecting static files ==="
 python manage.py collectstatic --no-input
 
 echo "=== Starting database setup ==="
 
-# Apply any pending migrations
-python manage.py makemigrations core
+# Create migrations if needed
+python manage.py makemigrations
 
-# Run all migrations normally
-python manage.py migrate core
+# Run ALL migrations (Django built-ins + your apps)
+python manage.py migrate
 
 echo "=== Database setup completed ==="
