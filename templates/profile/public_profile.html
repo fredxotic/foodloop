@@ -22,6 +22,7 @@
             
             <!-- Profile Picture -->
             <div class="w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden bg-slate-100 border-4 border-slate-200 shrink-0 mx-auto sm:mx-0">
+                <!-- ✅ FIX: Check if profile_picture exists before accessing .url -->
                 {% if profile_user.profile.profile_picture %}
                     <img src="{{ profile_user.profile.profile_picture.url }}" class="w-full h-full object-cover" alt="{{ profile_user.get_full_name }}">
                 {% else %}

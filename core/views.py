@@ -92,39 +92,70 @@ def signup_view(request):
         
         if form.is_valid():
             try:
-                # Create user
-                user = form.save(commit=False)
-                user.email = form.cleaned_data['email']
-                user.save()
+                from django.db import transaction
                 
-                # Create profile
-                UserProfile.objects.create(
-                    user=user,
-                    user_type=form.cleaned_data['user_type'],
-                    phone_number=form.cleaned_data['phone_number'],
-                    location=form.cleaned_data['location'],
-                )
-                
-                # Send verification email
-                EmailService.send_verification_email(user)
-                
-                # Log user in
-                login(request, user)
-                
-                messages.success(
-                    request, 
-                    "Welcome to FoodLoop! Please check your email to verify your account."
-                )
-                return redirect('core:dashboard')
-                
+                with transaction.atomic():
+                    # ✅ FIX: Check if user already exists (case-insensitive)
+                    username = form.cleaned_data['username'].lower()
+                    email = form.cleaned_data['email'].lower()
+                    
+                    if User.objects.filter(username__iexact=username).exists():
+                        messages.error(request, f"Username '{username}' is already taken.")
+                        return render(request, 'auth/signup.html', {'form': form})
+                    
+                    if User.objects.filter(email__iexact=email).exists():
+                        messages.error(request, f"Email '{email}' is already registered.")
+                        return render(request, 'auth/signup.html', {'form': form})
+                    
+                    # Create user
+                    user = form.save(commit=False)
+                    user.email = email
+                    user.username = username
+                    user.save()
+                    
+                    # ✅ FIX: Use get_or_create to prevent duplicates
+                    profile, created = UserProfile.objects.get_or_create(
+                        user=user,
+                        defaults={
+                            'user_type': form.cleaned_data['user_type'],
+                            'phone_number': form.cleaned_data['phone_number'],
+                            'location': form.cleaned_data['location'],
+                        }
+                    )
+                    
+                    if not created:
+                        logger.warning(f"Profile already exists for user: {user.username}")
+                    
+                    logger.info(f"New user registered: {user.username} ({profile.get_user_type_display()})")
+                    
+                    # Send verification email
+                    try:
+                        EmailService.send_verification_email(user)
+                    except Exception as email_error:
+                        logger.error(f"Failed to send verification email: {email_error}")
+                    
+                    # Log user in
+                    login(request, user)
+                    
+                    messages.success(
+                        request, 
+                        f"Welcome to FoodLoop, {user.first_name}! Please check your email to verify your account."
+                    )
+                    return redirect('core:dashboard')
+                    
             except Exception as e:
-                logger.error(f"Signup error: {e}")
-                messages.error(request, "An error occurred during signup. Please try again.")
+                logger.error(f"Signup error for {form.cleaned_data.get('username', 'unknown')}: {e}", exc_info=True)
+                messages.error(request, "An error occurred during registration. Please try again.")
         else:
-            # Form has validation errors
-            for field, errors in form.errors.items():
-                for error in errors:
-                    messages.error(request, f"{field.title()}: {error}")
+            # Show validation errors
+            if form.errors:
+                for field, errors in form.errors.items():
+                    for error in errors:
+                        if field == '__all__':
+                            messages.error(request, f"{error}")
+                        else:
+                            field_label = form.fields.get(field, {}).label or field.replace('_', ' ').title()
+                            messages.error(request, f"{field_label}: {error}")
     else:
         form = SignUpForm()
     

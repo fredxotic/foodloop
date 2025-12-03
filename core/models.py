@@ -63,6 +63,8 @@ class UserProfile(TimeStampedModel):
     phone_number = models.CharField(
         max_length=15, 
         blank=True,
+        null=True,
+        unique=True,
         validators=[validate_phone_number]
     )
     location = models.CharField(

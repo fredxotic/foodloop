@@ -90,18 +90,55 @@ class SignUpForm(UserCreationForm):
         })
     
     def clean_email(self):
-        """Validate email uniqueness"""
-        email = self.cleaned_data.get('email')
-        if User.objects.filter(email=email).exists():
-            raise ValidationError("This email is already registered.")
+        """ Validate email uniqueness (case-insensitive)"""
+        email = self.cleaned_data.get('email', '').strip().lower()
+        
+        if not email:
+            raise ValidationError("Email address is required.")
+        
+        # Check if email already exists (case-insensitive)
+        if User.objects.filter(email__iexact=email).exists():
+            raise ValidationError("This email address is already registered. Please use a different email or try logging in.")
+        
         return email
     
     def clean_username(self):
-        """Validate username"""
-        username = self.cleaned_data.get('username')
-        if User.objects.filter(username=username).exists():
-            raise ValidationError("This username is already taken.")
+        """ Validate username (case-insensitive, alphanumeric only)"""
+        username = self.cleaned_data.get('username', '').strip().lower()
+        
+        if not username:
+            raise ValidationError("Username is required.")
+        
+        # Check length
+        if len(username) < 3:
+            raise ValidationError("Username must be at least 3 characters long.")
+        
+        if len(username) > 30:
+            raise ValidationError("Username must be less than 30 characters.")
+        
+        # Check if username contains only alphanumeric characters and underscores
+        import re
+        if not re.match(r'^[a-z0-9_]+$', username):
+            raise ValidationError("Username can only contain letters, numbers, and underscores.")
+        
+        # Check if username already exists (case-insensitive)
+        if User.objects.filter(username__iexact=username).exists():
+            raise ValidationError("This username is already taken. Please choose a different one.")
+        
         return username
+    
+    def clean_phone_number(self):
+        """✅ NEW: Validate phone number uniqueness"""
+        phone_number = self.cleaned_data.get('phone_number', '').strip()
+        
+        if not phone_number:
+            raise ValidationError("Phone number is required.")
+        
+        # Check if phone number already exists
+        if UserProfile.objects.filter(phone_number=phone_number).exists():
+            raise ValidationError("This phone number is already registered. Please use a different number.")
+        
+        return phone_number
 
 
 class ProfileUpdateForm(forms.ModelForm):

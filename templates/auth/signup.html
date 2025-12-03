@@ -138,6 +138,50 @@
         </div>
     </div>
 
+    <!-- Phone Number -->
+    <div>
+        <label for="id_phone_number" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
+            Phone Number <span class="text-red-500">*</span>
+        </label>
+        <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <i class="fas fa-phone text-sm"></i>
+            </div>
+            <input type="tel" 
+                   id="id_phone_number" 
+                   name="phone_number" 
+                   required
+                   value="{{ form.phone_number.value|default:'' }}"
+                   class="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all text-sm"
+                   placeholder="+254712345678">
+        </div>
+        <p class="text-xs text-slate-500 mt-1.5 flex items-center gap-1">
+            <i class="fas fa-info-circle"></i> Include country code (e.g., +254 for Kenya)
+        </p>
+    </div>
+
+    <!-- Location -->
+    <div>
+        <label for="id_location" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
+            Location <span class="text-red-500">*</span>
+        </label>
+        <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <i class="fas fa-map-marker-alt text-sm"></i>
+            </div>
+            <input type="text" 
+                   id="id_location" 
+                   name="location" 
+                   required
+                   value="{{ form.location.value|default:'' }}"
+                   class="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all text-sm"
+                   placeholder="e.g., Westlands, Nairobi">
+        </div>
+        <p class="text-xs text-slate-500 mt-1.5 flex items-center gap-1">
+            <i class="fas fa-info-circle"></i> Your neighborhood or area
+        </p>
+    </div>
+
     <!-- Password -->
     <div>
         <label for="id_password1" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
