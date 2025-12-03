@@ -23,7 +23,7 @@ python manage.py migrate core 0002_remove_gps_fields --fake --noinput || echo "M
 echo "Faking migration 0006 (unique constraint)..."
 python manage.py migrate core 0006_alter_userprofile_phone_number --fake --noinput || echo "Migration 0006 fake failed"
 
-# Apply remaining migrations
+# Apply remaining migrations (including 0009)
 echo "Applying remaining core migrations..."
 python manage.py migrate core --noinput || echo "Warning: Some core migrations skipped"
 
