@@ -35,6 +35,8 @@ logger = logging.getLogger(__name__)
 # DECORATORS
 # ============================================================================
 
+# Find the profile_required decorator (around line 30) and REPLACE with this:
+
 def profile_required(view_func):
     """Ensure user has a profile before accessing view"""
     @wraps(view_func)
@@ -43,10 +45,22 @@ def profile_required(view_func):
             return redirect('core:login')
         
         try:
-            request.user.profile
-        except UserProfile.DoesNotExist:
-            messages.error(request, "Please complete your profile setup.")
-            return redirect('core:profile')
+            # Force query to check if profile exists
+            profile = UserProfile.objects.filter(user=request.user).first()
+            
+            if not profile:
+                # Only redirect to profile if we're NOT already on profile page
+                if request.path != reverse('core:profile'):
+                    messages.error(request, "Please complete your profile setup.")
+                    return redirect('core:profile')
+                # If already on profile page, just continue (let view handle profile creation)
+                
+        except Exception as e:
+            logger.error(f"Profile check error for user {request.user.username}: {e}")
+            # Only redirect if not on profile page
+            if request.path != reverse('core:profile'):
+                messages.error(request, "Error loading profile. Please try again.")
+                return redirect('core:profile')
         
         return view_func(request, *args, **kwargs)
     return wrapper
@@ -711,54 +725,62 @@ def rate_user_view(request, donation_id):
 # PROFILE VIEWS
 # ============================================================================
 
-# Find profile_view (around line 580) and UPDATE:
-
 @login_required
-@profile_required
 def profile_view(request):
-    """View and edit user profile"""
-    profile = request.user.profile
+    """View and edit user profile - handles missing profile gracefully"""
+    
+    # Get or create profile (prevents redirect loop)
+    try:
+        profile = request.user.profile
+    except UserProfile.DoesNotExist:
+        # Create profile if it doesn't exist
+        logger.warning(f"Creating missing profile for user: {request.user.username}")
+        profile = UserProfile.objects.create(
+            user=request.user,
+            user_type=UserProfile.DONOR,  # Default to donor
+            phone_number='',
+            location=''
+        )
+        messages.info(request, "Profile created. Please complete your information below.")
     
     if request.method == 'POST':
         form = ProfileUpdateForm(
             request.POST, 
-            request.FILES,  # ✅ CRITICAL: Pass FILES for image upload
+            request.FILES,  # For image upload
             instance=profile,
             user=request.user
         )
         
         if form.is_valid():
             try:
-                # Save profile first (this handles the image)
+                # Save profile
                 profile = form.save(commit=False)
                 
-                # Update user fields manually
-                request.user.first_name = form.cleaned_data['first_name']
-                request.user.last_name = form.cleaned_data['last_name']
+                # Update user fields
+                request.user.first_name = form.cleaned_data.get('first_name', '')
+                request.user.last_name = form.cleaned_data.get('last_name', '')
                 
-                # Only update email if it changed
-                new_email = form.cleaned_data['email']
-                if new_email != request.user.email:
-                    # Check if email is already taken by another user
+                # Handle email change
+                new_email = form.cleaned_data.get('email')
+                if new_email and new_email != request.user.email:
                     if User.objects.filter(email=new_email).exclude(id=request.user.id).exists():
-                        messages.error(request, "This email is already in use by another account.")
+                        messages.error(request, "This email is already in use.")
                         return render(request, 'profile/profile.html', {'form': form, 'profile': profile})
                     
                     request.user.email = new_email
-                    # Mark as unverified if email changed
-                    profile.email_verified = False
+                    profile.email_verified = False  # Require re-verification
                 
+                # Save both
                 request.user.save()
                 profile.save()
                 
                 messages.success(request, "Profile updated successfully!")
-                return redirect('core:profile')
+                return redirect('core:dashboard')  # Redirect to dashboard after save
                 
             except Exception as e:
-                logger.error(f"Profile update error: {e}")
+                logger.error(f"Profile update error: {e}", exc_info=True)
                 messages.error(request, "An error occurred while updating your profile.")
         else:
-            # Show specific errors
             for field, errors in form.errors.items():
                 for error in errors:
                     messages.error(request, f"{field.title()}: {error}")
@@ -966,48 +988,25 @@ def mark_all_notifications_read_view(request):
 # ============================================================================
 
 def home_view(request):
-    """Landing page with safe database queries"""
+    """Landing page - Simple & Safe"""
     if request.user.is_authenticated:
         return redirect('core:dashboard')
     
-    # ✅ PRODUCTION FIX: Safe database access with error handling
+    # Safe stats collection
     try:
-        from django.db import connection
+        stats = {
+            'total_donations': Donation.objects.count(),
+            'completed_donations': Donation.objects.filter(status=Donation.COMPLETED).count(),
+            'active_users': UserProfile.objects.filter(email_verified=True).count(),
+        }
         
-        # Check if tables exist before querying
-        with connection.cursor() as cursor:
-            cursor.execute("""
-                SELECT EXISTS (
-                    SELECT FROM information_schema.tables 
-                    WHERE table_name = 'core_donation'
-                );
-            """)
-            tables_exist = cursor.fetchone()[0]
-        
-        if not tables_exist:
-            logger.warning("Database tables not ready yet - showing minimal home page")
-            stats = {
-                'total_donations': 0,
-                'completed_donations': 0,
-                'active_users': 0,
-            }
-            recent_donations = []
-        else:
-            # Get stats safely
-            stats = {
-                'total_donations': Donation.objects.count(),
-                'completed_donations': Donation.objects.filter(status=Donation.COMPLETED).count(),
-                'active_users': UserProfile.objects.filter(email_verified=True).count(),
-            }
-            
-            # Get recent donations
-            recent_donations = Donation.objects.filter(
-                status=Donation.AVAILABLE
-            ).select_related('donor', 'donor__profile').order_by('-created_at')[:6]
-
+        # Get recent available donations
+        recent_donations = Donation.objects.filter(
+            status=Donation.AVAILABLE
+        ).select_related('donor', 'donor__profile').order_by('-created_at')[:6]
+    
     except Exception as e:
-        logger.error(f"Home view database error: {e}")
-        # Graceful fallback - show page without stats
+        logger.warning(f"Stats unavailable: {e}")
         stats = {
             'total_donations': 0,
             'completed_donations': 0,
@@ -1148,10 +1147,29 @@ def health_check(request):
         # Test database connection
         with connection.cursor() as cursor:
             cursor.execute("SELECT 1")
+            
+            # Check if tables exist
+            cursor.execute("""
+                SELECT COUNT(*) 
+                FROM information_schema.tables 
+                WHERE table_schema = 'public'
+                AND table_name IN ('user_profiles', 'donations', 'auth_user')
+            """)
+            table_count = cursor.fetchone()[0]
+        
+        if table_count < 3:
+            return JsonResponse({
+                'status': 'unhealthy',
+                'database': 'connected',
+                'tables': 'missing',
+                'message': 'Database tables not fully initialized',
+                'timestamp': timezone.now().isoformat()
+            }, status=503)
         
         return JsonResponse({
             'status': 'healthy',
             'database': 'connected',
+            'tables': 'ready',
             'timestamp': timezone.now().isoformat()
         })
     except Exception as e:

@@ -17,3 +17,5 @@ Thumbs.db
 .env.*
 
 .vscode/
+db.sqlite3
+django.log
