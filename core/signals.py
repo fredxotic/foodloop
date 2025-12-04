@@ -18,6 +18,15 @@ def tables_exist():
                     WHERE type='table' AND name='user_profiles'
                 """)
                 return cursor.fetchone() is not None
+            elif connection.vendor == 'mysql':
+                # MySQL check
+                cursor.execute("""
+                    SELECT COUNT(*) 
+                    FROM information_schema.tables 
+                    WHERE table_schema = DATABASE() 
+                    AND table_name = 'user_profiles'
+                """)
+                return cursor.fetchone()[0] > 0
             else:
                 # PostgreSQL check
                 cursor.execute("""
