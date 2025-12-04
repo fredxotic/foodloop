@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from datetime import timedelta
+import re
 from .models import UserProfile, Donation, Rating
 from .validators import validate_phone_number
 

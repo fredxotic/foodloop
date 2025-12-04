@@ -966,24 +966,48 @@ def mark_all_notifications_read_view(request):
 # ============================================================================
 
 def home_view(request):
-    """Landing page"""
+    """Landing page with safe database queries"""
     if request.user.is_authenticated:
         return redirect('core:dashboard')
     
-    # Get recent stats (with error handling)
+    # ✅ PRODUCTION FIX: Safe database access with error handling
     try:
-        stats = {
-            'total_donations': Donation.objects.count(),
-            'completed_donations': Donation.objects.filter(status=Donation.COMPLETED).count(),
-            'active_users': UserProfile.objects.filter(email_verified=True).count(),
-        }
+        from django.db import connection
         
-        # Get recent available donations for preview
-        recent_donations = Donation.objects.filter(
-            status=Donation.AVAILABLE
-        ).select_related('donor', 'donor__profile').order_by('-created_at')[:6]
+        # Check if tables exist before querying
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT EXISTS (
+                    SELECT FROM information_schema.tables 
+                    WHERE table_name = 'core_donation'
+                );
+            """)
+            tables_exist = cursor.fetchone()[0]
+        
+        if not tables_exist:
+            logger.warning("Database tables not ready yet - showing minimal home page")
+            stats = {
+                'total_donations': 0,
+                'completed_donations': 0,
+                'active_users': 0,
+            }
+            recent_donations = []
+        else:
+            # Get stats safely
+            stats = {
+                'total_donations': Donation.objects.count(),
+                'completed_donations': Donation.objects.filter(status=Donation.COMPLETED).count(),
+                'active_users': UserProfile.objects.filter(email_verified=True).count(),
+            }
+            
+            # Get recent donations
+            recent_donations = Donation.objects.filter(
+                status=Donation.AVAILABLE
+            ).select_related('donor', 'donor__profile').order_by('-created_at')[:6]
+
     except Exception as e:
-        logger.warning(f"Database not ready: {e}")
+        logger.error(f"Home view database error: {e}")
+        # Graceful fallback - show page without stats
         stats = {
             'total_donations': 0,
             'completed_donations': 0,
@@ -1006,6 +1030,37 @@ def about_view(request):
 
 def contact_view(request):
     """Contact page"""
+    if request.method == 'POST':
+        # Handle contact form submission
+        name = request.POST.get('name', '').strip()
+        email = request.POST.get('email', '').strip()
+        subject = request.POST.get('subject', '').strip()
+        message = request.POST.get('message', '').strip()
+        
+        if name and email and subject and message:
+            try:
+                # Send email to support (implement your email logic)
+                from django.core.mail import send_mail
+                from django.conf import settings
+                
+                full_message = f"From: {name} ({email})\n\n{message}"
+                
+                send_mail(
+                    subject=f"Contact Form: {subject}",
+                    message=full_message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=['support@foodloop.com'],
+                    fail_silently=True,
+                )
+
+                messages.success(request, "Thank you for contacting us! We'll get back to you soon.")
+                return redirect('core:contact')
+            except Exception as e:
+                logger.error(f"Contact form error: {e}")
+                messages.error(request, "Sorry, there was an error sending your message. Please try again.")
+        else:
+            messages.error(request, "Please fill in all fields.")
+    
     return render(request, 'pages/contact.html')
 
 
@@ -1024,10 +1079,16 @@ def terms_view(request):
 # ============================================================================
 
 def map_view(request):
-    """Simple map showing donation locations (text-based)"""
-    donations = Donation.objects.filter(
-        status=Donation.AVAILABLE
-    ).select_related('donor', 'donor__profile').order_by('-created_at')
+    """View donations by location - simplified without GPS"""
+    try:
+        # Group donations by pickup location
+        donations = Donation.objects.filter(
+            status=Donation.AVAILABLE
+        ).select_related('donor', 'donor__profile').order_by('pickup_location', '-created_at')
+        
+    except Exception as e:
+        logger.error(f"Map view error: {e}")
+        donations = []
     
     context = {
         'donations': donations,
@@ -1043,24 +1104,60 @@ def map_view(request):
 @login_required
 @profile_required
 def analytics_view(request):
-    """Simple analytics dashboard"""
-    profile = request.user.profile
-    
-    if profile.user_type == UserProfile.DONOR:
-        # Donor analytics
-        stats = DonationService.get_user_donation_stats(request.user)
+    """User analytics dashboard - production safe"""
+    try:
+        from .services.analytics_services import AnalyticsService
         
-        # Category breakdown
-        category_stats = Donation.objects.filter(
-            donor=request.user
-        ).values('food_category').annotate(count=Count('id')).order_by('-count')
+        date_range = request.GET.get('range', '30d')
         
+        # Get user analytics
+        analytics = AnalyticsService.get_user_analytics(request.user, date_range)
+        
+        # Get donation trends
+        trends = AnalyticsService.get_donation_trends(
+            days=int(date_range.rstrip('d')) if date_range != 'all' else 365,
+            user=request.user
+        )
+        
+        is_donor = request.user.profile.user_type == UserProfile.DONOR
+
         context = {
-            'stats': stats,
-            'category_stats': category_stats,
+            'analytics': analytics,
+            'trends': trends,
+            'date_range': date_range,
+            'date_ranges': ['7d', '30d', '90d', 'all'],
+            'is_donor': is_donor,
         }
         
         return render(request, 'analytics/nutrition_analytics.html', context)
-    else:
-        messages.error(request, "Analytics are only available for donors.")
+    
+    except Exception as e:
+        logger.error(f"Analytics view error: {e}")
+        messages.error(request, "Unable to load analytics at this time.")
         return redirect('core:dashboard')
+
+# ==========================================================
+# Health Check View
+# ===========================================================
+
+def health_check(request):
+    """Health check endpoint for monitoring"""
+    try:
+        from django.db import connection
+        
+        # Test database connection
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+        
+        return JsonResponse({
+            'status': 'healthy',
+            'database': 'connected',
+            'timestamp': timezone.now().isoformat()
+        })
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        return JsonResponse({
+            'status': 'unhealthy',
+            'error': str(e),
+            'timestamp': timezone.now().isoformat()
+        }, status=503)

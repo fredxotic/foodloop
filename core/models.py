@@ -11,6 +11,7 @@ from django.core.exceptions import ValidationError
 from .validators import validate_phone_number, validate_dietary_tags, validate_image_size
 import uuid
 import logging
+import re
 
 logger = logging.getLogger(__name__)
 
