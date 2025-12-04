@@ -19,7 +19,7 @@
     </div>
 
     <!-- Stats Grid - Responsive -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+    <div class="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
         <div class="card relative overflow-hidden p-4">
             <div class="absolute -top-3 -right-3 w-12 h-12 sm:w-16 sm:h-16 bg-brand-100 rounded-full opacity-50"></div>
             <p class="text-[10px] sm:text-xs font-bold uppercase text-slate-500 mb-1">Total Claims</p>
@@ -41,14 +41,6 @@
             <p class="text-[10px] sm:text-xs font-bold uppercase text-slate-500 mb-1">Completed</p>
             <p class="text-2xl sm:text-3xl font-display font-bold text-brand-600">
                 {{ stats.completed_claims|default:0 }}
-            </p>
-        </div>
-
-        <div class="card relative overflow-hidden p-4">
-            <div class="absolute -top-3 -right-3 w-12 h-12 sm:w-16 sm:h-16 bg-purple-100 rounded-full opacity-50"></div>
-            <p class="text-[10px] sm:text-xs font-bold uppercase text-slate-500 mb-1">Rating</p>
-            <p class="text-xl sm:text-2xl md:text-3xl font-display font-bold text-purple-600 flex items-center gap-1">
-                {{ stats.average_rating|floatformat:1|default:"0.0" }} <i class="fas fa-star text-yellow-400 text-sm sm:text-base"></i>
             </p>
         </div>
     </div>
@@ -195,27 +187,6 @@
             </div>
             {% endif %}
 
-            <!-- Reputation Card -->
-            <div class="card bg-gradient-to-br from-white to-slate-50 p-4 sm:p-6">
-                <h4 class="text-xs font-bold uppercase text-slate-400 mb-3 sm:mb-4">Your Reputation</h4>
-                <div class="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
-                    <div class="text-3xl sm:text-4xl font-display font-extrabold text-slate-900">
-                        {{ user.profile.average_rating|floatformat:1 }}
-                    </div>
-                    <div>
-                        <div class="text-yellow-400 text-xs sm:text-sm mb-1 flex gap-0.5">
-                            {% for i in "12345" %}
-                                <i class="fas fa-star {% if forloop.counter > user.profile.average_rating %}text-slate-200{% endif %}"></i>
-                            {% endfor %}
-                        </div>
-                        <span class="text-[10px] sm:text-xs font-bold text-slate-500">{{ user.profile.total_ratings }} Reviews</span>
-                    </div>
-                </div>
-                <div class="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                    <div class="h-full bg-yellow-400 transition-all duration-500" style="width: {% widthratio user.profile.average_rating 5 100 %}%;"></div>
-                </div>
-            </div>
-
             <!-- Quick Tips Card -->
             <div class="card bg-navy-900 text-white border-none p-4 sm:p-6">
                 <h4 class="text-xs font-bold uppercase text-slate-400 mb-3 sm:mb-4 flex items-center gap-2">
@@ -223,7 +194,7 @@
                 </h4>
                 <div class="space-y-2 sm:space-y-3 text-sm">
                     <p class="text-slate-300 leading-relaxed">Claim early for best selection.</p>
-                    <p class="text-slate-300 leading-relaxed">Complete pickups on time to maintain your rating.</p>
+                    <p class="text-slate-300 leading-relaxed">Complete pickups on time to build trust.</p>
                     <p class="text-slate-300 leading-relaxed">Rate donors to help the community.</p>
                 </div>
             </div>

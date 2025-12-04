@@ -22,7 +22,7 @@
             
             <!-- Profile Picture -->
             <div class="w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden bg-slate-100 border-4 border-slate-200 shrink-0 mx-auto sm:mx-0">
-                <!-- ✅ FIX: Check if profile_picture exists before accessing .url -->
+                <!-- Check if profile_picture exists before accessing .url -->
                 {% if profile_user.profile.profile_picture %}
                     <img src="{{ profile_user.profile.profile_picture.url }}" class="w-full h-full object-cover" alt="{{ profile_user.get_full_name }}">
                 {% else %}
@@ -61,7 +61,8 @@
                 </p>
                 {% endif %}
 
-                <!-- Rating -->
+                <!-- Rating - Only show for DONORS -->
+                {% if profile_user.profile.user_type == 'donor' %}
                 <div class="flex items-center gap-3 justify-center sm:justify-start mb-4">
                     <div class="flex items-center gap-2">
                         <div class="text-3xl font-display font-extrabold text-slate-900">
@@ -77,6 +78,12 @@
                         </div>
                     </div>
                 </div>
+                {% else %}
+                <!-- Recipients don't have ratings -->
+                <p class="text-sm text-slate-500 mb-3 flex items-center gap-2 justify-center sm:justify-start">
+                    <i class="fas fa-users text-slate-400"></i> Community Member
+                </p>
+                {% endif %}
 
                 <!-- Bio -->
                 {% if profile_user.profile.bio %}
@@ -92,19 +99,19 @@
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
         <div class="card p-4 text-center">
             <p class="text-2xl sm:text-3xl font-display font-bold text-brand-600">
-                {{ profile_user.profile.total_donations }}
+                {{ total_donations|default:0 }}
             </p>
             <p class="text-xs sm:text-sm text-slate-600 font-medium mt-1">Total Donations</p>
         </div>
         <div class="card p-4 text-center">
             <p class="text-2xl sm:text-3xl font-display font-bold text-green-600">
-                {{ profile_user.profile.completed_donations }}
+                {{ completed_donations|default:0 }}
             </p>
             <p class="text-xs sm:text-sm text-slate-600 font-medium mt-1">Completed</p>
         </div>
         <div class="card p-4 text-center">
             <p class="text-2xl sm:text-3xl font-display font-bold text-blue-600">
-                {{ active_donations_count }}
+                {{ active_donations_count|default:0 }}
             </p>
             <p class="text-xs sm:text-sm text-slate-600 font-medium mt-1">Active</p>
         </div>

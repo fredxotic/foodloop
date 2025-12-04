@@ -45,8 +45,8 @@ class DonationService(BaseService):
                 # Send notifications to nearby recipients (simplified - no GPS)
                 NotificationService.notify_new_donation(donation)
 
-                # ✅ REMOVE: EmailService.send_donation_created_email(donor, donation)
-                # (This method doesn't exist - we'll add it later if needed)
+                # Send email to donor
+                EmailService.send_donation_created_email(donor, donation)
             
                 logger.info(f"Donation created: {donation.id} by {donor.username}")
                 return cls.success(
@@ -121,12 +121,7 @@ class DonationService(BaseService):
                 # Send notifications
                 NotificationService.notify_donation_claimed(donation, recipient)
 
-
-                # ✅ REMOVE: These methods don't exist
-                # EmailService.send_claim_confirmation_email(recipient, donation)
-                # EmailService.send_donor_claim_notification_email(donation.donor, donation, recipient)
-                
-                # ✅ ADD: Use existing method
+                # Send email to donor
                 EmailService.send_donation_claimed_email(donation, recipient)
                 
                 logger.info(f"Donation {donation.id} claimed by {recipient.username}")
@@ -177,8 +172,6 @@ class DonationService(BaseService):
         
         return None
 
-    # Find complete_donation method (around line 150) and UPDATE:
-
     @classmethod
     def complete_donation(cls, donation_id: int, user: User) -> ServiceResponse:
         """Complete a donation transaction"""
@@ -200,11 +193,7 @@ class DonationService(BaseService):
                 # Send notifications
                 NotificationService.notify_donation_completed(donation)
                 
-                # ✅ REMOVE: These methods don't exist
-                # EmailService.send_completion_confirmation_email(donation.donor, donation)
-                # EmailService.send_completion_confirmation_email(donation.recipient, donation)
-                
-                # ✅ ADD: Use existing method (sends to both parties)
+                # Send completion emails (using existing method that sends to both parties)
                 EmailService.send_donation_completed_email(donation)
                 
                 logger.info(f"Donation {donation.id} completed by {user.username}")
@@ -237,7 +226,7 @@ class DonationService(BaseService):
             # Order by created date (newest first)
             queryset = queryset.order_by('-created_at')
             
-            # ✅ NEW: Filter out expired donations in Python (since expiry logic is in the model method)
+            # Filter out expired donations in Python
             available_donations = [d for d in queryset if not d.is_expired()]
             
             return available_donations
@@ -401,7 +390,16 @@ class DonationService(BaseService):
                 
                 # If claimed, notify recipient
                 if donation.status == Donation.CLAIMED and donation.recipient:
-                    NotificationService.notify_donation_cancelled(donation, donation.recipient)
+                    # Use NotificationService to create cancellation notification
+                    NotificationService.create_notification(
+                        user=donation.recipient,
+                        notification_type='system',  # Use system notification type
+                        title="Donation Cancelled",
+                        message=f"The donation '{donation.title}' has been cancelled by the donor.",
+                        related_donation=donation
+                    )
+                    
+                    # Send email notification
                     EmailService.send_cancellation_notification_email(donation.recipient, donation)
                 
                 # Cancel the donation

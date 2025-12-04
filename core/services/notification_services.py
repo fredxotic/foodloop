@@ -120,6 +120,26 @@ class NotificationService(BaseService):
             return False
 
     @classmethod
+    def notify_donation_cancelled(cls, donation: Donation, recipient) -> bool:
+        """Send notifications when a donation is cancelled"""
+        try:
+            # Notify recipient
+            cls.create_notification(
+                user=recipient,
+                notification_type=Notification.SYSTEM,
+                title="Donation Cancelled",
+                message=f"The donation '{donation.title}' has been cancelled by the donor.",
+                related_donation=donation,
+                related_url=f"/donation/{donation.id}/"
+            )
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"Cancellation notification error: {e}")
+            return False
+
+    @classmethod
     def notify_new_donation(cls, donation: Donation) -> int:
         """
         Notify relevant recipients about new donation
@@ -154,9 +174,9 @@ class NotificationService(BaseService):
 
     @classmethod
     def _find_compatible_recipients(cls, donation: Donation, max_results: int = 10) -> List[UserProfile]:
-        """Find recipients compatible with donation"""
+        """Find recipients compatible with donation (SIMPLIFIED - No GPS)"""
         try:
-            # Get verified recipients in same general area
+            # Get verified recipients
             recipients = UserProfile.objects.filter(
                 user_type=UserProfile.RECIPIENT,
                 email_verified=True

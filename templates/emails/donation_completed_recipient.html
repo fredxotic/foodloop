@@ -1,0 +1,83 @@
+{% extends 'base/base_email.html' %}
+
+{% block title %}Pickup Completed - {{ donation.title }}{% endblock %}
+
+{% block content %}
+<div style="padding: 40px 20px;">
+    <!-- Icon -->
+    <div style="text-align: center; font-size: 60px; margin-bottom: 20px;">🙏</div>
+
+    <!-- Heading -->
+    <h1 style="font-family: 'Outfit', sans-serif; font-size: 28px; font-weight: 800; color: #0f172a; text-align: center; margin-bottom: 24px;">
+        Pickup Completed Successfully!
+    </h1>
+
+    <p style="font-size: 16px; color: #64748b; text-align: center; margin-bottom: 32px;">
+        You've successfully received <strong>{{ donation.title }}</strong> from {{ donation.donor.get_full_name|default:donation.donor.username }}.
+    </p>
+
+    <!-- Thank You Card -->
+    <div style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); border-radius: 16px; padding: 32px; max-width: 500px; margin: 0 auto 32px; text-align: center; color: white;">
+        <div style="font-size: 48px; font-weight: 800; margin-bottom: 8px;">💜</div>
+        <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 16px;">Thank You for Participating!</h2>
+        <p style="font-size: 16px; opacity: 0.95; margin: 0;">
+            By claiming this donation, you've helped reduce food waste and supported the community.
+        </p>
+    </div>
+
+    <!-- Pickup Summary -->
+    <div style="background: white; border: 2px solid #e2e8f0; border-radius: 16px; padding: 24px; max-width: 500px; margin: 0 auto 32px;">
+        <h3 style="font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 16px;">
+            Pickup Summary
+        </h3>
+        
+        <div style="border-top: 1px solid #e2e8f0; padding-top: 16px; margin-top: 16px;">
+            <p style="font-size: 14px; color: #64748b; margin: 8px 0;">
+                <strong>Item:</strong> {{ donation.title }}
+            </p>
+            <p style="font-size: 14px; color: #64748b; margin: 8px 0;">
+                <strong>Quantity:</strong> {{ donation.quantity }}
+            </p>
+            <p style="font-size: 14px; color: #64748b; margin: 8px 0;">
+                <strong>From:</strong> {{ donation.donor.get_full_name|default:donation.donor.username }}
+            </p>
+            <p style="font-size: 14px; color: #64748b; margin: 8px 0;">
+                <strong>Completed:</strong> {{ donation.updated_at|date:"M j, Y g:i A" }}
+            </p>
+        </div>
+    </div>
+
+    <!-- Rate Donor CTA -->
+    <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 20px; border-radius: 8px; max-width: 500px; margin: 0 auto 32px;">
+        <h3 style="font-size: 16px; font-weight: 700; color: #92400e; margin-bottom: 8px;">
+            ⭐ Rate Your Experience
+        </h3>
+        <p style="font-size: 14px; color: #78350f; margin-bottom: 16px;">
+            Share your experience and help {{ donation.donor.get_full_name|default:donation.donor.username }} build their reputation.
+        </p>
+        <a href="{{ site_url }}/donations/{{ donation.id }}/rate/" 
+           style="display: inline-block; background: #f59e0b; color: white; text-decoration: none; padding: 10px 24px; border-radius: 8px; font-weight: 600; font-size: 14px;">
+            Rate Donor
+        </a>
+    </div>
+
+    <!-- CTA Buttons -->
+    <div style="text-align: center;">
+        <a href="{{ site_url }}/search/" 
+           style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #047857 100%); color: white; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-weight: 700; font-size: 15px; margin: 0 8px;">
+            Browse More Donations
+        </a>
+        <a href="{{ site_url }}/dashboard/" 
+           style="display: inline-block; background: white; border: 2px solid #e2e8f0; color: #64748b; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-weight: 700; font-size: 15px; margin: 0 8px;">
+            Dashboard
+        </a>
+    </div>
+
+    <!-- Footer Message -->
+    <div style="text-align: center; margin-top: 32px;">
+        <p style="font-size: 14px; color: #94a3b8;">
+            🌍 Together, we're making a difference!
+        </p>
+    </div>
+</div>
+{% endblock %}

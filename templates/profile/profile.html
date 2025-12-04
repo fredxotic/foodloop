@@ -185,16 +185,17 @@
     <div class="card p-4 sm:p-6 md:p-8 mb-6 sm:mb-8">
         <h3 class="text-lg sm:text-xl font-bold text-slate-900 mb-6">Account Statistics</h3>
         
+        {% if user.profile.user_type == 'donor' %}
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <div class="text-center p-4 bg-slate-50 rounded-xl">
                 <p class="text-2xl sm:text-3xl font-display font-bold text-brand-600">
-                    {{ user.profile.total_donations }}
+                    {{ stats.total_donations|default:0 }}
                 </p>
                 <p class="text-xs sm:text-sm text-slate-600 font-medium mt-1">Total Donations</p>
             </div>
             <div class="text-center p-4 bg-slate-50 rounded-xl">
                 <p class="text-2xl sm:text-3xl font-display font-bold text-blue-600">
-                    {{ user.profile.completed_donations }}
+                    {{ stats.completed_donations|default:0 }}
                 </p>
                 <p class="text-xs sm:text-sm text-slate-600 font-medium mt-1">Completed</p>
             </div>
@@ -212,6 +213,29 @@
                 <p class="text-xs sm:text-sm text-slate-600 font-medium mt-1">Reviews</p>
             </div>
         </div>
+        {% else %}
+        <!-- Recipients: Show only claim stats, no ratings -->
+        <div class="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            <div class="text-center p-4 bg-slate-50 rounded-xl">
+                <p class="text-2xl sm:text-3xl font-display font-bold text-brand-600">
+                    {{ stats.total_claims|default:0 }}
+                </p>
+                <p class="text-xs sm:text-sm text-slate-600 font-medium mt-1">Total Claims</p>
+            </div>
+            <div class="text-center p-4 bg-slate-50 rounded-xl">
+                <p class="text-2xl sm:text-3xl font-display font-bold text-blue-600">
+                    {{ stats.active_claims|default:0 }}
+                </p>
+                <p class="text-xs sm:text-sm text-slate-600 font-medium mt-1">Active</p>
+            </div>
+            <div class="text-center p-4 bg-slate-50 rounded-xl">
+                <p class="text-2xl sm:text-3xl font-display font-bold text-green-600">
+                    {{ stats.completed_claims|default:0 }}
+                </p>
+                <p class="text-xs sm:text-sm text-slate-600 font-medium mt-1">Completed</p>
+            </div>
+        </div>
+        {% endif %}
     </div>
 
     <!-- Quick Links -->

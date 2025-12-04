@@ -35,8 +35,6 @@ logger = logging.getLogger(__name__)
 # DECORATORS
 # ============================================================================
 
-# Find the profile_required decorator (around line 30) and REPLACE with this:
-
 def profile_required(view_func):
     """Ensure user has a profile before accessing view"""
     @wraps(view_func)
@@ -109,7 +107,7 @@ def signup_view(request):
                 from django.db import transaction
                 
                 with transaction.atomic():
-                    # ✅ FIX: Check if user already exists (case-insensitive)
+                    # Check if user already exists (case-insensitive)
                     username = form.cleaned_data['username'].lower()
                     email = form.cleaned_data['email'].lower()
                     
@@ -127,7 +125,7 @@ def signup_view(request):
                     user.username = username
                     user.save()
                     
-                    # ✅ FIX: Use get_or_create to prevent duplicates
+                    # Use get_or_create to prevent duplicates
                     profile, created = UserProfile.objects.get_or_create(
                         user=user,
                         defaults={
@@ -437,19 +435,32 @@ def donation_detail_view(request, donation_id):
         (request.user == donation.donor or request.user == donation.recipient)
     )
     
-    # Check if user needs to rate
-    needs_rating = False
+    # Check if RECIPIENT has rated (only recipients can rate)
+    has_rated = False
+    recipient_has_rated = False
+    
     if request.user.is_authenticated and donation.status == Donation.COMPLETED:
-        needs_rating = not Rating.objects.filter(
-            donation=donation,
-            rating_user=request.user
-        ).exists()
+        if request.user == donation.recipient:
+            # Check if this recipient has rated the donor
+            has_rated = Rating.objects.filter(
+                donation=donation,
+                rating_user=request.user,
+                rated_user=donation.donor
+            ).exists()
+        elif request.user == donation.donor:
+            # Check if recipient has rated this donor
+            recipient_has_rated = Rating.objects.filter(
+                donation=donation,
+                rating_user=donation.recipient,
+                rated_user=donation.donor
+            ).exists()
     
     context = {
         'donation': donation,
         'can_claim': can_claim,
         'can_complete': can_complete,
-        'needs_rating': needs_rating,
+        'has_rated': has_rated,
+        'recipient_has_rated': recipient_has_rated,
     }
     
     return render(request, 'donation/detail.html', context)
@@ -481,11 +492,6 @@ def claim_donation_view(request, donation_id):
         
         messages.success(request, result.message)
 
-        # Send email to donor
-        EmailService.send_donation_claimed_email(donation, request.user)
-        
-        messages.success(request, result.message)
-        
         # Check if AJAX request
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({
@@ -525,7 +531,7 @@ def complete_donation_view(request, donation_id):
     if result.success:
         messages.success(request, result.message)
 
-        #  Check if AJAX request
+        # Check if AJAX request
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({
                 'success': True,
@@ -650,12 +656,12 @@ def search_donations_view(request):
 
 @login_required
 def rate_user_view(request, donation_id):
-    """Rate user after donation completion"""
+    """Rate donor after donation completion (RECIPIENTS ONLY)"""
     donation = get_object_or_404(Donation, id=donation_id)
     
-    # Verify authorization
-    if donation.donor != request.user and donation.recipient != request.user:
-        messages.error(request, "You are not authorized to rate this donation.")
+    # ONLY RECIPIENTS CAN RATE (rating the donor)
+    if request.user != donation.recipient:
+        messages.error(request, "Only recipients can rate donations.")
         return redirect('core:donation_detail', donation_id=donation.id)
     
     # Verify donation is completed
@@ -663,8 +669,10 @@ def rate_user_view(request, donation_id):
         messages.error(request, "You can only rate completed donations.")
         return redirect('core:donation_detail', donation_id=donation.id)
     
+    # The rated user is ALWAYS the donor
+    rated_user = donation.donor
+    
     # Check if already rated
-    rated_user = donation.recipient if request.user == donation.donor else donation.donor
     existing_rating = Rating.objects.filter(
         donation=donation,
         rating_user=request.user,
@@ -672,7 +680,7 @@ def rate_user_view(request, donation_id):
     ).first()
     
     if existing_rating:
-        messages.info(request, "You have already rated this exchange.")
+        messages.info(request, "You have already rated this donation.")
         return redirect('core:donation_detail', donation_id=donation.id)
     
     if request.method == 'POST':
@@ -684,24 +692,30 @@ def rate_user_view(request, donation_id):
         
         if form.is_valid():
             try:
-                # Save rating
-                rating = form.save()
+                from django.db import transaction
                 
-                # Send notification to rated user
-                NotificationService.notify_rating_received(rating, request.user)
-                
-                # Send email notification
-                EmailService.send_rating_notification_email(rating, request.user)
-                
-                messages.success(
-                    request,
-                    f"Thank you for rating {rated_user.get_full_name() or rated_user.username}!"
-                )
+                with transaction.atomic():
+                    # Save rating
+                    rating = form.save()
+                    
+                    # Force profile update
+                    rated_profile = rated_user.profile
+                    rated_profile.update_rating_stats()
+                    
+                    # Send notification
+                    NotificationService.notify_rating_received(rating, request.user)
+                    
+                    # Send email
+                    EmailService.send_rating_notification_email(rating, request.user)
+                    
+                    logger.info(f"Rating created: {rating.id} - Recipient {request.user.username} rated donor {rated_user.username} with {rating.rating} stars")
+                    
+                messages.success(request, f"Thank you for rating {rated_user.get_full_name() or rated_user.username}!")
                 return redirect('core:donation_detail', donation_id=donation.id)
             
             except Exception as e:
-                logger.error(f"Rating submission error: {e}")
-                messages.error(request, "An error occurred while submitting your rating. Please try again.")
+                logger.error(f"Rating submission error: {e}", exc_info=True)
+                messages.error(request, "Error submitting rating. Please try again.")
         else:
             for field, errors in form.errors.items():
                 for error in errors:
@@ -720,6 +734,7 @@ def rate_user_view(request, donation_id):
     }
     
     return render(request, 'ratings/rating_form.html', context)
+
 
 # ============================================================================
 # PROFILE VIEWS
@@ -795,7 +810,6 @@ def profile_view(request):
     return render(request, 'profile/profile.html', context)
 
 
-
 def public_profile_view(request, username):
     """View public profile of another user"""
     profile_user = get_object_or_404(User, username=username)  
@@ -808,16 +822,30 @@ def public_profile_view(request, username):
     
     # Get user's donations or claims based on their type
     if profile.user_type == UserProfile.DONOR:
+        # Get donation stats
+        total_donations = Donation.objects.filter(donor=profile_user).count()
+        completed_donations = Donation.objects.filter(
+            donor=profile_user,
+            status=Donation.COMPLETED
+        ).count()
+        
         recent_donations = Donation.objects.filter(
             donor=profile_user,
-            status__in=[Donation.AVAILABLE, Donation.COMPLETED]
+            status__in=[Donation.AVAILABLE, Donation.CLAIMED, Donation.COMPLETED]
         ).select_related('recipient', 'recipient__profile').order_by('-created_at')[:6]
         
         active_donations_count = Donation.objects.filter(
             donor=profile_user,
-            status=Donation.AVAILABLE
+            status__in=[Donation.AVAILABLE, Donation.CLAIMED]
         ).count()
     else:
+        # Get claim stats for recipients
+        total_donations = Donation.objects.filter(recipient=profile_user).count()
+        completed_donations = Donation.objects.filter(
+            recipient=profile_user,
+            status=Donation.COMPLETED
+        ).count()
+        
         recent_donations = Donation.objects.filter(
             recipient=profile_user,
             status=Donation.COMPLETED
@@ -825,7 +853,7 @@ def public_profile_view(request, username):
         
         active_donations_count = Donation.objects.filter(
             recipient=profile_user,
-            status__in=[Donation.CLAIMED, Donation.AVAILABLE]
+            status=Donation.CLAIMED
         ).count()
     
     # Get ratings received by this user
@@ -835,7 +863,9 @@ def public_profile_view(request, username):
     
     context = {
         'profile_user': profile_user,  
-        'profile': profile,             
+        'profile': profile,
+        'total_donations': total_donations,
+        'completed_donations': completed_donations,
         'recent_donations': recent_donations,
         'active_donations_count': active_donations_count,
         'recent_ratings': recent_ratings,
@@ -843,8 +873,6 @@ def public_profile_view(request, username):
     
     return render(request, 'profile/public_profile.html', context)
 
-
-# Find and UPDATE the dietary_preferences_view function (around line 690):
 
 @recipient_required
 def dietary_preferences_view(request):
@@ -897,18 +925,30 @@ def notifications_view(request):
 @require_POST
 def mark_notification_read_view(request, notification_id):
     """Mark a notification as read"""
-    notification = get_object_or_404(
-        Notification,
-        id=notification_id,
-        user=request.user
-    )
+    try:
+        # Use NotificationService instead of direct method
+        result = NotificationService.mark_notification_read(notification_id, request.user)
+        
+        if result.success:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': True})
+            else:
+                messages.success(request, "Notification marked as read.")
+        else:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'error': result.message}, status=400)
+            else:
+                messages.error(request, result.message)
+        
+        return redirect('core:notifications')
     
-    notification.mark_as_read()
-    
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return JsonResponse({'success': True})
-    
-    return redirect('core:notifications')
+    except Exception as e:
+        logger.error(f"Error marking notification as read: {e}")
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'error': 'Internal server error'}, status=500)
+        else:
+            messages.error(request, "Error marking notification as read.")
+            return redirect('core:notifications')
 
 
 @login_required
@@ -974,12 +1014,19 @@ def _format_time_ago(dt):
 @require_POST
 def mark_all_notifications_read_view(request):
     """Mark all notifications as read"""
-    count = request.user.notifications.filter(is_read=False).update(is_read=True)
+    result = NotificationService.mark_all_read(request.user)
     
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return JsonResponse({'success': True, 'count': count})
+    if result.success:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': True, 'count': result.data.get('count', 0)})
+        else:
+            messages.success(request, result.message)
+    else:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'error': result.message}, status=400)
+        else:
+            messages.error(request, result.message)
     
-    messages.success(request, f"{count} notifications marked as read.")
     return redirect('core:notifications')
 
 

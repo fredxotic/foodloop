@@ -12,7 +12,7 @@ from datetime import timedelta, datetime
 from typing import Dict, List, Any, Optional
 import logging
 
-from core.models import Donation, UserProfile, NutritionImpact, Rating, Notification
+from core.models import Donation, UserProfile, Rating, Notification
 from core.cache import CacheManager
 
 logger = logging.getLogger(__name__)
@@ -252,7 +252,7 @@ class AnalyticsService:
         Get geographic distribution of donations and users
         
         Returns:
-            Dictionary containing geographic data
+            Dictionary containing geographic data (SIMPLIFIED - No GPS)
         """
         try:
             # Check cache
@@ -260,23 +260,26 @@ class AnalyticsService:
             if cached_geo:
                 return cached_geo
             
-            # Get donations with coordinates
-            donations_with_location = Donation.objects.filter(
-                latitude__isnull=False,
-                longitude__isnull=False,
+            # SIMPLIFIED: Get location counts by city/neighborhood text
+            location_counts = Donation.objects.filter(
+                pickup_location__isnull=False,
                 status=Donation.AVAILABLE
-            ).values('latitude', 'longitude', 'food_category', 'title')[:100]  # Limit for performance
+            ).exclude(
+                pickup_location=''
+            ).values('pickup_location').annotate(
+                count=Count('id')
+            ).order_by('-count')[:10]
             
-            # Get users with coordinates
+            # Get users with location text
             users_with_location = UserProfile.objects.filter(
-                latitude__isnull=False,
-                longitude__isnull=False,
-                email_verified=True
-            ).values('user_type', 'latitude', 'longitude').count()
+                location__isnull=False
+            ).exclude(
+                location=''
+            ).count()
             
             distribution = {
                 'total_locations': users_with_location,
-                'active_donation_locations': list(donations_with_location),
+                'top_locations': list(location_counts),
                 'coverage_percentage': round(
                     (users_with_location / UserProfile.objects.count() * 100)
                     if UserProfile.objects.count() > 0 else 0,
@@ -284,7 +287,7 @@ class AnalyticsService:
                 )
             }
             
-            # Cache for 15 minutes (location data changes frequently)
+            # Cache for 15 minutes
             CacheManager.set_analytics('geographic_distribution', distribution)
             
             return distribution
@@ -299,7 +302,7 @@ class AnalyticsService:
         Get aggregated nutrition insights across platform
         
         Returns:
-            Dictionary containing nutrition metrics
+            Dictionary containing nutrition metrics (SIMPLIFIED - No NutritionImpact model)
         """
         try:
             # Check cache
@@ -309,20 +312,21 @@ class AnalyticsService:
             
             thirty_days_ago = timezone.now().date() - timedelta(days=30)
             
-            # Get nutrition impact data
-            nutrition_data = NutritionImpact.objects.filter(
-                date__gte=thirty_days_ago
+            # SIMPLIFIED: Get nutrition data from Donation model directly
+            nutrition_data = Donation.objects.filter(
+                status=Donation.COMPLETED,
+                created_at__gte=thirty_days_ago
             ).aggregate(
-                total_donations=Sum('donations_made'),
-                total_received=Sum('donations_received'),
-                total_calories=Sum('total_calories'),
-                avg_score=Avg('avg_nutrition_score')
+                total_donations=Count('id'),
+                total_calories=Sum('estimated_calories'),
+                avg_nutrition_score=Avg('nutrition_score')
             )
             
             # Get top categories by nutrition score
             top_categories = Donation.objects.filter(
                 status=Donation.COMPLETED,
-                nutrition_score__isnull=False
+                nutrition_score__isnull=False,
+                created_at__gte=thirty_days_ago
             ).values('food_category').annotate(
                 avg_score=Avg('nutrition_score'),
                 count=Count('id')
@@ -331,9 +335,8 @@ class AnalyticsService:
             insights = {
                 'period': '30 days',
                 'total_donations_made': nutrition_data['total_donations'] or 0,
-                'total_donations_received': nutrition_data['total_received'] or 0,
                 'total_calories_distributed': nutrition_data['total_calories'] or 0,
-                'platform_avg_nutrition_score': round(nutrition_data['avg_score'] or 0, 2),
+                'platform_avg_nutrition_score': round(nutrition_data['avg_nutrition_score'] or 0, 2),
                 'top_nutrition_categories': list(top_categories),
                 'estimated_meals_provided': round(
                     (nutrition_data['total_calories'] or 0) / 600,  # Assuming 600 cal per meal

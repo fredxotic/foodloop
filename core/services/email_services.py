@@ -6,13 +6,14 @@ from django.conf import settings
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.html import strip_tags
+from django.db import transaction  # FIXED: Moved to top
 from datetime import timedelta
 from typing import Tuple
 import logging
 
 from core.models import EmailVerification, Donation, User
 from core.services.base import BaseService, ServiceResponse
-from core.utils import send_email_with_template
+from core.utils import send_email_with_template  # FIXED: Added import
 
 logger = logging.getLogger(__name__)
 
@@ -87,7 +88,25 @@ class EmailService(BaseService):
             return False
 
     @classmethod
-    def send_donation_claimed_email(cls, donation, recipient: User) -> ServiceResponse:
+    def send_donation_created_email(cls, donor: User, donation: Donation) -> bool:
+        """Send email to donor when donation is created"""
+        try:
+            return send_email_with_template(
+                recipient_email=donor.email,
+                subject=f"Donation Created: {donation.title}",
+                template_name="donation_created",
+                context={
+                    'user': donor,
+                    'donation': donation,
+                    'site_name': settings.FOODLOOP_CONFIG.get('SITE_NAME', 'FoodLoop'),
+                }
+            )
+        except Exception as e:
+            logger.error(f"Donation created email error: {e}")
+            return False
+
+    @classmethod
+    def send_donation_claimed_email(cls, donation: Donation, recipient: User) -> ServiceResponse:
         """Send email to donor when donation is claimed"""
         try:
             site_url = settings.FOODLOOP_CONFIG.get('SITE_URL', 'http://127.0.0.1:8000')
@@ -118,7 +137,7 @@ class EmailService(BaseService):
             return cls.handle_exception(e, "send donation claimed email")
 
     @classmethod
-    def send_donation_completed_email(cls, donation) -> ServiceResponse:
+    def send_donation_completed_email(cls, donation: Donation) -> ServiceResponse:
         """Send completion emails to both donor and recipient"""
         try:
             site_url = settings.FOODLOOP_CONFIG.get('SITE_URL', 'http://127.0.0.1:8000')
@@ -223,22 +242,39 @@ class EmailService(BaseService):
             return False
 
     @classmethod
+    def send_cancellation_notification_email(cls, recipient: User, donation: Donation) -> bool:
+        """Send notification when donation is cancelled"""
+        try:
+            return send_email_with_template(
+                recipient_email=recipient.email,
+                subject=f"Donation Cancelled: {donation.title}",
+                template_name="donation_cancelled",
+                context={
+                    'user': recipient,
+                    'donation': donation,
+                    'site_name': settings.FOODLOOP_CONFIG.get('SITE_NAME', 'FoodLoop'),
+                }
+            )
+        except Exception as e:
+            logger.error(f"Cancellation notification email error: {e}")
+            return False
+
+    @classmethod
     def verify_email_token(cls, token: str) -> ServiceResponse:
         """Verify email verification token"""
         try:
             verification = EmailVerification.objects.select_related('user').get(
                 token=token,
-                is_verified=False
+                is_used=False  # FIXED: Changed from is_verified to is_used
             )
             
             # Check expiry
             if verification.expires_at < timezone.now():
                 return cls.error("Verification link has expired. Please request a new one.")
             
-            # Mark as verified
+            # Mark as used and update user profile
             with transaction.atomic():
-                verification.is_verified = True
-                verification.verified_at = timezone.now()
+                verification.is_used = True
                 verification.save()
                 
                 # Update user profile
@@ -258,7 +294,3 @@ class EmailService(BaseService):
             return cls.error("Invalid or already used verification link")
         except Exception as e:
             return cls.handle_exception(e, "email verification")
-
-
-# Import at end to avoid circular dependency
-from django.db import transaction

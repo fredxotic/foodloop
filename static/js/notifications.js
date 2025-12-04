@@ -1,319 +1,421 @@
-// static/js/notifications.js - Fully functional version
+/**
+ * FoodLoop Notification Manager
+ * Handles real-time notification polling and display using Alpine.js & Tailwind
+ */
+
 class NotificationManager {
     constructor() {
         this.userId = null;
         this.pollingInterval = null;
+        this.pollingRate = 30000; // 30 seconds
+        this.isPolling = false;
         this.initialize();
     }
     
     initialize() {
+        // Get user ID from meta tag
         this.userId = document.querySelector('meta[name="user-id"]')?.content;
         
         if (!this.userId) {
-            console.log('No user ID found for notifications');
+            console.log('NotificationManager: No user logged in');
             return;
         }
         
+        console.log('NotificationManager initialized for user:', this.userId);
+        
+        // Initial load
         this.loadNotificationCount();
-        this.setupEventListeners();
+        
+        // Start polling
         this.startPolling();
         
-        // Load notifications when dropdown is opened
+        // Setup dropdown listener
         this.setupDropdownListener();
+        
+        // Request browser notification permission
+        this.requestNotificationPermission();
     }
     
+    /**
+     * Load unread notification count (lightweight)
+     */
     async loadNotificationCount() {
         try {
-            const response = await fetch('/notifications/count/');
-            if (response.ok) {
-                const data = await response.json();
-                this.updateNotificationBadge(data.count);
-            }
-        } catch (error) {
-            console.error('Error loading notification count:', error);
-        }
-    }
-    
-    async loadNotifications() {
-        try {
-            const response = await fetch('/notifications/');
-            if (response.ok) {
-                const data = await response.json();
-                if (data.notifications) {
-                    this.renderNotifications(data.notifications);
-                } else {
-                    this.renderEmptyNotifications();
+            const response = await fetch('/notifications/count/', {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': this.getCSRFToken()
                 }
-            } else {
-                this.renderError();
-            }
+            });
+            
+            if (!response.ok) throw new Error('Failed to load count');
+            
+            const data = await response.json();
+            this.updateNotificationBadge(data.count || 0);
+            
         } catch (error) {
-            console.error('Error loading notifications:', error);
-            this.renderError();
+            console.error('Notification count error:', error);
         }
     }
     
+    /**
+     * Load full notification list (heavy - only when dropdown opens)
+     */
+    async loadNotifications() {
+        const container = document.getElementById('notificationList');
+        if (!container) return;
+        
+        // Show loading state
+        container.innerHTML = `
+            <div class="px-5 py-12 text-center text-slate-400">
+                <i class="fas fa-circle-notch fa-spin text-2xl mb-3 text-brand-500"></i>
+                <p class="text-xs font-bold uppercase tracking-wide">Loading notifications...</p>
+            </div>
+        `;
+        
+        try {
+            const response = await fetch('/notifications/', {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': this.getCSRFToken()
+                }
+            });
+            
+            if (!response.ok) throw new Error('Failed to load notifications');
+            
+            const data = await response.json();
+            
+            if (data.notifications && data.notifications.length > 0) {
+                this.renderNotifications(data.notifications);
+            } else {
+                this.renderEmptyState();
+            }
+            
+        } catch (error) {
+            console.error('Load notifications error:', error);
+            this.renderErrorState();
+        }
+    }
+    
+    /**
+     * Update notification badge count
+     */
     updateNotificationBadge(count) {
         const badge = document.getElementById('notificationBadge');
-        if (badge) {
-            if (count > 0) {
-                badge.textContent = count > 99 ? '99+' : count;
-                badge.style.display = 'block';
-                
-                // Add pulse animation for new notifications
-                badge.classList.add('pulse');
-                setTimeout(() => badge.classList.remove('pulse'), 2000);
-            } else {
-                badge.style.display = 'none';
-            }
+        if (!badge) return;
+        
+        if (count > 0) {
+            badge.style.display = 'block';
+            badge.classList.add('animate-pulse');
+            
+            // Remove pulse after 2 seconds
+            setTimeout(() => {
+                badge.classList.remove('animate-pulse');
+            }, 2000);
+        } else {
+            badge.style.display = 'none';
         }
     }
     
+    /**
+     * Render notifications in dropdown
+     */
     renderNotifications(notifications) {
         const container = document.getElementById('notificationList');
         if (!container) return;
         
-        if (notifications.length === 0) {
-            this.renderEmptyNotifications();
-            return;
-        }
-        
         container.innerHTML = notifications.map(notification => `
-            <div class="notification-item ${notification.is_read ? '' : 'unread'} p-3 border-bottom" 
-                 data-notification-id="${notification.id}">
-                <div class="d-flex align-items-start">
-                    <div class="notification-icon bg-${this.getNotificationColor(notification.type)} text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                        <i class="fas fa-${this.getNotificationIcon(notification.type)}"></i>
+            <div class="notification-item ${notification.is_read ? 'bg-white' : 'bg-blue-50 border-l-4 border-blue-500'} 
+                 p-4 border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer"
+                 data-notification-id="${notification.id}"
+                 onclick="window.notificationManager.handleNotificationClick(${notification.id}, '${notification.related_url || ''}')">
+                
+                <!-- Icon -->
+                <div class="flex gap-3 items-start">
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${this.getNotificationBgColor(notification.type)}">
+                        <i class="fas fa-${this.getNotificationIcon(notification.type)} text-sm ${this.getNotificationIconColor(notification.type)}"></i>
                     </div>
-                    <div class="flex-grow-1 ms-3">
-                        <div class="d-flex justify-content-between align-items-start mb-1">
-                            <strong class="me-2">${this.escapeHtml(notification.title)}</strong>
-                            <small class="text-muted">${notification.time_ago}</small>
+                    
+                    <!-- Content -->
+                    <div class="flex-1 min-w-0">
+                        <div class="flex justify-between items-start gap-2 mb-1">
+                            <h4 class="font-bold text-sm text-slate-900 line-clamp-1">${this.escapeHtml(notification.title)}</h4>
+                            <span class="text-xs text-slate-400 whitespace-nowrap">${notification.time_ago}</span>
                         </div>
-                        <p class="mb-1 small">${this.escapeHtml(notification.message)}</p>
-                        ${notification.related_url ? `
-                            <a href="${notification.related_url}" class="btn btn-sm btn-outline-primary mt-1" onclick="window.notificationManager.markAsRead(${notification.id})">
-                                View Details
-                            </a>
-                        ` : ''}
-                        <div class="mt-2">
-                            <small>
-                                <a href="#" class="text-muted me-3" onclick="window.notificationManager.markAsRead(${notification.id}); return false;">
-                                    <i class="fas fa-check me-1"></i>Mark as read
-                                </a>
-                            </small>
+                        <p class="text-xs text-slate-600 line-clamp-2 mb-2">${this.escapeHtml(notification.message)}</p>
+                        
+                        <!-- Actions -->
+                        <div class="flex gap-2">
+                            ${notification.related_url ? `
+                                <button onclick="event.stopPropagation(); window.notificationManager.handleNotificationClick(${notification.id}, '${notification.related_url}')" 
+                                        class="text-xs font-semibold text-brand-600 hover:text-brand-700">
+                                    View Details →
+                                </button>
+                            ` : ''}
+                            ${!notification.is_read ? `
+                                <button onclick="event.stopPropagation(); window.notificationManager.markAsRead(${notification.id})" 
+                                        class="text-xs font-semibold text-slate-500 hover:text-slate-700">
+                                    Mark Read
+                                </button>
+                            ` : ''}
                         </div>
                     </div>
                 </div>
             </div>
         `).join('');
+    }
+    
+    /**
+     * Render empty state
+     */
+    renderEmptyState() {
+        const container = document.getElementById('notificationList');
+        if (!container) return;
         
-        // Add click handlers for notification items
-        this.setupNotificationClickHandlers();
+        container.innerHTML = `
+            <div class="px-5 py-16 text-center">
+                <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-bell-slash text-2xl text-slate-300"></i>
+                </div>
+                <h4 class="text-sm font-bold text-slate-900 mb-1">No notifications</h4>
+                <p class="text-xs text-slate-500">You're all caught up!</p>
+            </div>
+        `;
     }
     
-    renderEmptyNotifications() {
+    /**
+     * Render error state
+     */
+    renderErrorState() {
         const container = document.getElementById('notificationList');
-        if (container) {
-            container.innerHTML = `
-                <div class="text-center p-4 text-muted">
-                    <i class="fas fa-bell-slash fa-2x mb-2"></i>
-                    <p class="mb-0">No new notifications</p>
-                    <small class="text-muted">We'll notify you when something happens</small>
+        if (!container) return;
+        
+        container.innerHTML = `
+            <div class="px-5 py-16 text-center">
+                <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-exclamation-triangle text-2xl text-red-500"></i>
                 </div>
-            `;
+                <h4 class="text-sm font-bold text-slate-900 mb-1">Oops!</h4>
+                <p class="text-xs text-slate-500 mb-4">Unable to load notifications</p>
+                <button onclick="window.notificationManager.loadNotifications()" 
+                        class="text-xs font-bold text-brand-600 hover:text-brand-700 underline">
+                    Try Again
+                </button>
+            </div>
+        `;
+    }
+    
+    /**
+     * Handle notification click
+     */
+    async handleNotificationClick(notificationId, url) {
+        // Mark as read
+        await this.markAsRead(notificationId);
+        
+        // Navigate if URL provided
+        if (url) {
+            window.location.href = url;
         }
     }
     
-    renderError() {
-        const container = document.getElementById('notificationList');
-        if (container) {
-            container.innerHTML = `
-                <div class="text-center p-4 text-muted">
-                    <i class="fas fa-exclamation-triangle fa-2x mb-2 text-warning"></i>
-                    <p class="mb-0">Unable to load notifications</p>
-                    <small class="text-muted">Please try again later</small>
-                </div>
-            `;
-        }
-    }
-    
-    setupNotificationClickHandlers() {
-        const notificationItems = document.querySelectorAll('.notification-item');
-        notificationItems.forEach(item => {
-            item.addEventListener('click', (e) => {
-                // Don't trigger if clicking on links or buttons
-                if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON') {
-                    return;
-                }
-                
-                const notificationId = item.getAttribute('data-notification-id');
-                const link = item.querySelector('a.btn');
-                
-                if (link) {
-                    this.markAsRead(notificationId);
-                    window.location.href = link.href;
-                }
-            });
-        });
-    }
-    
+    /**
+     * Mark single notification as read
+     */
     async markAsRead(notificationId) {
         try {
             const response = await fetch(`/notifications/${notificationId}/read/`, {
                 method: 'POST',
                 headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
                     'X-CSRFToken': this.getCSRFToken(),
                     'Content-Type': 'application/json'
                 }
             });
             
-            if (response.ok) {
-                // Update UI
-                const notificationItem = document.querySelector(`[data-notification-id="${notificationId}"]`);
-                if (notificationItem) {
-                    notificationItem.classList.remove('unread');
-                }
-                
-                // Update badge count
-                this.loadNotificationCount();
+            if (!response.ok) throw new Error('Failed to mark as read');
+            
+            // Update UI immediately
+            const notificationItem = document.querySelector(`[data-notification-id="${notificationId}"]`);
+            if (notificationItem) {
+                notificationItem.classList.remove('bg-blue-50', 'border-l-4', 'border-blue-500');
+                notificationItem.classList.add('bg-white');
             }
+            
+            // Reload count
+            this.loadNotificationCount();
+            
         } catch (error) {
-            console.error('Error marking notification as read:', error);
+            console.error('Mark as read error:', error);
         }
     }
     
+    /**
+     * Mark all notifications as read
+     */
     async markAllAsRead() {
         try {
             const response = await fetch('/notifications/read-all/', {
                 method: 'POST',
                 headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
                     'X-CSRFToken': this.getCSRFToken(),
                     'Content-Type': 'application/json'
                 }
             });
             
-            if (response.ok) {
-                // Update all notifications to read state
-                document.querySelectorAll('.notification-item.unread').forEach(item => {
-                    item.classList.remove('unread');
-                });
-                
-                // Update badge
-                this.updateNotificationBadge(0);
-                
-                // Show success message
-                this.showToast('All notifications marked as read', 'success');
+            if (!response.ok) throw new Error('Failed to mark all as read');
+            
+            // Update UI
+            document.querySelectorAll('.notification-item').forEach(item => {
+                item.classList.remove('bg-blue-50', 'border-l-4', 'border-blue-500');
+                item.classList.add('bg-white');
+            });
+            
+            // Update badge
+            this.updateNotificationBadge(0);
+            
+            // Show success toast
+            if (window.FoodLoop && window.FoodLoop.showToast) {
+                window.FoodLoop.showToast('All notifications marked as read', 'success');
             }
+            
         } catch (error) {
-            console.error('Error marking all as read:', error);
-            this.showToast('Error marking notifications as read', 'error');
+            console.error('Mark all as read error:', error);
+            if (window.FoodLoop && window.FoodLoop.showToast) {
+                window.FoodLoop.showToast('Error marking notifications as read', 'error');
+            }
         }
     }
     
-    getNotificationColor(type) {
-        const colors = {
-            'donation_claimed': 'warning',
-            'donation_completed': 'success',
-            'new_donation': 'info',
-            'rating_received': 'primary',
-            'message_received': 'secondary',
-            'system': 'dark',
-            'dietary_match': 'success'
-        };
-        return colors[type] || 'primary';
+    /**
+     * Setup dropdown open listener
+     */
+    setupDropdownListener() {
+        const trigger = document.getElementById('notificationTrigger');
+        if (!trigger) return;
+        
+        // Load notifications when dropdown opens (using Alpine's @click event)
+        trigger.addEventListener('click', () => {
+            setTimeout(() => {
+                this.loadNotifications();
+            }, 100);
+        });
     }
     
+    /**
+     * Start polling for new notifications
+     */
+    startPolling() {
+        if (this.isPolling) return;
+        
+        this.isPolling = true;
+        this.pollingInterval = setInterval(() => {
+            this.loadNotificationCount();
+        }, this.pollingRate);
+        
+        console.log(`Notification polling started (every ${this.pollingRate/1000}s)`);
+    }
+    
+    /**
+     * Stop polling
+     */
+    stopPolling() {
+        if (this.pollingInterval) {
+            clearInterval(this.pollingInterval);
+            this.isPolling = false;
+            console.log('Notification polling stopped');
+        }
+    }
+    
+    /**
+     * Request browser notification permission
+     */
+    requestNotificationPermission() {
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission().then(permission => {
+                if (permission === 'granted') {
+                    console.log('✅ Browser notifications enabled');
+                }
+            });
+        }
+    }
+    
+    /**
+     * Get notification icon
+     */
     getNotificationIcon(type) {
         const icons = {
             'donation_claimed': 'hand-holding-heart',
             'donation_completed': 'check-circle',
             'new_donation': 'utensils',
             'rating_received': 'star',
-            'message_received': 'envelope',
-            'system': 'info-circle',
-            'dietary_match': 'apple-alt'
+            'system': 'info-circle'
         };
         return icons[type] || 'bell';
     }
     
-    setupEventListeners() {
-        // Mark all as read
-        const markAllReadBtn = document.getElementById('markAllRead');
-        if (markAllReadBtn) {
-            markAllReadBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.markAllAsRead();
-            });
-        }
-        
-        // Request notification permission for browser notifications
-        this.requestNotificationPermission();
+    /**
+     * Get notification background color
+     */
+    getNotificationBgColor(type) {
+        const colors = {
+            'donation_claimed': 'bg-yellow-100',
+            'donation_completed': 'bg-green-100',
+            'new_donation': 'bg-blue-100',
+            'rating_received': 'bg-purple-100',
+            'system': 'bg-slate-100'
+        };
+        return colors[type] || 'bg-slate-100';
     }
     
-    setupDropdownListener() {
-        const dropdown = document.getElementById('notificationDropdown');
-        if (dropdown) {
-            dropdown.addEventListener('show.bs.dropdown', () => {
-                this.loadNotifications();
-            });
-        }
+    /**
+     * Get notification icon color
+     */
+    getNotificationIconColor(type) {
+        const colors = {
+            'donation_claimed': 'text-yellow-600',
+            'donation_completed': 'text-green-600',
+            'new_donation': 'text-blue-600',
+            'rating_received': 'text-purple-600',
+            'system': 'text-slate-600'
+        };
+        return colors[type] || 'text-slate-600';
     }
     
-    requestNotificationPermission() {
-        if ('Notification' in window && Notification.permission === 'default') {
-            Notification.requestPermission().then(permission => {
-                if (permission === 'granted') {
-                    console.log('Notification permission granted');
-                }
-            });
-        }
-    }
-    
-    startPolling() {
-        // Poll for new notifications every 30 seconds
-        this.pollingInterval = setInterval(() => {
-            this.loadNotificationCount();
-        }, 30000);
-    }
-    
-    stopPolling() {
-        if (this.pollingInterval) {
-            clearInterval(this.pollingInterval);
-        }
-    }
-    
-    showToast(message, type = 'info') {
-        // Use the foodLoopUI toast system if available
-        if (window.foodLoopUI && window.foodLoopUI.showToast) {
-            window.foodLoopUI.showToast(message, type);
-        } else {
-            // Fallback toast
-            const toast = document.createElement('div');
-            toast.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
-            toast.style.cssText = 'top: 20px; right: 20px; z-index: 1050; min-width: 300px;';
-            toast.innerHTML = `
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            `;
-            document.body.appendChild(toast);
-            
-            setTimeout(() => {
-                if (toast.parentNode) {
-                    toast.parentNode.removeChild(toast);
-                }
-            }, 3000);
-        }
-    }
-    
+    /**
+     * Escape HTML to prevent XSS
+     */
     escapeHtml(text) {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
     }
     
+    /**
+     * Get CSRF token
+     */
     getCSRFToken() {
-        return document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+        return document.querySelector('meta[name="csrf-token"]')?.content || 
+               document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+               this.getCookie('csrftoken') || '';
+    }
+    
+    /**
+     * Get cookie value
+     */
+    getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
     }
 }
 
@@ -322,27 +424,9 @@ document.addEventListener('DOMContentLoaded', () => {
     window.notificationManager = new NotificationManager();
 });
 
-// Add CSS for pulse animation
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.1); }
-        100% { transform: scale(1); }
+// Cleanup on page unload
+window.addEventListener('beforeunload', () => {
+    if (window.notificationManager) {
+        window.notificationManager.stopPolling();
     }
-    .pulse {
-        animation: pulse 0.6s ease-in-out;
-    }
-    .notification-item {
-        cursor: pointer;
-        transition: background-color 0.2s ease;
-    }
-    .notification-item:hover {
-        background-color: rgba(0,0,0,0.02);
-    }
-    .notification-item.unread {
-        background-color: rgba(0,123,255,0.05);
-        border-left: 3px solid #007bff;
-    }
-`;
-document.head.appendChild(style);
+});
