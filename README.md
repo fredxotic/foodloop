@@ -1,285 +1,116 @@
-# 🍎 FoodLoop - Food Donation Platform
+# FoodLoop - Community Food Sharing Platform 🍃
 
-![Django](https://img.shields.io/badge/Django-5.2.5-green)
-![Bootstrap](https://img.shields.io/badge/Bootstrap-5.1.3-purple)
-![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
+![Status](https://img.shields.io/badge/Status-Beta_MVP-orange)
+![Python](https://img.shields.io/badge/Python-3.13-blue)
+![Django](https://img.shields.io/badge/Django-5.2-green)
 
-**Connecting Communities to Combat Food Waste Through Sharing**
+**FoodLoop** is a hyper-local food rescue platform connecting donors (restaurants, individuals) with surplus food to recipients (communities, charities) who need it. 
 
-FoodLoop is a comprehensive web platform that bridges the gap between food donors and recipients, enabling communities to reduce food waste while helping those in need. Our mission is to create sustainable food sharing ecosystems across neighborhoods.
+> **Phase 1 Update:** The platform has been optimized for performance and stability. GPS dependencies have been replaced with simplified location grouping, and a service-oriented architecture has been implemented.
 
 ## 🌟 Key Features
 
-### 🎯 Core Functionality
+### For Donors
+- **Inventory Management**: Create donations with images, expiry dates, and categories.
+- **Smart Recommendations**: The system suggests what to donate based on current demand and seasonality.
+- **Impact Analytics**: Track calories saved and community impact via interactive charts.
+- **Reputation System**: Earn ratings and build trust within the community.
 
-- **Dual-Role System**: Register as Donor or Recipient with specialized dashboards
-- **Smart Donation Management**: Create, browse, claim, and track food donations
-- **Geolocation Services**: Interactive maps with location-based donation discovery
-- **Mutual Rating System**: Build trust through reciprocal donor-recipient ratings
-- **Real-time Notifications**: Instant alerts for new donations and claims
+### For Recipients
+- **Dietary Matching**: Set preferences (Vegan, Halal, etc.) to get filtered recommendations.
+- **Claim System**: Reserve food instantly and coordinate pickup times.
+- **Nutrition Insights**: Track the nutritional value of claimed food over time.
+- **Location Browsing**: Find available donations grouped by neighborhood.
 
-### 🛡️ Security & Trust
+### Technical Highlights
+- **Service Layer Architecture**: Business logic decoupled from Views/Models for testability.
+- **Advanced Caching**: Custom `CacheManager` with pre-warming strategies for high-performance dashboards.
+- **API First**: Full REST API (DRF) with JWT Authentication and Throttling (Rate Limiting).
+- **Security**: Email verification, input sanitization, and role-based access control decorators.
+- **Responsive UI**: Built with Tailwind CSS and Alpine.js for a seamless mobile experience.
 
-- **Email Verification**: Secure account verification system
-- **Role-based Access**: Protected routes for donors and recipients
-- **Rating & Reputation**: Community-driven trust building
-- **Secure File Uploads**: Protected image handling with validation
+## Tech Stack
 
-### 📱 User Experience
+- **Backend**: Django 5.2, Django REST Framework
+- **Database**: SQLite (Dev) / PostgreSQL (Prod)
+- **Frontend**: Django Templates, Tailwind CSS (CDN), Alpine.js, Chart.js
+- **Media**: Cloudinary integration for image optimization
+- **Async/Tasks**: Celery & Redis configuration ready
 
-- **Responsive Design**: Mobile-first approach works on all devices
-- **Intuitive Interface**: Clean, modern UI with Bootstrap 5
-- **Advanced Search**: Filter donations by type, location, and distance
-- **Progress Tracking**: Visual donation status indicators
-
-## 🚀 Quick Start
+## Installation & Setup
 
 ### Prerequisites
+- Python 3.10+
+- Virtualenv
 
-- Python 3.8+
-- Django 5.2.5
-- SQLite (default) or PostgreSQL
-
-### Installation
-
-1. **Clone the repository**
-
+### 1. Clone & Environment
 ```bash
 git clone https://github.com/fredxotic/foodloop.git
 cd foodloop
-```
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+````
 
-2. **Create virtual environment**
-
-```bash
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate 
-```
-
-3. **Install dependencies**
+### 2\. Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-4. **Run migrations**
+### 3\. Configuration
+
+Create a `.env` file in the root directory:
+
+```env
+DEBUG=True
+SECRET_KEY=your-secret-key
+# Optional: Add Cloudinary/Email credentials here
+```
+
+### 4\. Database & Seeding
+
+We have a custom command to set up the database and populate it with demo data:
 
 ```bash
-python manage.py makemigrations
 python manage.py migrate
+python manage.py setup_foodloop --create-superuser --create-sample-data --setup-directories
 ```
 
-5. **Create superuser** (optional)
+*This creates a superuser (admin/admin123) and sample donors/recipients.*
 
-```bash
-python manage.py createsuperuser
-```
-
-6. **Run development server**
+### 5\. Run Server
 
 ```bash
 python manage.py runserver
 ```
 
-Visit `http://127.0.0.1:8000` to see your application running!
+Visit `http://127.0.0.1:8000`
 
-## 📁 Project Structure
+## 📚 API Documentation
 
-```
-FoodLoop/
-├── core/                          # Main application
-│   ├── models.py                  # Database models (User, Donation, Rating)
-│   ├── views.py                   # View functions and business logic
-│   ├── forms.py                   # Django forms for data validation
-│   ├── urls.py                    # URL routing configuration
-│   ├── templates/                 # HTML templates
-│   │   ├── base.html             # Base template structure
-│   │   ├── donor/                # Donor-specific templates
-│   │   ├── recipient/            # Recipient-specific templates
-│   │   └── ratings/              # Rating system templates
-│   └── static/                   # CSS, JavaScript, images
-├── foodloop/                     # Project configuration
-│   ├── settings.py               # Django settings
-│   └── urls.py                   # Project URL configuration
-└── manage.py                     # Django management script
-```
+The API is available at `/api/v1/`.
 
-## 🗃️ Database Models
+  * **Auth**: `/api/v1/token/` (Obtain JWT)
+  * **Donations**: `/api/v1/donations/`
+  * **Users**: `/api/v1/users/`
 
-### Core Entities
+## 🗺️ Roadmap
 
-- **UserProfile**: Extended user model with role-specific data
-- **Donation**: Food donation listings with status tracking
-- **Rating**: Mutual rating system between donors and recipients
-- **EmailVerification**: Secure email confirmation system
+### Phase 1 (Completed) ✅
 
-### Status Workflow
+  - [x] Core Authentication & Role Management
+  - [x] Donation CRUD & Claim Workflow
+  - [x] Notification System (Polling based)
+  - [x] Service-Oriented Refactor
+  - [x] Basic Analytics Dashboard
 
-```
-Donation Creation → Available → Claimed → Completed → Rated
-```
+### Phase 2 (In Progress) 🚧
 
-## 🎨 UI Components
+  - [ ] Integration of Mapbox/Google Maps for precise geolocation
+  - [ ] Real-time WebSocket notifications (Django Channels)
+  - [ ] PWA (Progressive Web App) capabilities for offline support
+  - [ ] Stripe/M-Pesa integration for monetary support to NGOs
 
-### Dashboard Features
+-----
 
-- **Donor Dashboard**: Donation management, statistics, rating prompts
-- **Recipient Dashboard**: Available donations, claim history, contact management
-- **Interactive Maps**: Leaflet.js integration for geographical discovery
-- **Rating Interface**: 5-star system with optional comments
-
-### Responsive Design
-
-- Mobile-optimized navigation
-- Touch-friendly interfaces
-- Progressive enhancement approach
-
-## 🔧 Configuration
-
-### Environment Setup
-
-Update `foodloop/settings.py` for production:
-
-```python
-# Email Configuration (Production)
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'your-smtp-server.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-
-# Database (Production)
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'foodloop_db',
-        'USER': 'your_username',
-        'PASSWORD': 'your_password',
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
-}
-```
-
-### Key Settings
-
-- **DEBUG**: Set to `False` in production
-- **ALLOWED_HOSTS**: Configure for your domain
-- **STATIC_ROOT**: Set for production static files
-- **MEDIA_ROOT**: Configure for file uploads
-
-## 🚀 Deployment
-
-### Using PythonAnywhere
-
-1. Upload project files
-2. Create virtual environment
-3. Install requirements
-4. Configure WSGI file
-5. Set up static files
-
-### Using Heroku
-
-```bash
-# Create Procfile
-web: python manage.py runserver 0.0.0.0:$PORT --noreload
-
-# Deploy
-git push heroku main
-heroku run python manage.py migrate
-```
-
-## 🔒 Security Features
-
-- **CSRF Protection**: All forms include CSRF tokens
-- **XSS Prevention**: Template auto-escaping enabled
-- **SQL Injection Protection**: ORM usage prevents injections
-- **File Upload Validation**: Type and size restrictions
-- **Password Hashing**: Django's built-in secure hashing
-
-## 📊 API Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/` | Home page with available donations |
-| GET | `/map/` | Interactive donations map |
-| POST | `/donation/create/` | Create new donation |
-| POST | `/donation/{id}/claim/` | Claim a donation |
-| POST | `/donation/{id}/rate/` | Rate a completed donation |
-| GET | `/search/` | Advanced donation search |
-
-## 🧪 Testing
-
-Run the test suite:
-
-```bash
-python manage.py test core
-```
-
-Test coverage includes:
-
-- User authentication and authorization
-- Donation creation and claiming
-- Rating system functionality
-- Form validation and error handling
-
-## 🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
-
-### Development Setup
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Submit a pull request
-
-## 📈 Performance Optimizations
-
-- **Database Indexing**: Optimized queries for large datasets
-- **Static File Compression**: Minified CSS and JavaScript
-- **Image Optimization**: Automatic resizing and compression
-- **Template Caching**: Efficient rendering performance
-- **Lazy Loading**: Optimized image loading
-
-## 🌍 Environmental Impact
-
-FoodLoop contributes to UN Sustainable Development Goals:
-
-- **SDG 2**: Zero Hunger
-- **SDG 12**: Responsible Consumption and Production
-- **SDG 13**: Climate Action
-
-## 📞 Support
-
-- **Issues**: [GitHub Issues](https://github.com/fredxotic/foodloop/issues)
-- **Email**: charlesfred285@gmail.com
-
-## 🙏 Acknowledgments
-
-- Django community for excellent documentation
-- Bootstrap team for responsive UI components
-- Leaflet.js for mapping functionality
-- Font Awesome for beautiful icons
-- All our contributors and beta testers
-
----
-
-## 🔄 Changelog
-
-### v1.0.0 (Current)
-
-- Initial production release
-- Complete donor/recipient workflow
-- Rating system implementation
-- Map integration
-- Email verification system
-
-### v0.9.0
-
-- Beta testing phase
-- UI/UX improvements
-- Performance optimizations
-- Security enhancements
-
----
+*Built with ❤️ by fredxotic*
