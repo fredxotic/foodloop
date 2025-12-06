@@ -164,9 +164,9 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Use local storage on PythonAnywhere (Cloudinary blocked on free tier)
-if DEBUG or 'pythonanywhere.com' in config('ALLOWED_HOSTS', default=''):
-    # Local storage for development and PythonAnywhere
+# Storage configuration
+if DEBUG:
+    # Local storage for development
     STORAGES = {
         "default": {
             "BACKEND": "django.core.files.storage.FileSystemStorage",
@@ -176,21 +176,32 @@ if DEBUG or 'pythonanywhere.com' in config('ALLOWED_HOSTS', default=''):
         },
     }
 else:
-    # Cloudinary for production (Railway, Render, etc.)
-    STORAGES = {
-        "default": {
-            "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
-        },
-        "staticfiles": {
-            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-        },
-    }
-    
-    CLOUDINARY_STORAGE = {
-        'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME', default=''),
-        'API_KEY': config('CLOUDINARY_API_KEY', default=''),
-        'API_SECRET': config('CLOUDINARY_API_SECRET', default=''),
-    }
+    # Check if running on PythonAnywhere (Cloudinary blocked on free tier)
+    if 'pythonanywhere.com' in ','.join(ALLOWED_HOSTS):
+        STORAGES = {
+            "default": {
+                "BACKEND": "django.core.files.storage.FileSystemStorage",
+            },
+            "staticfiles": {
+                "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+            },
+        }
+    else:
+        # Cloudinary for production (Railway, Render, etc.)
+        STORAGES = {
+            "default": {
+                "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+            },
+            "staticfiles": {
+                "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+            },
+        }
+        
+        CLOUDINARY_STORAGE = {
+            'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME', default=''),
+            'API_KEY': config('CLOUDINARY_API_KEY', default=''),
+            'API_SECRET': config('CLOUDINARY_API_SECRET', default=''),
+        }
 
 # =============================================================================
 # REST FRAMEWORK
