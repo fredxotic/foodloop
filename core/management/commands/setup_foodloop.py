@@ -1,8 +1,3 @@
-"""
-Management command to set up FoodLoop application for development/production.
-Creates necessary directories, sample data, and performs initial configuration.
-"""
-
 from django.core.management.base import BaseCommand, CommandError
 from django.contrib.auth.models import User
 from django.utils import timezone
@@ -73,13 +68,13 @@ class Command(BaseCommand):
         
         for directory in directories:
             Path(directory).mkdir(parents=True, exist_ok=True)
-            self.stdout.write(f'📁 Created directory: {directory}')
+            self.stdout.write(f' Created directory: {directory}')
     
     def create_superuser(self):
         """Create superuser if none exists"""
         if User.objects.filter(is_superuser=True).exists():
             self.stdout.write(
-                self.style.WARNING('⚠️  Superuser already exists, skipping...')
+                self.style.WARNING(' Superuser already exists, skipping...')
             )
             return
         
@@ -100,7 +95,7 @@ class Command(BaseCommand):
 
     def create_sample_data(self):
         """Create sample users and donations for testing"""
-        self.stdout.write('📦 Creating sample data...')
+        self.stdout.write(' Creating sample data...')
         
         # Sample donors
         sample_donors = [
@@ -161,6 +156,7 @@ class Command(BaseCommand):
                 user.set_password('test')  # Set password properly
                 user.save()
                 
+                # FIXED: Removed latitude/longitude
                 profile, _ = UserProfile.objects.get_or_create(
                     user=user,
                     defaults={
@@ -168,11 +164,9 @@ class Command(BaseCommand):
                         'phone_number': donor_data['phone'],
                         'location': donor_data['address'],
                         'email_verified': True,
-                        'latitude': -1.2921,
-                        'longitude': 36.8219,
                     }
                 )
-                self.stdout.write(f'👨‍🍳 Created donor: {user.username}')
+                self.stdout.write(f' Created donor: {user.username}')
         
         # Create recipients
         for recipient_data in sample_recipients:
@@ -189,6 +183,7 @@ class Command(BaseCommand):
                 user.set_password('test')  # Set password properly
                 user.save()
                 
+                # FIXED: Removed latitude/longitude
                 profile, _ = UserProfile.objects.get_or_create(
                     user=user,
                     defaults={
@@ -197,11 +192,9 @@ class Command(BaseCommand):
                         'location': recipient_data['address'],
                         'dietary_restrictions': recipient_data.get('dietary_restrictions', []),
                         'email_verified': True,
-                        'latitude': -1.2921,
-                        'longitude': 36.8219,
                     }
                 )
-                self.stdout.write(f'👨‍👩‍👧‍👦 Created recipient: {user.username}')
+                self.stdout.write(f' Created recipient: {user.username}')
         
         # Create sample donations
         donors = User.objects.filter(profile__user_type=UserProfile.DONOR)
@@ -211,7 +204,7 @@ class Command(BaseCommand):
                     'title': 'Fresh Vegetables Mix',
                     'description': 'Mixed vegetables including tomatoes, onions, and greens from our restaurant. Approximately 5 kg.',
                     'food_category': 'vegetables',
-                    'quantity': 5,  # Changed from '5 kg' to integer
+                    'quantity': '5 kg',
                     'estimated_calories': 800,
                     'dietary_tags': ['vegetarian', 'vegan'],
                     'pickup_location': 'Westlands Restaurant, Nairobi',
@@ -220,7 +213,7 @@ class Command(BaseCommand):
                     'title': 'Bread and Pastries',
                     'description': 'Day-old bread and pastries, still fresh and delicious. 20 loaves total.',
                     'food_category': 'grains',
-                    'quantity': 20,  # Changed from '20 loaves' to integer
+                    'quantity': '20 loaves',
                     'estimated_calories': 1500,
                     'dietary_tags': ['vegetarian'],
                     'pickup_location': 'City Bakery, CBD Nairobi',
@@ -230,6 +223,7 @@ class Command(BaseCommand):
             for i, donation_data in enumerate(sample_donations):
                 donor = donors[i % donors.count()]
                 
+                # FIXED: Removed latitude/longitude from defaults
                 donation, created = Donation.objects.get_or_create(
                     title=donation_data['title'],
                     donor=donor,
@@ -243,8 +237,6 @@ class Command(BaseCommand):
                         'expiry_datetime': timezone.now() + timezone.timedelta(days=2),
                         'pickup_start': timezone.now() + timezone.timedelta(hours=2),
                         'pickup_end': timezone.now() + timezone.timedelta(days=1),
-                        'latitude': -1.2921,
-                        'longitude': 36.8219,
                         'status': Donation.AVAILABLE
                     }
                 )
@@ -254,13 +246,13 @@ class Command(BaseCommand):
                     if hasattr(donation, '_calculate_nutrition_score'):
                         donation.nutrition_score = donation._calculate_nutrition_score()
                         donation.save()
-                    self.stdout.write(f'🍽️  Created donation: {donation.title}')
+                    self.stdout.write(f' Created donation: {donation.title}')
         
         self.stdout.write(
-            self.style.SUCCESS('📦 Sample data created successfully!')
+            self.style.SUCCESS(' Sample data created successfully!')
         )
         self.stdout.write(
-            '🔑 Test login credentials:'
+            ' Test login credentials:'
         )
         self.stdout.write('   Donor: donor1 / password: test')
         self.stdout.write('   Recipient: recipient1 / password: test')

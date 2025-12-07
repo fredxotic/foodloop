@@ -106,7 +106,10 @@ class DonationService(BaseService):
             with transaction.atomic():
                 # Lock the donation row to prevent race conditions
                 donation = Donation.objects.select_for_update().get(id=donation_id)
-                recipient_profile = UserProfile.objects.get(user=recipient)
+                
+                # Lock the recipient profile to serialize concurrent claims from same user
+                # This prevents bypassing MAX_ACTIVE_CLAIMS via race condition
+                recipient_profile = UserProfile.objects.select_for_update().get(user=recipient)
                 
                 # Validate claim eligibility
                 validation_error = cls._validate_claim_eligibility(

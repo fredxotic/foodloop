@@ -5,6 +5,7 @@ Consolidated and comprehensive validation logic
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from django.core.files.images import get_image_dimensions
+import logging
 import re
 
 
@@ -38,11 +39,11 @@ def validate_image_size(image):
     Max file size: 5MB
     Max dimensions: 4000x4000
     """
-    # ✅ Return early if no image or no file attribute
+    # Return early if no image or no file attribute
     if not image:
         return
     
-    # ✅ Check if it's a file upload (has 'size' attribute)
+    # Check if it's a file upload (has 'size' attribute)
     if not hasattr(image, 'size') or image.size is None:
         return
     
@@ -56,19 +57,19 @@ def validate_image_size(image):
     
     # Check dimensions
     try:
-        # ✅ Seek to beginning of file before reading dimensions
+        # Seek to beginning of file before reading dimensions
         if hasattr(image, 'seek'):
             image.seek(0)
         
         width, height = get_image_dimensions(image)
         
-        # ✅ Reset file pointer after reading
+        # Reset file pointer after reading
         if hasattr(image, 'seek'):
             image.seek(0)
         
         max_dimension = 4000
         
-        if width and height:  # ✅ Check both exist
+        if width and height:
             if width > max_dimension or height > max_dimension:
                 raise ValidationError(
                     _('Image dimensions must be less than %(max)dx%(max)d pixels. '
@@ -79,13 +80,15 @@ def validate_image_size(image):
                         'height': height
                     }
                 )
+        else:
+            # FIXED: Fail if dimensions cannot be read (corrupt file)
+            raise ValidationError(_("Unable to read image dimensions. The file may be corrupted."))
+            
     except Exception as e:
-        # ✅ Log error but don't fail validation
-        import logging
+        # Don't fail silently. Log and raise validation error.
         logger = logging.getLogger(__name__)
-        logger.warning(f"Could not validate image dimensions: {e}")
-        # Allow upload to proceed - dimensions will be checked by Pillow/Cloudinary
-        pass
+        logger.warning(f"Image validation error: {e}")
+        raise ValidationError(_("Invalid image file. Please upload a valid image."))
 
 
 def validate_dietary_tags(tags):

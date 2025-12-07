@@ -1195,21 +1195,18 @@ def health_check(request):
         with connection.cursor() as cursor:
             cursor.execute("SELECT 1")
             
-            # Check if tables exist
-            cursor.execute("""
-                SELECT COUNT(*) 
-                FROM information_schema.tables 
-                WHERE table_schema = 'public'
-                AND table_name IN ('user_profiles', 'donations', 'auth_user')
-            """)
-            table_count = cursor.fetchone()[0]
+        # Check for core tables using Django's inspection (Database Agnostic)
+        # This works for SQLite, PostgreSQL, and MySQL without raw SQL differences
+        table_names = connection.introspection.table_names()
+        required_tables = {'user_profiles', 'donations', 'auth_user'}
+        tables_ready = required_tables.issubset(set(table_names))
         
-        if table_count < 3:
+        if not tables_ready:
             return JsonResponse({
                 'status': 'unhealthy',
                 'database': 'connected',
                 'tables': 'missing',
-                'message': 'Database tables not fully initialized',
+                'message': f'Missing tables: {required_tables - set(table_names)}',
                 'timestamp': timezone.now().isoformat()
             }, status=503)
         

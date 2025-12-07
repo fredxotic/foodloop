@@ -5,6 +5,7 @@ from django.utils import timezone
 from django.db import transaction
 from typing import Optional, List
 from datetime import timedelta
+import random
 import logging
 
 from core.models import Notification, UserProfile, Donation
@@ -47,8 +48,9 @@ class NotificationService(BaseService):
                 related_donation=related_donation
             )
             
-            # Cleanup old notifications asynchronously
-            cls._schedule_cleanup(user)
+            # Probabilistic cleanup (5% chance) to prevent performance hit
+            if random.random() < 0.05:
+                cls._schedule_cleanup(user)
             
             # Invalidate notification count cache
             CacheManager.invalidate_notification_count(user.id)
