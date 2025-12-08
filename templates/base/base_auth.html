@@ -88,16 +88,10 @@
 
         <!-- Auth Card -->
         <div class="relative w-full max-w-md">
-            <!-- Logo & Back Link -->
+            <!-- Back Link -->
             <div class="text-center mb-6">
                 <a href="{% url 'core:home' %}" class="inline-flex items-center gap-2 text-slate-600 hover:text-brand-600 font-semibold text-sm mb-4 transition-colors group">
                     <i class="fas fa-arrow-left group-hover:-translate-x-1 transition-transform"></i> Back to Home
-                </a>
-                <a href="{% url 'core:home' %}" class="inline-flex items-center justify-center gap-3 mb-2">
-                    <div class="w-12 h-12 bg-gradient-to-br from-brand-500 to-brand-600 rounded-2xl flex items-center justify-center shadow-lg shadow-brand-500/20 text-white">
-                        <i class="fas fa-leaf text-xl"></i>
-                    </div>
-                    <span class="font-display font-extrabold text-3xl text-slate-900">FoodLoop</span>
                 </a>
                 <p class="text-slate-600 text-sm mt-2">
                     {% block auth_heading %}Welcome{% endblock %}
