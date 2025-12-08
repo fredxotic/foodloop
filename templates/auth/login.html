@@ -2,30 +2,34 @@
 {% load static %}
 
 {% block title %}Sign In - FoodLoop{% endblock %}
-{% block auth_heading %}Sign in to your account{% endblock %}
+{% block auth_heading %}Welcome back{% endblock %}
+{% block auth_subheading %}Sign in to your account to continue{% endblock %}
 
 {% block content %}
-<form method="post" class="space-y-6" x-data="{ showPassword: false }">
+<form method="post" class="space-y-5" x-data="{ showPassword: false }">
     {% csrf_token %}
 
     {% if form.errors or form.non_field_errors %}
-        <div class="bg-red-50 border border-red-100 rounded-lg p-4 flex items-start gap-3">
-            <i class="fas fa-circle-exclamation text-red-500 mt-0.5"></i>
-            <div class="text-sm text-red-600">
-                <p class="font-bold">Authentication Failed</p>
-                <p>{{ form.non_field_errors.0|default:"Please check your credentials and try again." }}</p>
+        <div class="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+            <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center shrink-0">
+                <i class="fas fa-circle-exclamation text-red-500 text-sm"></i>
+            </div>
+            <div class="flex-1">
+                <p class="text-sm font-semibold text-red-900 mb-0.5">Authentication Failed</p>
+                <p class="text-xs text-red-700">{{ form.non_field_errors.0|default:"Please check your credentials and try again." }}</p>
             </div>
         </div>
     {% endif %}
 
     <div class="space-y-4">
+        <!-- Username/Email Field -->
         <div>
-            <label for="username" class="block text-sm font-semibold text-slate-700 mb-1.5">
+            <label for="username" class="block text-sm font-semibold text-slate-700 mb-2">
                 Email or Username
             </label>
             <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                    <i class="fas fa-envelope text-sm"></i>
+                    <i class="fas fa-user text-sm"></i>
                 </div>
                 <input type="text" 
                        id="username" 
@@ -33,17 +37,16 @@
                        required
                        autofocus
                        value="{{ form.username.value|default:'' }}"
-                       class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all text-sm text-slate-900 placeholder:text-slate-400"
-                       placeholder="name@company.com">
+                       class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 focus:bg-white transition-all text-sm text-slate-900 placeholder:text-slate-400"
+                       placeholder="Enter your email or username">
             </div>
         </div>
 
+        <!-- Password Field -->
         <div>
-            <div class="flex justify-between items-center mb-1.5">
-                <label for="password" class="block text-sm font-semibold text-slate-700">
-                    Password
-                </label>
-            </div>
+            <label for="password" class="block text-sm font-semibold text-slate-700 mb-2">
+                Password
+            </label>
             <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                     <i class="fas fa-lock text-sm"></i>
@@ -52,30 +55,51 @@
                        id="password" 
                        name="password" 
                        required
-                       class="w-full pl-10 pr-10 py-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all text-sm text-slate-900 placeholder:text-slate-400"
+                       class="w-full pl-11 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 focus:bg-white transition-all text-sm text-slate-900 placeholder:text-slate-400"
                        placeholder="Enter your password">
                 <button type="button" 
                         @click="showPassword = !showPassword"
-                        class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors focus:outline-none">
-                    <i class="fas" :class="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+                        class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition-colors focus:outline-none">
+                    <i class="fas text-sm" :class="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
                 </button>
             </div>
         </div>
     </div>
 
+    <!-- Remember Me & Forgot Password -->
+    <div class="flex items-center justify-between text-sm">
+        <label class="flex items-center gap-2 cursor-pointer group">
+            <input type="checkbox" name="remember" class="w-4 h-4 text-brand-600 border-slate-300 rounded focus:ring-brand-500 focus:ring-2">
+            <span class="text-slate-600 group-hover:text-slate-900 transition-colors">Remember me</span>
+        </label>
+        <a href="#" class="font-semibold text-brand-600 hover:text-brand-700 transition-colors">
+            Forgot password?
+        </a>
+    </div>
+
+    <!-- Submit Button -->
     <button type="submit" 
-            class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-2.5 rounded-lg shadow-md shadow-brand-500/10 transition-all duration-200 flex items-center justify-center gap-2 text-sm">
+            class="w-full bg-brand-600 hover:bg-brand-700 active:scale-[0.98] text-white font-bold py-3 rounded-xl shadow-lg shadow-brand-500/20 hover:shadow-brand-500/30 transition-all duration-200 flex items-center justify-center gap-2">
         <span>Sign In</span>
         <i class="fas fa-arrow-right text-xs"></i>
     </button>
 </form>
 
-<div class="mt-6 text-center">
-    <p class="text-sm text-slate-500">
-        Don't have an account? 
-        <a href="{% url 'core:signup' %}" class="font-bold text-brand-600 hover:text-brand-700 transition-colors">
-            Register now
-        </a>
-    </p>
+<!-- Divider -->
+<div class="relative my-6">
+    <div class="absolute inset-0 flex items-center">
+        <div class="w-full border-t border-slate-200"></div>
+    </div>
+    <div class="relative flex justify-center text-xs">
+        <span class="px-3 bg-white text-slate-500 font-medium">New to FoodLoop?</span>
+    </div>
+</div>
+
+<!-- Sign Up Link -->
+<div class="text-center">
+    <a href="{% url 'core:signup' %}" class="inline-flex items-center justify-center gap-2 text-sm font-semibold text-slate-700 hover:text-brand-600 transition-colors group">
+        <span>Create an account</span>
+        <i class="fas fa-arrow-right text-xs group-hover:translate-x-1 transition-transform"></i>
+    </a>
 </div>
 {% endblock %}

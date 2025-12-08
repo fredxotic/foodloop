@@ -41,17 +41,17 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
 </head>
 
-<body class="h-full bg-slate-50 antialiased">
+<body class="h-full bg-gradient-to-br from-slate-50 to-slate-100 antialiased">
 
     <!-- Toast Notifications -->
-    <div class="fixed top-4 right-4 z-50 max-w-sm w-full space-y-2" style="max-width: 90vw;">
+    <div class="fixed top-4 right-4 z-50 max-w-sm w-full space-y-2 px-4 sm:px-0">
         {% if messages %}
             {% for message in messages %}
-                <div class="p-4 rounded-xl shadow-lg border-l-4 flex items-start gap-3 animate-slide-in
-                            {% if message.tags == 'error' %}bg-red-50 border-red-500 text-red-800
-                            {% elif message.tags == 'warning' %}bg-yellow-50 border-yellow-500 text-yellow-800
-                            {% elif message.tags == 'success' %}bg-green-50 border-green-500 text-green-800
-                            {% else %}bg-blue-50 border-blue-500 text-blue-800{% endif %}"
+                <div class="p-3 sm:p-4 rounded-xl shadow-lg border flex items-start gap-2 sm:gap-3 backdrop-blur-sm
+                            {% if message.tags == 'error' %}bg-red-50/95 border-red-200 text-red-800
+                            {% elif message.tags == 'warning' %}bg-yellow-50/95 border-yellow-200 text-yellow-800
+                            {% elif message.tags == 'success' %}bg-green-50/95 border-green-200 text-green-800
+                            {% else %}bg-blue-50/95 border-blue-200 text-blue-800{% endif %}"
                      x-data="{ show: true }" 
                      x-show="show" 
                      x-init="setTimeout(() => show = false, 5000)"
@@ -61,86 +61,55 @@
                      x-transition:leave="transition ease-in duration-200"
                      x-transition:leave-start="opacity-100"
                      x-transition:leave-end="opacity-0">
-                    <i class="fas 
+                    <i class="fas text-sm sm:text-base
                         {% if message.tags == 'error' %}fa-circle-exclamation
                         {% elif message.tags == 'warning' %}fa-triangle-exclamation
                         {% elif message.tags == 'success' %}fa-circle-check
                         {% else %}fa-info-circle{% endif %} mt-0.5"></i>
-                    <span class="flex-1 text-sm font-medium">{{ message }}</span>
+                    <span class="flex-1 text-xs sm:text-sm font-medium">{{ message }}</span>
                     <button @click="show = false" class="opacity-50 hover:opacity-100 transition-opacity">
-                        <i class="fas fa-times text-sm"></i>
+                        <i class="fas fa-times text-xs sm:text-sm"></i>
                     </button>
                 </div>
             {% endfor %}
         {% endif %}
     </div>
 
-    <!-- Main Auth Container -->
-    <div class="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
-        
-        <!-- Animated Background -->
-        <div class="absolute inset-0 bg-gradient-to-br from-brand-50 via-white to-slate-50"></div>
-        
-        <!-- Decorative Blobs -->
-        <div class="absolute top-0 right-0 w-96 h-96 bg-brand-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-        <div class="absolute bottom-0 left-0 w-96 h-96 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
-
-        <!-- Auth Card -->
-        <div class="relative w-full max-w-md">
-            <!-- Back Link -->
-            <div class="text-center mb-6">
-                <a href="{% url 'core:home' %}" class="inline-flex items-center gap-2 text-slate-600 hover:text-brand-600 font-semibold text-sm mb-4 transition-colors group">
-                    <i class="fas fa-arrow-left group-hover:-translate-x-1 transition-transform"></i> Back to Home
+    <!-- Main Container -->
+    <div class="min-h-screen flex items-center justify-center p-4 sm:p-6">
+        <div class="w-full max-w-md">
+            
+            <!-- Back to Home Link -->
+            <div class="mb-6">
+                <a href="{% url 'core:home' %}" 
+                   class="inline-flex items-center gap-2 text-slate-600 hover:text-brand-600 font-semibold text-sm transition-colors group">
+                    <i class="fas fa-arrow-left group-hover:-translate-x-1 transition-transform"></i> 
+                    Back to Home
                 </a>
-                <p class="text-slate-600 text-sm mt-2">
-                    {% block auth_heading %}Welcome{% endblock %}
-                </p>
             </div>
 
-            <!-- Card Content -->
-            <div class="bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/50 p-6 sm:p-8">
-                {% block content %}{% endblock %}
+            <!-- Form Card -->
+            <div class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+                
+                <!-- Header -->
+                <div class="px-6 sm:px-8 pt-6 sm:pt-8 pb-6">
+                    <h2 class="font-display font-bold text-2xl sm:text-3xl text-slate-900 mb-2">
+                        {% block auth_heading %}Welcome{% endblock %}
+                    </h2>
+                    <p class="text-sm sm:text-base text-slate-600">
+                        {% block auth_subheading %}Enter your details to continue{% endblock %}
+                    </p>
+                </div>
+
+                <!-- Form Content -->
+                <div class="px-6 sm:px-8 pb-6 sm:pb-8">
+                    {% block content %}{% endblock %}
+                </div>
             </div>
         </div>
     </div>
 
     <style>
-        @keyframes blob {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            25% { transform: translate(20px, -50px) scale(1.1); }
-            50% { transform: translate(-20px, 20px) scale(0.9); }
-            75% { transform: translate(50px, 50px) scale(1.05); }
-        }
-
-        .animate-blob {
-            animation: blob 20s infinite ease-in-out;
-        }
-
-        .animation-delay-2000 {
-            animation-delay: 2s;
-        }
-
-        .animation-delay-4000 {
-            animation-delay: 4s;
-        }
-
-        /* Smooth slide-in animation */
-        @keyframes slide-in {
-            from {
-                opacity: 0;
-                transform: translateX(2rem);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        .animate-slide-in {
-            animation: slide-in 0.3s ease-out;
-        }
-
         /* Prevent zoom on mobile inputs */
         input, select, textarea {
             font-size: 16px !important;

@@ -3,130 +3,180 @@
 
 {% block title %}Create Account - FoodLoop{% endblock %}
 {% block auth_heading %}Create your account{% endblock %}
+{% block auth_subheading %}Join our community and start making a difference{% endblock %}
 
 {% block content %}
-<form method="post" class="space-y-6" x-data="{ userType: 'donor', showPassword: false }">
+<form method="post" class="space-y-5" x-data="{ userType: 'donor', showPassword: false }">
     {% csrf_token %}
 
     {% if form.non_field_errors %}
-        <div class="bg-red-50 border border-red-100 rounded-lg p-4 text-sm text-red-600">
-            {{ form.non_field_errors.0 }}
+        <div class="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+            <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center shrink-0">
+                <i class="fas fa-circle-exclamation text-red-500 text-sm"></i>
+            </div>
+            <div class="flex-1">
+                <p class="text-sm font-semibold text-red-900">{{ form.non_field_errors.0 }}</p>
+            </div>
         </div>
     {% endif %}
 
-    <div class="grid grid-cols-2 gap-4">
-        <label class="relative cursor-pointer group">
-            <input type="radio" name="user_type" value="donor" x-model="userType" class="sr-only peer" required>
-            <div class="border border-slate-200 rounded-xl p-4 transition-all bg-white peer-checked:border-brand-500 peer-checked:bg-brand-50/50 peer-checked:ring-1 peer-checked:ring-brand-500 hover:border-brand-300">
-                <div class="flex flex-col items-center text-center gap-2">
-                    <i class="fas fa-hand-holding-heart text-2xl text-slate-400 peer-checked:text-brand-600 mb-1"></i>
-                    <div>
-                        <span class="block text-sm font-bold text-slate-900">Donor</span>
-                        <span class="block text-xs text-slate-500">I have food to share</span>
+    <!-- User Type Selection -->
+    <div>
+        <label class="block text-sm font-semibold text-slate-700 mb-3">I want to</label>
+        <div class="grid grid-cols-2 gap-3">
+            <label class="relative cursor-pointer group">
+                <input type="radio" name="user_type" value="donor" x-model="userType" class="sr-only peer" required>
+                <div class="border-2 border-slate-200 rounded-xl p-4 transition-all bg-white peer-checked:border-brand-500 peer-checked:bg-brand-50 peer-checked:shadow-md peer-checked:shadow-brand-500/10 hover:border-slate-300">
+                    <div class="flex flex-col items-center text-center gap-2">
+                        <div class="w-12 h-12 rounded-full bg-slate-100 peer-checked:bg-brand-100 flex items-center justify-center text-slate-500 peer-checked:text-brand-600 transition-colors mb-1">
+                            <i class="fas fa-hand-holding-heart text-xl"></i>
+                        </div>
+                        <div>
+                            <span class="block text-sm font-bold text-slate-900">Share Food</span>
+                            <span class="block text-xs text-slate-500 mt-0.5">I'm a donor</span>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </label>
+            </label>
 
-        <label class="relative cursor-pointer group">
-            <input type="radio" name="user_type" value="recipient" x-model="userType" class="sr-only peer" required>
-            <div class="border border-slate-200 rounded-xl p-4 transition-all bg-white peer-checked:border-brand-500 peer-checked:bg-brand-50/50 peer-checked:ring-1 peer-checked:ring-brand-500 hover:border-brand-300">
-                <div class="flex flex-col items-center text-center gap-2">
-                    <i class="fas fa-box-open text-2xl text-slate-400 peer-checked:text-brand-600 mb-1"></i>
-                    <div>
-                        <span class="block text-sm font-bold text-slate-900">Recipient</span>
-                        <span class="block text-xs text-slate-500">I need food assistance</span>
+            <label class="relative cursor-pointer group">
+                <input type="radio" name="user_type" value="recipient" x-model="userType" class="sr-only peer" required>
+                <div class="border-2 border-slate-200 rounded-xl p-4 transition-all bg-white peer-checked:border-brand-500 peer-checked:bg-brand-50 peer-checked:shadow-md peer-checked:shadow-brand-500/10 hover:border-slate-300">
+                    <div class="flex flex-col items-center text-center gap-2">
+                        <div class="w-12 h-12 rounded-full bg-slate-100 peer-checked:bg-brand-100 flex items-center justify-center text-slate-500 peer-checked:text-brand-600 transition-colors mb-1">
+                            <i class="fas fa-box-open text-xl"></i>
+                        </div>
+                        <div>
+                            <span class="block text-sm font-bold text-slate-900">Receive Food</span>
+                            <span class="block text-xs text-slate-500 mt-0.5">I'm a recipient</span>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </label>
+            </label>
+        </div>
     </div>
 
-    <div class="grid grid-cols-2 gap-4">
+    <!-- Name Fields -->
+    <div class="grid grid-cols-2 gap-3">
         <div>
-            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">First Name</label>
+            <label class="block text-sm font-semibold text-slate-700 mb-2">First Name</label>
             <input type="text" name="first_name" required value="{{ form.first_name.value|default:'' }}"
-                   class="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 outline-none transition-all">
+                   class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:bg-white outline-none transition-all placeholder:text-slate-400"
+                   placeholder="John">
+            {% if form.first_name.errors %}
+                <p class="text-xs text-red-500 mt-1.5">{{ form.first_name.errors.0 }}</p>
+            {% endif %}
         </div>
         <div>
-            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Last Name</label>
+            <label class="block text-sm font-semibold text-slate-700 mb-2">Last Name</label>
             <input type="text" name="last_name" required value="{{ form.last_name.value|default:'' }}"
-                   class="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 outline-none transition-all">
+                   class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:bg-white outline-none transition-all placeholder:text-slate-400"
+                   placeholder="Doe">
+            {% if form.last_name.errors %}
+                <p class="text-xs text-red-500 mt-1.5">{{ form.last_name.errors.0 }}</p>
+            {% endif %}
         </div>
     </div>
 
+    <!-- Contact Fields -->
     <div class="space-y-4">
         <div>
-            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Email</label>
+            <label class="block text-sm font-semibold text-slate-700 mb-2">Email</label>
             <input type="email" name="email" required value="{{ form.email.value|default:'' }}"
-                   class="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 outline-none transition-all">
+                   class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:bg-white outline-none transition-all placeholder:text-slate-400"
+                   placeholder="john@example.com">
             {% if form.email.errors %}
-                <p class="text-xs text-red-500 mt-1">{{ form.email.errors.0 }}</p>
+                <p class="text-xs text-red-500 mt-1.5">{{ form.email.errors.0 }}</p>
             {% endif %}
         </div>
 
         <div>
-            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Username</label>
+            <label class="block text-sm font-semibold text-slate-700 mb-2">Username</label>
             <input type="text" name="username" required value="{{ form.username.value|default:'' }}"
-                   class="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 outline-none transition-all">
+                   class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:bg-white outline-none transition-all placeholder:text-slate-400"
+                   placeholder="johndoe">
             {% if form.username.errors %}
-                <p class="text-xs text-red-500 mt-1">{{ form.username.errors.0 }}</p>
+                <p class="text-xs text-red-500 mt-1.5">{{ form.username.errors.0 }}</p>
             {% endif %}
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-2 gap-3">
             <div>
-                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Phone</label>
+                <label class="block text-sm font-semibold text-slate-700 mb-2">Phone</label>
                 <input type="tel" name="phone_number" required value="{{ form.phone_number.value|default:'' }}"
-                       placeholder="+254..."
-                       class="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 outline-none transition-all">
+                       placeholder="+254712345678"
+                       class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:bg-white outline-none transition-all placeholder:text-slate-400">
+                {% if form.phone_number.errors %}
+                    <p class="text-xs text-red-500 mt-1.5">{{ form.phone_number.errors.0 }}</p>
+                {% endif %}
             </div>
             <div>
-                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Location</label>
+                <label class="block text-sm font-semibold text-slate-700 mb-2">Location</label>
                 <input type="text" name="location" required value="{{ form.location.value|default:'' }}"
-                       placeholder="City/Area"
-                       class="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 outline-none transition-all">
+                       placeholder="Nairobi"
+                       class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:bg-white outline-none transition-all placeholder:text-slate-400">
+                {% if form.location.errors %}
+                    <p class="text-xs text-red-500 mt-1.5">{{ form.location.errors.0 }}</p>
+                {% endif %}
             </div>
         </div>
     </div>
 
+    <!-- Password Fields -->
     <div class="space-y-4">
         <div class="relative">
-            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Password</label>
-            <div class="relative">
-                <input :type="showPassword ? 'text' : 'password'" name="password1" required
-                       class="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 outline-none transition-all pr-10">
-                <button type="button" @click="showPassword = !showPassword"
-                        class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
-                    <i class="fas" :class="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
-                </button>
-            </div>
+            <label class="block text-sm font-semibold text-slate-700 mb-2">Password</label>
+            <input :type="showPassword ? 'text' : 'password'" name="password1" required
+                   class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:bg-white outline-none transition-all pr-12 placeholder:text-slate-400"
+                   placeholder="Create a password">
+            <button type="button" @click="showPassword = !showPassword"
+                    class="absolute right-3 top-[42px] text-slate-400 hover:text-slate-600 transition-colors">
+                <i class="fas text-sm" :class="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+            </button>
+            {% if form.password1.errors %}
+                <p class="text-xs text-red-500 mt-1.5">{{ form.password1.errors.0 }}</p>
+            {% endif %}
         </div>
         <div>
-            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Confirm Password</label>
+            <label class="block text-sm font-semibold text-slate-700 mb-2">Confirm Password</label>
             <input :type="showPassword ? 'text' : 'password'" name="password2" required
-                   class="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 outline-none transition-all">
+                   class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:bg-white outline-none transition-all placeholder:text-slate-400"
+                   placeholder="Confirm your password">
+            {% if form.password2.errors %}
+                <p class="text-xs text-red-500 mt-1.5">{{ form.password2.errors.0 }}</p>
+            {% endif %}
         </div>
     </div>
 
-    <div class="flex items-start gap-3">
-        <input type="checkbox" id="terms" required class="mt-1 w-4 h-4 text-brand-600 border-slate-300 rounded focus:ring-brand-500">
-        <label for="terms" class="text-xs text-slate-600">
-            I agree to the <a href="{% url 'core:terms' %}" class="text-brand-600 hover:underline">Terms of Service</a> and <a href="{% url 'core:privacy' %}" class="text-brand-600 hover:underline">Privacy Policy</a>.
-        </label>
-    </div>
+    <!-- Terms Checkbox -->
+    <label class="flex items-start gap-3 cursor-pointer group">
+        <input type="checkbox" id="terms" required class="mt-1 w-4 h-4 text-brand-600 border-slate-300 rounded focus:ring-brand-500 focus:ring-2 shrink-0">
+        <span class="text-xs text-slate-600 leading-relaxed">
+            I agree to the <a href="{% url 'core:terms' %}" class="text-brand-600 hover:text-brand-700 font-semibold">Terms of Service</a> and <a href="{% url 'core:privacy' %}" class="text-brand-600 hover:text-brand-700 font-semibold">Privacy Policy</a>.
+        </span>
+    </label>
 
-    <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-2.5 rounded-lg shadow-md shadow-brand-500/10 transition-all text-sm">
+    <!-- Submit Button -->
+    <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 active:scale-[0.98] text-white font-bold py-3 rounded-xl shadow-lg shadow-brand-500/20 hover:shadow-brand-500/30 transition-all text-sm">
         Create Account
     </button>
 </form>
 
-<div class="mt-6 text-center">
-    <p class="text-sm text-slate-500">
-        Already have an account? 
-        <a href="{% url 'core:login' %}" class="font-bold text-brand-600 hover:text-brand-700 transition-colors">
-            Sign in
-        </a>
-    </p>
+<!-- Divider -->
+<div class="relative my-6">
+    <div class="absolute inset-0 flex items-center">
+        <div class="w-full border-t border-slate-200"></div>
+    </div>
+    <div class="relative flex justify-center text-xs">
+        <span class="px-3 bg-white text-slate-500 font-medium">Already have an account?</span>
+    </div>
+</div>
+
+<!-- Sign In Link -->
+<div class="text-center">
+    <a href="{% url 'core:login' %}" class="inline-flex items-center justify-center gap-2 text-sm font-semibold text-slate-700 hover:text-brand-600 transition-colors group">
+        <span>Sign in instead</span>
+        <i class="fas fa-arrow-right text-xs group-hover:translate-x-1 transition-transform"></i>
+    </a>
 </div>
 {% endblock %}
