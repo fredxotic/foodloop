@@ -192,7 +192,7 @@ def validate_rating_value(rating):
 
 def validate_email_domain(email):
     """
-    Validate email domain (optional - can block disposable emails)
+    Validate email domain (can block disposable emails)
     """
     if not email:
         return

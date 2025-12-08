@@ -1,7 +1,4 @@
-"""
-Django settings for FoodLoop project.
-Phase 1: The Great Purge (Simplified Configuration)
-"""
+# Django settings for FoodLoop project.
 
 import os
 from pathlib import Path

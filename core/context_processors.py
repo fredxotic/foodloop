@@ -54,7 +54,7 @@ def user_profile(request):
             'unread_notifications_count': unread_count,
         }
         
-        # ✅ FIX: Use Django's cache.set() directly
+        # Use Django's cache.set() directly
         cache.set(cache_key, context_data, 300)  # 5 minutes
         
         return context_data
