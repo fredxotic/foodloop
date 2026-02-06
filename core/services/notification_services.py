@@ -2,6 +2,7 @@
 Optimized Notification Service - Efficient and scalable
 """
 from django.utils import timezone
+from django.urls import reverse
 from django.db import transaction
 from typing import Optional, List
 from datetime import timedelta
@@ -72,7 +73,7 @@ class NotificationService(BaseService):
                 title="Donation Claimed! 🎉",
                 message=f"{recipient.get_full_name()} has claimed your '{donation.title}' donation.",
                 related_donation=donation,
-                related_url=f"/donation/{donation.id}/"
+                related_url=reverse('core:donation_detail', args=[donation.id])
             )
             
             # Notify recipient
@@ -82,7 +83,7 @@ class NotificationService(BaseService):
                 title="Donation Claimed Successfully",
                 message=f"You've claimed '{donation.title}'. Pickup by {donation.pickup_end.strftime('%b %d, %I:%M %p')}.",
                 related_donation=donation,
-                related_url=f"/donation/{donation.id}/"
+                related_url=reverse('core:donation_detail', args=[donation.id])
             )
             
             return True
@@ -102,7 +103,7 @@ class NotificationService(BaseService):
                 title="Donation Completed! ✅",
                 message=f"Your '{donation.title}' donation was successfully picked up by {donation.recipient.get_full_name()}.",
                 related_donation=donation,
-                related_url=f"/rate/{donation.id}/"
+                related_url=reverse('core:rate_user', args=[donation.id])
             )
             
             # Notify recipient
@@ -112,7 +113,7 @@ class NotificationService(BaseService):
                 title="Thank You!",
                 message=f"Thank you for picking up '{donation.title}'. Please rate your experience.",
                 related_donation=donation,
-                related_url=f"/rate/{donation.id}/"
+                related_url=reverse('core:rate_user', args=[donation.id])
             )
             
             return True
@@ -132,7 +133,7 @@ class NotificationService(BaseService):
                 title="Donation Cancelled",
                 message=f"The donation '{donation.title}' has been cancelled by the donor.",
                 related_donation=donation,
-                related_url=f"/donation/{donation.id}/"
+                related_url=reverse('core:donation_detail', args=[donation.id])
             )
             
             return True
@@ -160,7 +161,7 @@ class NotificationService(BaseService):
                         title="New Donation Available! 🍽️",
                         message=f"New {donation.food_category} donation: '{donation.title}' near you.",
                         related_donation=donation,
-                        related_url=f"/donation/{donation.id}/"
+                        related_url=reverse('core:donation_detail', args=[donation.id])
                     )
                     notification_count += 1
                 except Exception as e:
@@ -176,17 +177,18 @@ class NotificationService(BaseService):
 
     @classmethod
     def _find_compatible_recipients(cls, donation: Donation, max_results: int = 10) -> List[UserProfile]:
-        """Find recipients compatible with donation (SIMPLIFIED - No GPS)"""
+        """Find recipients compatible with donation (Iterates efficiently)"""
         try:
-            # Get verified recipients
-            recipients = UserProfile.objects.filter(
+            # Base query for verified recipients
+            # Use iterator to avoid loading all users into memory
+            recipient_qs = UserProfile.objects.filter(
                 user_type=UserProfile.RECIPIENT,
                 email_verified=True
-            ).select_related('user')[:50]  # Get top 50 candidates
+            ).select_related('user').order_by('-user__last_login')
             
-            # Filter by dietary compatibility
             compatible = []
-            for recipient in recipients:
+            # Iterate through DB cursor in chunks
+            for recipient in recipient_qs.iterator(chunk_size=100):
                 if recipient.is_dietary_compatible(donation):
                     compatible.append(recipient)
                     if len(compatible) >= max_results:
@@ -221,7 +223,7 @@ class NotificationService(BaseService):
                 notification_type=Notification.RATING_RECEIVED,
                 title=f"New {tone} Rating {emoji}",
                 message=f"{rating_user.get_full_name()} rated you {rating.rating}/5 stars.",
-                related_url="/profile/"
+                related_url=reverse('core:profile')
             )
             
             return True

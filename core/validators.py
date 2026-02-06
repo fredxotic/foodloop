@@ -5,6 +5,7 @@ Consolidated and comprehensive validation logic
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from django.core.files.images import get_image_dimensions
+from PIL import Image
 import logging
 import re
 
@@ -35,11 +36,11 @@ def validate_phone_number(value):
 
 def validate_image_size(image):
     """
-    Validate uploaded image size and dimensions
+    Validate uploaded image size, dimensions, format, and integrity.
     Max file size: 5MB
     Max dimensions: 4000x4000
+    Allowed formats: JPG, PNG, WEBP
     """
-    # Return early if no image or no file attribute
     if not image:
         return
     
@@ -47,7 +48,7 @@ def validate_image_size(image):
     if not hasattr(image, 'size') or image.size is None:
         return
     
-    # Check file size (5MB limit)
+    # 1. Check file size (5MB limit)
     max_size = 5 * 1024 * 1024  # 5MB in bytes
     if image.size > max_size:
         raise ValidationError(
@@ -55,21 +56,34 @@ def validate_image_size(image):
             params={'size': image.size / (1024 * 1024)}
         )
     
-    # Check dimensions
+    # 2. Strict Content Verification using Pillow
     try:
-        # Seek to beginning of file before reading dimensions
+        # Reset file pointer to beginning
         if hasattr(image, 'seek'):
             image.seek(0)
         
-        width, height = get_image_dimensions(image)
+        # Open and verify image
+        with Image.open(image) as img:
+            # Verify file integrity (detects corruption/spoofing)
+            img.verify()
+            
+            # Check allowed formats (strict whitelist)
+            allowed_formats = {'JPEG', 'PNG', 'WEBP'}
+            if img.format not in allowed_formats:
+                raise ValidationError(
+                    _('Unsupported image format: %(format)s. Allowed formats: JPG, PNG, WEBP.'),
+                    params={'format': img.format or 'Unknown'}
+                )
         
-        # Reset file pointer after reading
+        # Need to reopen after verify() as it closes the image
         if hasattr(image, 'seek'):
             image.seek(0)
         
-        max_dimension = 4000
-        
-        if width and height:
+        # Check dimensions
+        with Image.open(image) as img:
+            width, height = img.size
+            max_dimension = 4000
+            
             if width > max_dimension or height > max_dimension:
                 raise ValidationError(
                     _('Image dimensions must be less than %(max)dx%(max)d pixels. '
@@ -80,15 +94,24 @@ def validate_image_size(image):
                         'height': height
                     }
                 )
-        else:
-            # FIXED: Fail if dimensions cannot be read (corrupt file)
-            raise ValidationError(_("Unable to read image dimensions. The file may be corrupted."))
-            
-    except Exception as e:
-        # Don't fail silently. Log and raise validation error.
+    
+    except ValidationError:
+        # Re-raise validation errors as-is
+        raise
+    except (IOError, SyntaxError, OSError) as e:
+        # Pillow-specific errors indicating corrupt/invalid files
         logger = logging.getLogger(__name__)
         logger.warning(f"Image validation error: {e}")
-        raise ValidationError(_("Invalid image file. Please upload a valid image."))
+        raise ValidationError(_('Invalid or corrupted image file.'))
+    except Exception as e:
+        # Catch-all for unexpected errors
+        logger = logging.getLogger(__name__)
+        logger.error(f"Unexpected image validation error: {e}")
+        raise ValidationError(_('Invalid image file. Please upload a valid image.'))
+    finally:
+        # Crucial: Reset file pointer for subsequent saving
+        if hasattr(image, 'seek'):
+            image.seek(0)
 
 
 def validate_dietary_tags(tags):
@@ -124,6 +147,45 @@ def validate_dietary_tags(tags):
 def get_lifestyle_tags():
     """Return list of lifestyle dietary tags"""
     return ['vegetarian', 'vegan', 'halal', 'kosher', 'organic']
+
+
+def get_allergen_tags():
+    """Return list of allergen tags"""
+    return ['gluten', 'dairy', 'nuts', 'peanuts', 'shellfish', 'soy', 'eggs', 'fish']
+
+
+# Dietary hierarchy: stricter diets imply broader diets
+# Key: strict diet, Value: list of diets it satisfies
+DIETARY_HIERARCHY = {
+    'vegan': ['vegetarian'],  # Vegan food is always vegetarian
+    # Note: We don't include kosher→halal or vice versa as these are
+    # distinct religious/cultural standards with different requirements
+}
+
+
+def expand_dietary_tags(tags):
+    """Expand dietary tags to include all implied tags based on hierarchy.
+    
+    For example, a donation tagged as 'vegan' will be expanded to include
+    'vegetarian' since vegan food is inherently vegetarian.
+    
+    Args:
+        tags: List or set of dietary tags
+        
+    Returns:
+        Set of tags including all implied tags
+    """
+    if not tags:
+        return set()
+    
+    expanded = set(tag.lower() for tag in tags)
+    
+    # Add implied tags based on hierarchy
+    for tag in list(expanded):
+        if tag in DIETARY_HIERARCHY:
+            expanded.update(DIETARY_HIERARCHY[tag])
+    
+    return expanded
 
 
 def get_allergen_tags():

@@ -226,13 +226,13 @@ class DonationService(BaseService):
             # Apply filters
             queryset = cls._apply_search_filters(queryset, query_params)
             
+            # Filter out expired donations at database level
+            queryset = queryset.filter(expiry_datetime__gt=timezone.now())
+            
             # Order by created date (newest first)
             queryset = queryset.order_by('-created_at')
             
-            # Filter out expired donations in Python
-            available_donations = [d for d in queryset if not d.is_expired()]
-            
-            return available_donations
+            return list(queryset)
         
         except Exception as e:
             logger.error(f"Search error: {e}")

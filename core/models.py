@@ -129,31 +129,36 @@ class UserProfile(TimeStampedModel):
         Algorithm:
         - Donation must contain ALL lifestyle tags requested by user
         - Donation must contain ZERO allergen tags restricted by user
+        - Uses dietary hierarchy: vegan implies vegetarian, etc.
         
         This ensures safety: allergen exposure is prevented.
         """
         if not self.dietary_restrictions or not donation.dietary_tags:
             return True
         
-        from core.validators import get_lifestyle_tags, get_allergen_tags
+        from core.validators import get_lifestyle_tags, get_allergen_tags, expand_dietary_tags
         
         lifestyle_tag_list = get_lifestyle_tags()
         allergen_tag_list = get_allergen_tags()
         
         # Separate user restrictions into lifestyle and allergens
-        user_lifestyle = set(tag for tag in self.dietary_restrictions if tag.lower() in lifestyle_tag_list)
-        user_allergens = set(tag for tag in self.dietary_restrictions if tag.lower() in allergen_tag_list)
+        user_lifestyle = set(tag.lower() for tag in self.dietary_restrictions if tag.lower() in lifestyle_tag_list)
+        user_allergens = set(tag.lower() for tag in self.dietary_restrictions if tag.lower() in allergen_tag_list)
         
         # Separate donation tags into lifestyle and allergens
-        donation_lifestyle = set(tag for tag in donation.dietary_tags if tag.lower() in lifestyle_tag_list)
-        donation_allergens = set(tag for tag in donation.dietary_tags if tag.lower() in allergen_tag_list)
+        donation_lifestyle = set(tag.lower() for tag in donation.dietary_tags if tag.lower() in lifestyle_tag_list)
+        donation_allergens = set(tag.lower() for tag in donation.dietary_tags if tag.lower() in allergen_tag_list)
         
         # Safety check: donation must NOT contain any allergens user is avoiding
         if user_allergens & donation_allergens:
             return False  # UNSAFE: contains allergen
         
-        # Lifestyle check: donation must contain ALL lifestyle tags user wants
-        if user_lifestyle and not user_lifestyle.issubset(donation_lifestyle):
+        # Lifestyle check with hierarchy expansion:
+        # Expand donation tags to include implied tags (e.g., vegan → vegetarian)
+        effective_donation_lifestyle = expand_dietary_tags(donation_lifestyle)
+        
+        # Check if user's requirements are satisfied by the expanded donation tags
+        if user_lifestyle and not user_lifestyle.issubset(effective_donation_lifestyle):
             return False  # Missing required lifestyle tags
         
         return True  # SAFE and compatible
