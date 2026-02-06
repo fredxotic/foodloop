@@ -124,15 +124,39 @@ class UserProfile(TimeStampedModel):
         self.save(update_fields=['average_rating', 'total_ratings'])
     
     def is_dietary_compatible(self, donation):
-        """Check if donation matches user's dietary restrictions"""
+        """Check if donation is safe for user's dietary restrictions
+        
+        Algorithm:
+        - Donation must contain ALL lifestyle tags requested by user
+        - Donation must contain ZERO allergen tags restricted by user
+        
+        This ensures safety: allergen exposure is prevented.
+        """
         if not self.dietary_restrictions or not donation.dietary_tags:
             return True
         
-        user_restrictions = set(self.dietary_restrictions)
-        donation_tags = set(donation.dietary_tags)
+        from core.validators import get_lifestyle_tags, get_allergen_tags
         
-        # If user has restrictions, at least one must match
-        return bool(user_restrictions & donation_tags)
+        lifestyle_tag_list = get_lifestyle_tags()
+        allergen_tag_list = get_allergen_tags()
+        
+        # Separate user restrictions into lifestyle and allergens
+        user_lifestyle = set(tag for tag in self.dietary_restrictions if tag.lower() in lifestyle_tag_list)
+        user_allergens = set(tag for tag in self.dietary_restrictions if tag.lower() in allergen_tag_list)
+        
+        # Separate donation tags into lifestyle and allergens
+        donation_lifestyle = set(tag for tag in donation.dietary_tags if tag.lower() in lifestyle_tag_list)
+        donation_allergens = set(tag for tag in donation.dietary_tags if tag.lower() in allergen_tag_list)
+        
+        # Safety check: donation must NOT contain any allergens user is avoiding
+        if user_allergens & donation_allergens:
+            return False  # UNSAFE: contains allergen
+        
+        # Lifestyle check: donation must contain ALL lifestyle tags user wants
+        if user_lifestyle and not user_lifestyle.issubset(donation_lifestyle):
+            return False  # Missing required lifestyle tags
+        
+        return True  # SAFE and compatible
 
 
 class Donation(TimeStampedModel):

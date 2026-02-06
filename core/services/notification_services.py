@@ -199,10 +199,11 @@ class NotificationService(BaseService):
             return []
 
     @classmethod
-    def notify_rating_received(cls, rating, rater) -> bool:
+    def notify_rating_received(cls, rating) -> bool:
         """Send notification when user receives a rating"""
         try:
             rated_user = rating.rated_user
+            rating_user = rating.rating_user
             
             # Determine message based on rating score
             if rating.rating >= 4:
@@ -219,7 +220,7 @@ class NotificationService(BaseService):
                 user=rated_user,
                 notification_type=Notification.RATING_RECEIVED,
                 title=f"New {tone} Rating {emoji}",
-                message=f"{rater.get_full_name()} rated you {rating.rating}/5 stars.",
+                message=f"{rating_user.get_full_name()} rated you {rating.rating}/5 stars.",
                 related_url="/profile/"
             )
             

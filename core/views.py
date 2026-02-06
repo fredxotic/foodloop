@@ -656,21 +656,28 @@ def search_donations_view(request):
 
 @login_required
 def rate_user_view(request, donation_id):
-    """Rate donor after donation completion (RECIPIENTS ONLY)"""
+    """Rate user after donation completion - uses service layer for validation"""
     donation = get_object_or_404(Donation, id=donation_id)
     
-    # ONLY RECIPIENTS CAN RATE (rating the donor)
-    if request.user != donation.recipient:
-        messages.error(request, "Only recipients can rate donations.")
+    # Determine who should be rated
+    if request.user == donation.recipient:
+        rated_user = donation.donor  # Recipient rates donor
+    elif request.user == donation.donor:
+        rated_user = donation.recipient  # Donor rates recipient
+    else:
+        messages.error(request, "You are not involved in this donation.")
         return redirect('core:donation_detail', donation_id=donation.id)
     
-    # Verify donation is completed
-    if donation.status != Donation.COMPLETED:
-        messages.error(request, "You can only rate completed donations.")
-        return redirect('core:donation_detail', donation_id=donation.id)
+    # Validate eligibility using service layer
+    validation = DonationService.validate_rating_eligibility(
+        donation_id=donation_id,
+        rating_user=request.user,
+        rated_user=rated_user
+    )
     
-    # The rated user is ALWAYS the donor
-    rated_user = donation.donor
+    if not validation.success:
+        messages.error(request, validation.message)
+        return redirect('core:donation_detail', donation_id=donation.id)
     
     # Check if already rated
     existing_rating = Rating.objects.filter(
@@ -678,10 +685,6 @@ def rate_user_view(request, donation_id):
         rating_user=request.user,
         rated_user=rated_user
     ).first()
-    
-    if existing_rating:
-        messages.info(request, "You have already rated this donation.")
-        return redirect('core:donation_detail', donation_id=donation.id)
     
     if request.method == 'POST':
         form = RatingForm(
@@ -691,31 +694,20 @@ def rate_user_view(request, donation_id):
         )
         
         if form.is_valid():
-            try:
-                from django.db import transaction
-                
-                with transaction.atomic():
-                    # Save rating
-                    rating = form.save()
-                    
-                    # Force profile update
-                    rated_profile = rated_user.profile
-                    rated_profile.update_rating_stats()
-                    
-                    # Send notification
-                    NotificationService.notify_rating_received(rating, request.user)
-                    
-                    # Send email
-                    EmailService.send_rating_notification_email(rating, request.user)
-                    
-                    logger.info(f"Rating created: {rating.id} - Recipient {request.user.username} rated donor {rated_user.username} with {rating.rating} stars")
-                    
+            # Use service layer to create rating
+            response = DonationService.create_rating(
+                donation_id=donation_id,
+                rating_user=request.user,
+                rated_user=rated_user,
+                rating_value=form.cleaned_data['rating'],
+                comment=form.cleaned_data.get('comment', '')
+            )
+            
+            if response.success:
                 messages.success(request, f"Thank you for rating {rated_user.get_full_name() or rated_user.username}!")
                 return redirect('core:donation_detail', donation_id=donation.id)
-            
-            except Exception as e:
-                logger.error(f"Rating submission error: {e}", exc_info=True)
-                messages.error(request, "Error submitting rating. Please try again.")
+            else:
+                messages.error(request, response.message)
         else:
             for field, errors in form.errors.items():
                 for error in errors:

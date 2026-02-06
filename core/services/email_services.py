@@ -221,6 +221,11 @@ class EmailService(BaseService):
         
         except Exception as e:
             return cls.handle_exception(e, "send rating notification email")
+    
+    @classmethod
+    def send_rating_received_email(cls, rated_user: User, rating) -> ServiceResponse:
+        """Wrapper method for send_rating_notification_email"""
+        return cls.send_rating_notification_email(rating, rating.rating_user)
 
     @classmethod
     def send_expiry_reminder_email(cls, donation: Donation, hours_until_expiry: int) -> bool:

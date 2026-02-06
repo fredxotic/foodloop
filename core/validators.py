@@ -101,10 +101,13 @@ def validate_dietary_tags(tags):
     if not isinstance(tags, list):
         raise ValidationError(_('Dietary tags must be a list'))
     
-    valid_tags = [
-        'vegetarian', 'vegan', 'gluten-free', 'dairy-free',
-        'nut-free', 'halal', 'kosher', 'organic'
-    ]
+    # Lifestyle preferences (must match)
+    lifestyle_tags = ['vegetarian', 'vegan', 'halal', 'kosher', 'organic']
+    
+    # Allergens (must NOT be present)
+    allergen_tags = ['gluten', 'dairy', 'nuts', 'peanuts', 'shellfish', 'soy', 'eggs', 'fish']
+    
+    valid_tags = lifestyle_tags + allergen_tags
     
     invalid_tags = [tag for tag in tags if tag.lower() not in valid_tags]
     
@@ -116,6 +119,16 @@ def validate_dietary_tags(tags):
                 'valid': ', '.join(valid_tags)
             }
         )
+
+
+def get_lifestyle_tags():
+    """Return list of lifestyle dietary tags"""
+    return ['vegetarian', 'vegan', 'halal', 'kosher', 'organic']
+
+
+def get_allergen_tags():
+    """Return list of allergen tags"""
+    return ['gluten', 'dairy', 'nuts', 'peanuts', 'shellfish', 'soy', 'eggs', 'fish']
 
 
 def validate_expiry_datetime(expiry_datetime):

@@ -158,7 +158,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class RatingViewSet(viewsets.ModelViewSet):
-    """ViewSet for ratings"""
+    """ViewSet for ratings with service-layer validation"""
     serializer_class = RatingSerializer
     permission_classes = [IsAuthenticated]
     throttle_classes = [BurstRateThrottle]
@@ -171,8 +171,20 @@ class RatingViewSet(viewsets.ModelViewSet):
         ).select_related('rating_user', 'rated_user', 'donation')
 
     def perform_create(self, serializer):
-        """Set the rater as current user"""
-        serializer.save(rating_user=self.request.user)
+        """Create rating using service layer validation"""
+        validated_data = serializer.validated_data
+        
+        response = DonationService.create_rating(
+            donation_id=validated_data['donation'].id,
+            rating_user=self.request.user,
+            rated_user=validated_data['rated_user'],
+            rating_value=validated_data['rating'],
+            comment=validated_data.get('comment', '')
+        )
+        
+        if not response.success:
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError(response.message)
 
 
 class NotificationViewSet(viewsets.ReadOnlyModelViewSet):

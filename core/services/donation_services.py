@@ -468,3 +468,92 @@ class DonationService(BaseService):
         except Exception as e:
             logger.error(f"Error fetching user donations: {e}")
             return []
+    
+    @classmethod
+    def validate_rating_eligibility(cls, donation_id: int, rating_user: User, rated_user: User) -> ServiceResponse:
+        """Validate if user can rate a donation
+        
+        Requirements:
+        1. Donation must be COMPLETED
+        2. User must be either donor or recipient
+        3. User must not have already rated this specific user for this donation
+        """
+        try:
+            donation = Donation.objects.select_related('donor', 'recipient').get(id=donation_id)
+            
+            # Check 1: Donation must be completed
+            if donation.status != Donation.COMPLETED:
+                return cls.error("Only completed donations can be rated")
+            
+            # Check 2: User must be donor or recipient
+            if rating_user != donation.donor and rating_user != donation.recipient:
+                return cls.error("You can only rate donations you were involved in")
+            
+            # Check 3: Verify rated_user is the other party
+            if rating_user == donation.donor:
+                # Donor is rating, so rated_user must be recipient
+                if rated_user != donation.recipient:
+                    return cls.error("As donor, you can only rate the recipient")
+            elif rating_user == donation.recipient:
+                # Recipient is rating, so rated_user must be donor
+                if rated_user != donation.donor:
+                    return cls.error("As recipient, you can only rate the donor")
+            else:
+                return cls.error("You are not involved in this donation")
+            
+            # Check 4: No duplicate rating from same user to same user for this donation
+            existing_rating = Rating.objects.filter(
+                donation=donation,
+                rating_user=rating_user,
+                rated_user=rated_user
+            ).exists()
+            
+            if existing_rating:
+                return cls.error("You have already rated this user for this donation")
+            
+            return cls.success(
+                data={'donation': donation, 'rated_user': rated_user},
+                message="Rating validation passed"
+            )
+            
+        except Donation.DoesNotExist:
+            return cls.error("Donation not found")
+        except Exception as e:
+            return cls.handle_exception(e, "rating validation")
+    
+    @classmethod
+    def create_rating(cls, donation_id: int, rating_user: User, rated_user: User, 
+                     rating_value: int, comment: str = "") -> ServiceResponse:
+        """Create a rating with full validation and atomicity"""
+        try:
+            with transaction.atomic():
+                # Validate eligibility
+                validation = cls.validate_rating_eligibility(donation_id, rating_user, rated_user)
+                if not validation.success:
+                    return validation
+                
+                donation = validation.data['donation']
+                
+                # Create the rating
+                rating = Rating.objects.create(
+                    donation=donation,
+                    rating_user=rating_user,
+                    rated_user=rated_user,
+                    rating=rating_value,
+                    comment=comment
+                )
+                
+                # Send notification
+                NotificationService.notify_rating_received(rating)
+                
+                # Send email notification
+                EmailService.send_rating_received_email(rated_user, rating)
+                
+                logger.info(f"Rating created: {rating_user.username} rated {rated_user.username} for donation {donation_id}")
+                return cls.success(
+                    data={'rating': rating},
+                    message="Rating submitted successfully"
+                )
+                
+        except Exception as e:
+            return cls.handle_exception(e, "rating creation")
