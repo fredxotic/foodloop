@@ -1,6 +1,7 @@
 {% extends 'base/base.html' %}
 {% load static %}
 {% load humanize %}
+{% load custom_filters %}
 
 {% block title %}Browse Locations - FoodLoop{% endblock %}
 
@@ -26,7 +27,7 @@
                         <i class="fas fa-map-marker-alt"></i>
                     </div>
                     <div class="flex-1 min-w-0">
-                        <h3 class="text-lg sm:text-xl font-bold text-slate-900 mb-1">{{ location.grouper }}</h3>
+                        <h3 class="text-lg sm:text-xl font-bold text-slate-900 mb-1">{{ location.grouper|location_display }}</h3>
                         <p class="text-xs sm:text-sm text-slate-500">{{ location.list|length }} donation{{ location.list|length|pluralize }} available</p>
                     </div>
                 </div>

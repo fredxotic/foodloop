@@ -188,10 +188,6 @@ def expand_dietary_tags(tags):
     return expanded
 
 
-def get_allergen_tags():
-    """Return list of allergen tags"""
-    return ['gluten', 'dairy', 'nuts', 'peanuts', 'shellfish', 'soy', 'eggs', 'fish']
-
 
 def validate_expiry_datetime(expiry_datetime):
     """

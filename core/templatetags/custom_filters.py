@@ -13,6 +13,21 @@ register = template.Library()
 
 
 # ============================================================================
+# LOCATION UTILITIES
+# ============================================================================
+
+@register.filter
+def location_display(slug):
+    """Convert location slug to human-readable display name"""
+    try:
+        from core.choices import get_location_display_name
+        return get_location_display_name(slug)
+    except Exception:
+        # Fallback to title-casing the slug
+        return slug.replace('_', ' ').title() if slug else ''
+
+
+# ============================================================================
 # DICTIONARY & LIST UTILITIES
 # ============================================================================
 

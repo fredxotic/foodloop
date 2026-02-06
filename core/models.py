@@ -1,6 +1,7 @@
 """
 Optimized Models for FoodLoop
 Phase 1: GPS fields removed, simple location text only
+Phase 2: Zone-based location standardization with controlled vocabulary
 """
 from django.db import models
 from django.contrib.auth.models import User
@@ -9,6 +10,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.templatetags.static import static
 from django.core.exceptions import ValidationError
 from .validators import validate_phone_number, validate_dietary_tags, validate_image_size
+from .choices import get_flat_location_choices, validate_location_choice
 import uuid
 import logging
 import re
@@ -60,7 +62,7 @@ class UserProfile(TimeStampedModel):
         db_index=True
     )
     
-    # Contact & Location (SIMPLIFIED)
+    # Contact & Location (STANDARDIZED - Zone-Based)
     phone_number = models.CharField(
         max_length=15, 
         blank=True,
@@ -68,9 +70,12 @@ class UserProfile(TimeStampedModel):
         validators=[validate_phone_number]
     )
     location = models.CharField(
-        max_length=255,
+        max_length=50,
+        choices=get_flat_location_choices(),
         blank=True,
-        help_text="City or neighborhood (e.g., 'Westlands, Nairobi')"
+        validators=[validate_location_choice],
+        help_text="Select your zone/neighborhood for accurate matching",
+        db_index=True  # Index for efficient location-based queries
     )
     
     # Profile
@@ -223,10 +228,18 @@ class Donation(TimeStampedModel):
     pickup_start = models.DateTimeField()
     pickup_end = models.DateTimeField()
     
-    # Location (SIMPLIFIED - Text only)
+    # Location (STANDARDIZED - Zone-Based with optional details)
     pickup_location = models.CharField(
+        max_length=50,
+        choices=get_flat_location_choices(),
+        validators=[validate_location_choice],
+        help_text="Select pickup zone/neighborhood",
+        db_index=True  # Index for efficient location-based queries
+    )
+    pickup_details = models.CharField(
         max_length=255,
-        help_text="Full address or meeting point"
+        blank=True,
+        help_text="Optional: Specific address, landmark, or meeting point within the zone"
     )
     
     # Status

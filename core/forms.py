@@ -1,5 +1,6 @@
 """
 Optimized Forms for FoodLoop - Phase 1 Complete
+Phase 2: Zone-based location standardization
 """
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
@@ -10,6 +11,7 @@ from datetime import timedelta
 import re
 from .models import UserProfile, Donation, Rating
 from .validators import validate_phone_number
+from .choices import LOCATION_CHOICES, get_flat_location_choices
 
 
 class SignUpForm(UserCreationForm):
@@ -48,14 +50,13 @@ class SignUpForm(UserCreationForm):
             'placeholder': '+254712345678'
         })
     )
-    location = forms.CharField(
-        max_length=255,
+    location = forms.ChoiceField(
+        choices=LOCATION_CHOICES,
         required=True,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'e.g., Westlands, Nairobi'
+        widget=forms.Select(attrs={
+            'class': 'form-select'
         }),
-        help_text="City or neighborhood"
+        help_text="Select your zone/neighborhood for accurate matching"
     )
     user_type = forms.ChoiceField(
         choices=UserProfile.USER_TYPE_CHOICES,
@@ -167,9 +168,8 @@ class ProfileUpdateForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': '+254712345678'
             }),
-            'location': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'e.g., Westlands, Nairobi'
+            'location': forms.Select(attrs={
+                'class': 'form-select'
             }),
             'bio': forms.Textarea(attrs={
                 'class': 'form-control',
@@ -185,6 +185,9 @@ class ProfileUpdateForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
+        
+        # Set location choices
+        self.fields['location'].choices = LOCATION_CHOICES
         
         if self.user:
             self.fields['first_name'].initial = self.user.first_name
@@ -294,7 +297,7 @@ class DonationForm(forms.ModelForm):
         fields = [
             'title', 'food_category', 'description', 'quantity',
             'expiry_datetime', 'pickup_start', 'pickup_end',
-            'pickup_location', 'image', 'dietary_tags',
+            'pickup_location', 'pickup_details', 'image', 'dietary_tags',
             'estimated_calories', 'ingredients_list', 'allergen_info'
         ]
         widgets = {
@@ -326,9 +329,12 @@ class DonationForm(forms.ModelForm):
                 'class': 'form-control',
                 'type': 'datetime-local'
             }),
-            'pickup_location': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Full address or meeting point'
+            'pickup_location': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+            'pickup_details': forms.TextInput(attrs={
+                'class': 'form-control pl-12',
+                'placeholder': 'Optional: Specific address, landmark, or meeting point'
             }),
             'image': forms.FileInput(attrs={
                 'class': 'form-control',
@@ -352,6 +358,9 @@ class DonationForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        
+        # Set location choices
+        self.fields['pickup_location'].choices = LOCATION_CHOICES
         
         # Set minimum datetime to now
         now = timezone.now()
@@ -465,6 +474,12 @@ class NutritionSearchForm(forms.Form):
         }),
         label='Search'
     )
+    location = forms.ChoiceField(
+        required=False,
+        choices=[('', 'All Locations')],
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label='Location Zone'
+    )
     food_category = forms.ChoiceField(
         required=False,
         choices=[('', 'All Categories')] + Donation.FOOD_CATEGORY_CHOICES,
@@ -506,3 +521,9 @@ class NutritionSearchForm(forms.Form):
         }),
         label='Dietary Tags'
     )
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Dynamically load location choices
+        from .choices import get_flat_location_choices
+        self.fields['location'].choices = [('', 'All Locations')] + get_flat_location_choices()[1:]  # Skip empty choice from model

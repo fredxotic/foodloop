@@ -145,23 +145,30 @@
                     {% endif %}
                 </div>
 
-                <!-- Pickup Location (Text-based, no GPS) -->
+                <!-- Pickup Location (Zone-Based Selection) -->
                 <div>
                     <label for="{{ form.pickup_location.id_for_label }}" class="block text-sm font-bold text-slate-700 mb-2">
-                        Pickup Location <span class="text-red-500">*</span>
+                        Pickup Zone <span class="text-red-500">*</span>
                     </label>
-                    <div class="relative">
-                        <i class="fas fa-map-marker-alt absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                        <input type="text" 
-                               name="{{ form.pickup_location.name }}" 
-                               id="{{ form.pickup_location.id_for_label }}"
-                               value="{{ form.pickup_location.value|default:'' }}"
-                               placeholder="Enter street address or landmark"
-                               class="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-sm sm:text-base">
-                    </div>
-                    <p class="text-xs text-slate-500 mt-1.5">Example: "123 Main St, Springfield" or "Community Center Entrance"</p>
+                    {{ form.pickup_location }}
+                    <p class="text-xs text-slate-500 mt-1.5">Select the general area/zone for pickup</p>
                     {% if form.pickup_location.errors %}
                         <p class="text-xs text-red-600 mt-1">{{ form.pickup_location.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Pickup Details (Optional Specific Address) -->
+                <div>
+                    <label for="{{ form.pickup_details.id_for_label }}" class="block text-sm font-bold text-slate-700 mb-2">
+                        Specific Address <span class="text-slate-400 font-normal">(Optional)</span>
+                    </label>
+                    <div class="relative">
+                        <i class="fas fa-map-pin absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                        {{ form.pickup_details }}
+                    </div>
+                    <p class="text-xs text-slate-500 mt-1.5">Example: "123 Main St, Apt 4" or "Behind Community Center"</p>
+                    {% if form.pickup_details.errors %}
+                        <p class="text-xs text-red-600 mt-1">{{ form.pickup_details.errors.0 }}</p>
                     {% endif %}
                 </div>
 

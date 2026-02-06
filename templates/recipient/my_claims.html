@@ -1,6 +1,7 @@
 {% extends 'base/base.html' %}
 {% load static %}
 {% load humanize %}
+{% load custom_filters %}
 
 {% block title %}My Claims - FoodLoop{% endblock %}
 
@@ -59,7 +60,7 @@
                 <div class="flex flex-col sm:flex-row sm:items-center gap-3 text-sm text-slate-500">
                     <span class="flex items-center gap-1.5"><i class="fas fa-user-circle text-slate-400"></i> Donor: {{ donation.donor.first_name }}</span>
                     <span class="hidden sm:block text-slate-300">•</span>
-                    <span class="flex items-center gap-1.5"><i class="fas fa-location-dot text-slate-400"></i> {{ donation.pickup_location }}</span>
+                    <span class="flex items-center gap-1.5"><i class="fas fa-location-dot text-slate-400"></i> {{ donation.pickup_location|location_display }}</span>
                 </div>
                 
                 {% if donation.status == 'claimed' %}

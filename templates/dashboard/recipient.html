@@ -1,6 +1,7 @@
 {% extends 'base/base.html' %}
 {% load static %}
 {% load humanize %}
+{% load custom_filters %}
 
 {% block title %}My Dashboard - FoodLoop{% endblock %}
 
@@ -84,7 +85,7 @@
                                 </div>
                                 <div class="flex flex-wrap gap-2 sm:gap-3 text-xs sm:text-sm text-slate-500 mb-2">
                                     <span class="flex items-center gap-1"><i class="fas fa-user"></i> {{ donation.donor.get_full_name|default:donation.donor.username }}</span>
-                                    <span class="flex items-center gap-1"><i class="fas fa-map-marker-alt"></i> {{ donation.pickup_location|truncatewords:3 }}</span>
+                                    <span class="flex items-center gap-1"><i class="fas fa-map-marker-alt"></i> {{ donation.pickup_location|location_display }}</span>
                                 </div>
                                 {% if donation.pickup_start %}
                                 <p class="text-xs text-slate-600 flex items-center gap-1">
@@ -139,7 +140,7 @@
                             
                             <div class="flex flex-wrap gap-2 text-xs text-slate-500 mb-3">
                                 <span class="flex items-center gap-1"><i class="fas fa-box"></i> {{ donation.quantity }}</span>
-                                <span class="flex items-center gap-1"><i class="fas fa-map-marker-alt"></i> {{ donation.pickup_location|truncatewords:2 }}</span>
+                                <span class="flex items-center gap-1"><i class="fas fa-map-marker-alt"></i> {{ donation.pickup_location|location_display }}</span>
                             </div>
 
                             <!-- Dietary Tags -->

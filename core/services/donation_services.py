@@ -313,14 +313,17 @@ class DonationService(BaseService):
 
     @classmethod
     def _apply_search_filters(cls, queryset, query_params: Dict):
-        """Apply search filters efficiently (excluding nutrition_score which is now a property)"""
-        # Text search
+        """Apply search filters efficiently with zone-based exact location matching"""
+        # Text search (title and description only - location is now exact match)
         if search_query := query_params.get('q'):
             queryset = queryset.filter(
                 Q(title__icontains=search_query) |
-                Q(description__icontains=search_query) |
-                Q(pickup_location__icontains=search_query)
+                Q(description__icontains=search_query)
             )
+        
+        # Location filter (EXACT zone matching - no fuzzy search)
+        if location := query_params.get('location'):
+            queryset = queryset.filter(pickup_location=location)
         
         # Category filter
         if category := query_params.get('food_category'):
