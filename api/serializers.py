@@ -90,19 +90,7 @@ class DonationSerializer(serializers.ModelSerializer):
     
     def get_time_until_expiry(self, obj):
         """Get human-readable time until expiry"""
-        time_left = obj.time_until_expiry()
-        if time_left is None:
-            return "Expired"
-        
-        hours = time_left.total_seconds() / 3600
-        if hours < 1:
-            minutes = time_left.total_seconds() / 60
-            return f"{int(minutes)} minutes"
-        elif hours < 24:
-            return f"{int(hours)} hours"
-        else:
-            days = hours / 24
-            return f"{int(days)} days"
+        return obj.get_time_until_expiry()
     
     def get_is_expired(self, obj):
         """Check if donation is expired"""
@@ -118,7 +106,12 @@ class DonationSerializer(serializers.ModelSerializer):
     
     def get_image_url(self, obj):
         """Get image URL"""
-        return obj.get_image_url()
+        if obj.image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None
 
 
 class RatingSerializer(serializers.ModelSerializer):

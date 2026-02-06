@@ -4,14 +4,16 @@ from core.models import UserProfile
 class IsDonorOrReadOnly(permissions.BasePermission):
     """
     Custom permission to only allow donors to create donations.
+    Only the donation owner (donor) can modify or delete their donations.
     Other users can only view donations.
     """
     
     def has_permission(self, request, view):
+        # Allow authenticated users to read
         if request.method in permissions.SAFE_METHODS:
             return request.user and request.user.is_authenticated
         
-        # Check if user has a profile and is a donor
+        # For write operations (POST, PUT, PATCH, DELETE), user must be a donor
         try:
             return (
                 request.user and 
@@ -22,9 +24,21 @@ class IsDonorOrReadOnly(permissions.BasePermission):
             return False
     
     def has_object_permission(self, request, view, obj):
+        """Object-level permission check for donations"""
+        # Allow read access to authenticated users
         if request.method in permissions.SAFE_METHODS:
             return True
-        return obj.donor == request.user
+        
+        # For PUT, PATCH, DELETE: explicitly verify ownership
+        # Only the donor who created the donation can modify/delete it
+        if request.method in ['PUT', 'PATCH', 'DELETE']:
+            return (
+                hasattr(obj, 'donor') and 
+                obj.donor == request.user
+            )
+        
+        # For other write operations (POST handled in has_permission)
+        return False
 
 
 class IsRecipientOrReadOnly(permissions.BasePermission):
@@ -48,12 +62,27 @@ class IsRecipientOrReadOnly(permissions.BasePermission):
 class IsOwnerOrReadOnly(permissions.BasePermission):
     """
     Custom permission to only allow owners of an object to edit it.
+    Explicitly checks ownership for PUT, PATCH, and DELETE operations.
+    Staff users have full access.
     """
     
     def has_object_permission(self, request, view, obj):
+        """Object-level permission for user-owned objects"""
+        # Allow read access to authenticated users
         if request.method in permissions.SAFE_METHODS:
             return request.user and request.user.is_authenticated
-            
-        if hasattr(obj, 'user'):
-            return obj.user == request.user
-        return obj == request.user
+        
+        # Staff users have full access
+        if request.user and request.user.is_staff:
+            return True
+        
+        # For PUT, PATCH, DELETE: explicitly verify ownership
+        if request.method in ['PUT', 'PATCH', 'DELETE']:
+            # Check if object has a 'user' attribute (like UserProfile)
+            if hasattr(obj, 'user'):
+                return obj.user == request.user
+            # Check if object is the user itself
+            return obj == request.user
+        
+        # Deny other write operations by default
+        return False

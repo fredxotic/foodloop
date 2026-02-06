@@ -242,10 +242,7 @@ class Command(BaseCommand):
                 )
                 
                 if created:
-                    # Calculate nutrition score if you have that method
-                    if hasattr(donation, '_calculate_nutrition_score'):
-                        donation.nutrition_score = donation._calculate_nutrition_score()
-                        donation.save()
+                    # nutrition_score is now a dynamic property - no need to calculate
                     self.stdout.write(f' Created donation: {donation.title}')
         
         self.stdout.write(

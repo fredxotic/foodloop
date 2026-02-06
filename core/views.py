@@ -104,39 +104,22 @@ def signup_view(request):
         
         if form.is_valid():
             try:
-                from django.db import transaction
+                from django.db import transaction, IntegrityError
                 
                 with transaction.atomic():
-                    # Check if user already exists (case-insensitive)
-                    username = form.cleaned_data['username'].lower()
-                    email = form.cleaned_data['email'].lower()
-                    
-                    if User.objects.filter(username__iexact=username).exists():
-                        messages.error(request, f"Username '{username}' is already taken.")
-                        return render(request, 'auth/signup.html', {'form': form})
-                    
-                    if User.objects.filter(email__iexact=email).exists():
-                        messages.error(request, f"Email '{email}' is already registered.")
-                        return render(request, 'auth/signup.html', {'form': form})
-                    
-                    # Create user
+                    # Create user - let database handle uniqueness constraints
                     user = form.save(commit=False)
-                    user.email = email
-                    user.username = username
+                    user.email = form.cleaned_data['email'].lower()
+                    user.username = form.cleaned_data['username'].lower()
                     user.save()
                     
-                    # Use get_or_create to prevent duplicates
-                    profile, created = UserProfile.objects.get_or_create(
+                    # Create profile
+                    profile = UserProfile.objects.create(
                         user=user,
-                        defaults={
-                            'user_type': form.cleaned_data['user_type'],
-                            'phone_number': form.cleaned_data['phone_number'],
-                            'location': form.cleaned_data['location'],
-                        }
+                        user_type=form.cleaned_data['user_type'],
+                        phone_number=form.cleaned_data['phone_number'],
+                        location=form.cleaned_data['location'],
                     )
-                    
-                    if not created:
-                        logger.warning(f"Profile already exists for user: {user.username}")
                     
                     logger.info(f"New user registered: {user.username} ({profile.get_user_type_display()})")
                     
@@ -155,6 +138,15 @@ def signup_view(request):
                     )
                     return redirect('core:dashboard')
                     
+            except IntegrityError as e:
+                error_message = str(e).lower()
+                if 'username' in error_message:
+                    messages.error(request, f"Username '{form.cleaned_data['username']}' is already taken.")
+                elif 'email' in error_message:
+                    messages.error(request, f"Email '{form.cleaned_data['email']}' is already registered.")
+                else:
+                    messages.error(request, "This account already exists. Please try logging in.")
+                logger.warning(f"Signup integrity error: {e}")
             except Exception as e:
                 logger.error(f"Signup error for {form.cleaned_data.get('username', 'unknown')}: {e}", exc_info=True)
                 messages.error(request, "An error occurred during registration. Please try again.")
@@ -1087,7 +1079,7 @@ def contact_view(request):
                     subject=f"Contact Form: {subject}",
                     message=full_message,
                     from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=['support@foodloop.com'],
+                    recipient_list=[settings.SUPPORT_EMAIL],
                     fail_silently=True,
                 )
 

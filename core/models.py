@@ -258,10 +258,7 @@ class Donation(TimeStampedModel):
         blank=True,
         validators=[MinValueValidator(0)]
     )
-    nutrition_score = models.IntegerField(
-        default=50,
-        validators=[MinValueValidator(0), MaxValueValidator(100)]
-    )
+    # Note: nutrition_score is now a dynamic property (see below)
     ingredients_list = models.TextField(blank=True)
     allergen_info = models.TextField(blank=True)
     
@@ -285,6 +282,55 @@ class Donation(TimeStampedModel):
     def is_pickup_overdue(self) -> bool:
         """Check if pickup window has passed"""
         return timezone.now() > self.pickup_end
+    
+    @property
+    def nutrition_score(self) -> int:
+        """Calculate nutrition score dynamically based on category and real-time freshness
+        
+        This property ensures the score always reflects current freshness,
+        updating automatically as time passes without requiring database updates.
+        """
+        score = 50  # Base score
+        
+        # Category bonuses
+        category_bonus = {
+            'fruits': 25, 
+            'vegetables': 25, 
+            'protein': 20,
+            'grains': 15, 
+            'dairy': 10, 
+            'pantry': 5,
+            'prepared': 10,
+            'beverages': 5,
+            'other': 5,
+        }
+        score += category_bonus.get(self.food_category, 0)
+        
+        # Freshness bonus (based on time until expiry) - REAL-TIME
+        if self.expiry_datetime:
+            now = timezone.now()
+            hours_until_expiry = (self.expiry_datetime - now).total_seconds() / 3600
+            
+            if hours_until_expiry > 48:
+                score += 15  # Very fresh (>2 days)
+            elif hours_until_expiry > 24:
+                score += 10  # Fresh (>1 day)
+            elif hours_until_expiry > 12:
+                score += 5   # Moderate (>12 hours)
+            elif hours_until_expiry <= 0:
+                score -= 20  # Expired - penalize heavily
+            # No bonus for 0-12 hours
+        
+        # Calories penalty (if too high)
+        if self.estimated_calories:
+            if self.estimated_calories > 500:
+                score -= 5  # High calorie penalty
+        
+        # Dietary tags bonus (more tags = more accessible)
+        if self.dietary_tags:
+            score += min(len(self.dietary_tags) * 2, 10)  # Max 10 bonus
+        
+        return min(100, max(0, score))  # Clamp between 0-100
     
     def claim(self, recipient: User):
         """Claim this donation"""
@@ -402,7 +448,7 @@ class Notification(TimeStampedModel):
     message = models.TextField()
     related_donation = models.ForeignKey(
         Donation,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name='notifications'

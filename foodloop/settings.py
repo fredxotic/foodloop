@@ -250,6 +250,7 @@ else:
     EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='FoodLoop <noreply@foodloop.com>')
+SUPPORT_EMAIL = config('SUPPORT_EMAIL', default='support@foodloop.com')
 
 # =============================================================================
 # SECURITY & AUTH

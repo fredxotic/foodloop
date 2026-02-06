@@ -7,6 +7,7 @@ Includes user stats, donation metrics, nutrition impact, and system health.
 
 from django.utils import timezone
 from django.db.models import Count, Avg, Sum, Q, F
+from django.db.models.functions import TruncDate
 from django.contrib.auth.models import User
 from datetime import timedelta, datetime
 from typing import Dict, List, Any, Optional
@@ -216,9 +217,9 @@ class AnalyticsService:
                 except Exception:
                     pass
 
-            # Get donations by day
-            donations = Donation.objects.filter(base_query).extra(
-                select={'day': 'DATE(created_at)'}
+            # Get donations by day using TruncDate
+            donations = Donation.objects.filter(base_query).annotate(
+                day=TruncDate('created_at')
             ).values('day').annotate(
                 count=Count('id'),
                 completed=Count('id', filter=Q(status=Donation.COMPLETED))
@@ -229,12 +230,15 @@ class AnalyticsService:
                 count=Count('id')
             ).order_by('-count')
             
+            # Convert queryset to list for processing
+            daily_trends = list(donations)
+            
             trends = {
                 'period_days': days,
-                'daily_trends': list(donations),
+                'daily_trends': daily_trends,
                 'category_breakdown': list(categories),
-                'peak_donation_day': max(donations, key=lambda x: x['count'])['day'] if donations else None,
-                'total_period': sum(d['count'] for d in donations)
+                'peak_donation_day': max(daily_trends, key=lambda x: x['count'])['day'] if daily_trends else None,
+                'total_period': sum(d['count'] for d in daily_trends)
             }
             
             # Cache for 1 hour

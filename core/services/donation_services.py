@@ -24,6 +24,71 @@ class DonationService(BaseService):
     EXPIRY_REMINDER_HOURS = [1, 6, 24]
 
     @classmethod
+    def cleanup_stale_claims(cls) -> ServiceResponse:
+        """Cleanup stale claimed donations where pickup window has passed
+        
+        Identifies donations with:
+        - status='claimed'
+        - pickup_end is in the past
+        - marked_completed_at is null
+        
+        Reverts these donations to:
+        - status='available'
+        - recipient=None
+        - claimed_at=None
+        """
+        try:
+            with transaction.atomic():
+                now = timezone.now()
+                
+                # Find stale claims
+                stale_donations = Donation.objects.select_for_update().filter(
+                    status=Donation.CLAIMED,
+                    pickup_end__lt=now,
+                    completed_at__isnull=True
+                )
+                
+                # Track stats
+                count = stale_donations.count()
+                affected_donations = []
+                
+                # Process each stale donation
+                for donation in stale_donations:
+                    # Store recipient before clearing
+                    old_recipient = donation.recipient
+                    
+                    # Revert to available
+                    donation.status = Donation.AVAILABLE
+                    donation.recipient = None
+                    donation.claimed_at = None
+                    donation.save(update_fields=['status', 'recipient', 'claimed_at'])
+                    
+                    affected_donations.append(donation)
+                    
+                    # Notify the recipient that their claim expired
+                    if old_recipient:
+                        NotificationService.create_notification(
+                            user=old_recipient,
+                            notification_type='system',
+                            title="Claim Expired",
+                            message=f"Your claim on '{donation.title}' has expired as the pickup window has passed.",
+                            related_donation=donation
+                        )
+                    
+                    logger.info(f"Cleaned up stale claim for donation {donation.id}")
+                
+                return cls.success(
+                    data={
+                        'count': count,
+                        'donations': affected_donations
+                    },
+                    message=f"Successfully cleaned up {count} stale claim(s)"
+                )
+                
+        except Exception as e:
+            return cls.handle_exception(e, "stale claim cleanup")
+
+    @classmethod
     def create_donation(cls, donor: User, form_data: Dict, image_file=None) -> ServiceResponse:
         """Create a new donation with comprehensive validation"""
         try:
@@ -36,10 +101,7 @@ class DonationService(BaseService):
                 # Build donation instance
                 donation = cls._build_donation_instance(donor, form_data, image_file)
                 
-                # Calculate nutrition score
-                donation.nutrition_score = cls._calculate_nutrition_score(donation)
-                
-                # Save donation
+                # Save donation (nutrition_score is now a dynamic property)
                 donation.save()
                 
                 # Send notifications to nearby recipients (simplified - no GPS)
@@ -223,7 +285,7 @@ class DonationService(BaseService):
                 Prefetch('ratings', queryset=Rating.objects.all())
             )
             
-            # Apply filters
+            # Apply filters (excluding nutrition_score which is now a property)
             queryset = cls._apply_search_filters(queryset, query_params)
             
             # Filter out expired donations at database level
@@ -232,7 +294,18 @@ class DonationService(BaseService):
             # Order by created date (newest first)
             queryset = queryset.order_by('-created_at')
             
-            return list(queryset)
+            # Convert to list and apply nutrition_score filter if needed
+            donations = list(queryset)
+            
+            # Apply nutrition score filter in Python (since it's a dynamic property)
+            if min_score := query_params.get('min_nutrition_score'):
+                try:
+                    min_score_int = int(min_score)
+                    donations = [d for d in donations if d.nutrition_score >= min_score_int]
+                except (ValueError, TypeError):
+                    pass  # Invalid input, ignore filter
+            
+            return donations
         
         except Exception as e:
             logger.error(f"Search error: {e}")
@@ -240,7 +313,7 @@ class DonationService(BaseService):
 
     @classmethod
     def _apply_search_filters(cls, queryset, query_params: Dict):
-        """Apply search filters efficiently"""
+        """Apply search filters efficiently (excluding nutrition_score which is now a property)"""
         # Text search
         if search_query := query_params.get('q'):
             queryset = queryset.filter(
@@ -260,11 +333,8 @@ class DonationService(BaseService):
             except (ValueError, TypeError):
                 pass  # Invalid input, ignore filter
         
-        if min_score := query_params.get('min_nutrition_score'):
-            try:
-                queryset = queryset.filter(nutrition_score__gte=int(min_score))
-            except (ValueError, TypeError):
-                pass  # Invalid input, ignore filter
+        # Note: min_nutrition_score filter is now applied in search_donations()
+        # after querying, since nutrition_score is a dynamic property
         
         # Dietary tags filter
         dietary_tags = query_params.get('dietary_tags', [])
@@ -333,48 +403,8 @@ class DonationService(BaseService):
             logger.error(f"Stats error for user {user.id}: {e}")
             return {}
 
-    @classmethod
-    def _calculate_nutrition_score(cls, donation: Donation) -> int:
-        """Calculate nutrition score based on category and freshness"""
-        score = 50  # Base score
-        
-        # Category bonuses
-        category_bonus = {
-            'fruits': 25, 
-            'vegetables': 25, 
-            'protein': 20,
-            'grains': 15, 
-            'dairy': 10, 
-            'pantry': 5,
-            'prepared': 10,
-            'beverages': 5,
-            'other': 5,
-        }
-        score += category_bonus.get(donation.food_category, 0)
-        
-        # Freshness bonus (based on time until expiry)
-        if donation.expiry_datetime:
-            now = timezone.now()
-            hours_until_expiry = (donation.expiry_datetime - now).total_seconds() / 3600
-            
-            if hours_until_expiry > 48:
-                score += 15  # Very fresh (>2 days)
-            elif hours_until_expiry > 24:
-                score += 10  # Fresh (>1 day)
-            elif hours_until_expiry > 12:
-                score += 5   # Moderate (>12 hours)
-            # No bonus for < 12 hours
-        
-        # Calories penalty (if too high or unknown)
-        if donation.estimated_calories:
-            if donation.estimated_calories > 500:
-                score -= 5  # High calorie penalty
-        
-        # Dietary tags bonus (more tags = more accessible)
-        if donation.dietary_tags:
-            score += min(len(donation.dietary_tags) * 2, 10)  # Max 10 bonus
-        
-        return min(100, max(0, score))  # Clamp between 0-100
+    # Note: _calculate_nutrition_score is now a dynamic property on the Donation model
+    # See Donation.nutrition_score property for real-time calculation
 
     @classmethod
     def cancel_donation(cls, donation_id: int, user: User) -> ServiceResponse:
@@ -421,7 +451,7 @@ class DonationService(BaseService):
 
     @classmethod
     def get_donation_detail(cls, donation_id: int, user: Optional[User] = None) -> Optional[Donation]:
-        """Get detailed donation with optimized queries"""
+        """Get detailed donation with optimized queries and expiry validation"""
         try:
             queryset = Donation.objects.select_related(
                 'donor', 'donor__profile',
@@ -431,6 +461,15 @@ class DonationService(BaseService):
             )
             
             donation = queryset.get(id=donation_id)
+            
+            # Check if donation is expired and update status if needed
+            if donation.status == Donation.AVAILABLE and donation.is_expired():
+                # Auto-expire if it's available but past expiry
+                with transaction.atomic():
+                    donation.status = Donation.EXPIRED
+                    donation.save(update_fields=['status'])
+                    logger.info(f"Auto-expired donation {donation_id}")
+            
             return donation
             
         except Donation.DoesNotExist:

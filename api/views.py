@@ -110,6 +110,188 @@ class DonationViewSet(viewsets.ModelViewSet):
             return Response({'error': response.message}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    def update(self, request, *args, **kwargs):
+        """Update donation (PUT) - with explicit ownership verification"""
+        from rest_framework.exceptions import PermissionDenied
+        
+        try:
+            # Get the donation instance
+            donation = self.get_object()  # This triggers permission checks
+            
+        except PermissionDenied:
+            # Re-raise permission errors so they return 403
+            raise
+        except Donation.DoesNotExist:
+            return Response(
+                {'error': 'Donation not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        try:
+            # Explicit ownership verification before service layer
+            if donation.donor != request.user:
+                logger.warning(
+                    f"Unauthorized update attempt: User {request.user.id} "
+                    f"tried to update donation {donation.id} owned by {donation.donor.id}"
+                )
+                return Response(
+                    {'error': 'You do not have permission to update this donation'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            # Verify user is a donor
+            if request.user.profile.user_type != UserProfile.DONOR:
+                return Response(
+                    {'error': 'Only donors can update donations'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            # Prevent updates to completed/cancelled donations
+            if donation.status in [Donation.COMPLETED, Donation.CANCELLED]:
+                return Response(
+                    {'error': f'Cannot update {donation.status} donations'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Proceed with serializer update
+            serializer = self.get_serializer(donation, data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            
+            logger.info(f"Donation {donation.id} updated by owner {request.user.id}")
+            return Response(serializer.data)
+            
+        except Exception as e:
+            logger.error(f"Error updating donation: {str(e)}")
+            return Response(
+                {'error': 'Failed to update donation'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    def partial_update(self, request, *args, **kwargs):
+        """Partial update donation (PATCH) - with explicit ownership verification"""
+        from rest_framework.exceptions import PermissionDenied
+        
+        try:
+            # Get the donation instance
+            donation = self.get_object()  # This triggers permission checks
+            
+        except PermissionDenied:
+            # Re-raise permission errors so they return 403
+            raise
+        except Donation.DoesNotExist:
+            return Response(
+                {'error': 'Donation not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        try:
+            # Explicit ownership verification before service layer
+            if donation.donor != request.user:
+                logger.warning(
+                    f"Unauthorized partial_update attempt: User {request.user.id} "
+                    f"tried to update donation {donation.id} owned by {donation.donor.id}"
+                )
+                return Response(
+                    {'error': 'You do not have permission to update this donation'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            # Verify user is a donor
+            if request.user.profile.user_type != UserProfile.DONOR:
+                return Response(
+                    {'error': 'Only donors can update donations'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            # Prevent updates to completed/cancelled donations
+            if donation.status in [Donation.COMPLETED, Donation.CANCELLED]:
+                return Response(
+                    {'error': f'Cannot update {donation.status} donations'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Proceed with partial serializer update
+            serializer = self.get_serializer(
+                donation, 
+                data=request.data, 
+                partial=True
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            
+            logger.info(f"Donation {donation.id} partially updated by owner {request.user.id}")
+            return Response(serializer.data)
+            
+        except Exception as e:
+            logger.error(f"Error partially updating donation: {str(e)}")
+            return Response(
+                {'error': 'Failed to update donation'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    def destroy(self, request, *args, **kwargs):
+        """Delete (cancel) donation - with explicit ownership verification
+        
+        Note: We don't hard-delete donations. Instead, we cancel them
+        to maintain data integrity and audit trail.
+        """
+        from rest_framework.exceptions import PermissionDenied
+        
+        try:
+            # Get the donation instance
+            donation = self.get_object()  # This triggers permission checks
+            
+        except PermissionDenied:
+            # Re-raise permission errors so they return 403
+            raise
+        except Donation.DoesNotExist:
+            return Response(
+                {'error': 'Donation not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        try:
+            # Explicit ownership verification before service layer
+            if donation.donor != request.user:
+                logger.warning(
+                    f"Unauthorized delete attempt: User {request.user.id} "
+                    f"tried to delete donation {donation.id} owned by {donation.donor.id}"
+                )
+                return Response(
+                    {'error': 'You do not have permission to delete this donation'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            # Verify user is a donor
+            if request.user.profile.user_type != UserProfile.DONOR:
+                return Response(
+                    {'error': 'Only donors can delete donations'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            # Use cancel service instead of hard delete
+            response = DonationService.cancel_donation(donation.id, request.user)
+            
+            if response.success:
+                logger.info(f"Donation {donation.id} cancelled/deleted by owner {request.user.id}")
+                return Response(
+                    {'status': 'Donation cancelled successfully'},
+                    status=status.HTTP_204_NO_CONTENT
+                )
+            
+            return Response(
+                {'error': response.message},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        except Exception as e:
+            logger.error(f"Error deleting donation: {str(e)}")
+            return Response(
+                {'error': 'Failed to delete donation'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     @action(detail=False, methods=['get'])
     def my_donations(self, request):
@@ -149,6 +331,153 @@ class UserViewSet(viewsets.ModelViewSet):
         if self.request.user.is_staff:
             return User.objects.all()
         return User.objects.filter(id=self.request.user.id)
+    
+    def update(self, request, *args, **kwargs):
+        """Update user (PUT) - with explicit ownership verification"""
+        from rest_framework.exceptions import PermissionDenied
+        
+        try:
+            # Get the user instance
+            user = self.get_object()  # This triggers permission checks
+            
+        except PermissionDenied:
+            # Re-raise permission errors so they return 403
+            raise
+        except User.DoesNotExist:
+            return Response(
+                {'error': 'User not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        try:
+            # Explicit ownership verification
+            if user != request.user and not request.user.is_staff:
+                logger.warning(
+                    f"Unauthorized update attempt: User {request.user.id} "
+                    f"tried to update user {user.id}"
+                )
+                return Response(
+                    {'error': 'You do not have permission to update this user'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            # Proceed with serializer update
+            serializer = self.get_serializer(user, data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            
+            logger.info(f"User {user.id} updated by owner {request.user.id}")
+            return Response(serializer.data)
+            
+        except Exception as e:
+            logger.error(f"Error updating user: {str(e)}")
+            return Response(
+                {'error': 'Failed to update user'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    def partial_update(self, request, *args, **kwargs):
+        """Partial update user (PATCH) - with explicit ownership verification"""
+        from rest_framework.exceptions import PermissionDenied
+        
+        try:
+            # Get the user instance
+            user = self.get_object()  # This triggers permission checks
+            
+        except PermissionDenied:
+            # Re-raise permission errors so they return 403
+            raise
+        except User.DoesNotExist:
+            return Response(
+                {'error': 'User not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        try:
+            # Explicit ownership verification
+            if user != request.user and not request.user.is_staff:
+                logger.warning(
+                    f"Unauthorized partial_update attempt: User {request.user.id} "
+                    f"tried to update user {user.id}"
+                )
+                return Response(
+                    {'error': 'You do not have permission to update this user'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            # Proceed with partial serializer update
+            serializer = self.get_serializer(
+                user, 
+                data=request.data, 
+                partial=True
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            
+            logger.info(f"User {user.id} partially updated by owner {request.user.id}")
+            return Response(serializer.data)
+            
+        except Exception as e:
+            logger.error(f"Error partially updating user: {str(e)}")
+            return Response(
+                {'error': 'Failed to update user'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    def destroy(self, request, *args, **kwargs):
+        """Delete user (DELETE) - with explicit ownership verification
+        
+        Note: User deletion should be handled carefully. Consider deactivation instead.
+        """
+        from rest_framework.exceptions import PermissionDenied
+        
+        try:
+            # Get the user instance
+            user = self.get_object()  # This triggers permission checks
+            
+        except PermissionDenied:
+            # Re-raise permission errors so they return 403
+            raise
+        except User.DoesNotExist:
+            return Response(
+                {'error': 'User not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        try:
+            # Explicit ownership verification
+            if user != request.user and not request.user.is_staff:
+                logger.warning(
+                    f"Unauthorized delete attempt: User {request.user.id} "
+                    f"tried to delete user {user.id}"
+                )
+                return Response(
+                    {'error': 'You do not have permission to delete this user'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            # Prevent users from deleting themselves (optional safety check)
+            if user == request.user:
+                return Response(
+                    {'error': 'You cannot delete your own account through this endpoint'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Staff can delete, but log it
+            logger.warning(f"User {user.id} deleted by staff {request.user.id}")
+            user.delete()
+            
+            return Response(
+                {'status': 'User deleted successfully'},
+                status=status.HTTP_204_NO_CONTENT
+            )
+            
+        except Exception as e:
+            logger.error(f"Error deleting user: {str(e)}")
+            return Response(
+                {'error': 'Failed to delete user'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     @action(detail=False, methods=['get'])
     def me(self, request):
